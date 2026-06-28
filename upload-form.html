@@ -1,403 +1,861 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Edge GeoIntelligence – Project Setup &amp; Service Selection</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- Leaflet + leaflet-geoman (local, no CDN) -->
-  <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
-  <link rel="stylesheet" href="lib/geoman/leaflet-geoman.css" />
-</head>
-<body>
-
-  <!-- Progress / brand bar -->
-  <div class="form-progress">
-    <span class="brand-pill"><span class="dot"></span> EDGE GeoIntelligence</span>
-    <span class="step-count" id="step-count">Step 1 of 5</span>
-  </div>
-
-  <main>
-
-    <!-- Intro card -->
-    <section class="card-intro">
-      <span class="tag">Project Setup</span>
-      <h1>Project Setup &amp; Service Selection</h1>
-      <p class="subhead">Tell us about your project and choose the services you need. We'll get back to you within 1–2 business days.</p>
-    </section>
-
-    <form action="#" method="POST" enctype="multipart/form-data" id="setup-form">
-
-      <!-- 1. Project details -->
-      <fieldset class="section" data-step="1">
-        <legend><span class="num">1.</span> Project details</legend>
-        <p class="section-desc">A few basics so we know what we're working on.</p>
-
-        <div class="field-group">
-          <label class="field-label" for="project_name">Project name <span class="req-dot">*</span></label>
-          <input type="text" id="project_name" name="project_name" placeholder="e.g. Donegal REE Survey 2026" required />
-        </div>
-
-        <div class="field-group">
-          <label class="field-label" for="organisation">Organisation / client <span class="req-dot">*</span></label>
-          <input type="text" id="organisation" name="organisation" placeholder="Company or client name" required />
-        </div>
-
-        <div class="field-group">
-          <label class="field-label" for="project_description">Short project description</label>
-          <textarea id="project_description" name="project_description" rows="3" placeholder="2–3 lines describing the project scope, location, and objectives…"></textarea>
-        </div>
-      </fieldset>
-
-      <!-- 2. Area of interest -->
-      <fieldset class="section" data-step="2">
-        <legend><span class="num">2.</span> Area of interest</legend>
-        <p class="section-desc">Draw your survey area on the map, or upload a boundary file.</p>
-
-        <div class="field-group">
-          <label class="field-label">Define your area</label>
-          <div class="inline-actions">
-            <button type="button" class="btn-outline" id="btn-draw-rectangle">Select area on map</button>
-            <span class="separator">or</span>
-            <label class="file-upload-label">
-              Upload boundary file
-              <input type="file" id="boundary_file" name="boundary_file" accept=".zip,.shp,.geojson,.kml,.csv" hidden />
-            </label>
-          </div>
-          <div class="helper">Click and drag on the satellite map to draw your survey area rectangle. The area will be calculated automatically.</div>
-        </div>
-
-        <!-- Leaflet satellite map -->
-        <div class="map-container" id="map-container">
-          <div class="map-loading" id="map-loading">
-            <div class="spinner"></div>
-            <span>Loading satellite map…</span>
-          </div>
-          <div class="map-canvas" id="map-canvas"></div>
-          <div class="map-controls">
-            <span class="map-hint" id="map-hint">Click "Select area on map" to begin</span>
-            <button type="button" class="btn-small" id="btn-clear-area" disabled>Clear selection</button>
-          </div>
-        </div>
-
-        <div class="settings-grid" style="margin-top: 14px;">
-          <div class="field-group">
-            <label class="field-label" for="calculated_area">Calculated area</label>
-            <input type="text" id="calculated_area" name="calculated_area" readonly placeholder="km² / ha" />
-            <div class="helper">Auto-filled when a rectangle is drawn on the map.</div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="country">Country / region</label>
-            <input type="text" id="country" name="country" placeholder="e.g. Ireland, Connemara" list="country-list" />
-            <datalist id="country-list">
-              <option value="Ireland"></option>
-              <option value="United Kingdom"></option>
-              <option value="Sweden"></option>
-              <option value="Finland"></option>
-              <option value="Canada"></option>
-              <option value="Australia"></option>
-              <option value="United States"></option>
-              <option value="Brazil"></option>
-            </datalist>
-          </div>
-        </div>
-
-        <input type="hidden" id="rect_sw" name="rect_sw" />
-        <input type="hidden" id="rect_ne" name="rect_ne" />
-      </fieldset>
-
-      <!-- 3. Service selection -->
-      <fieldset class="section section--blue" data-step="3">
-        <legend><span class="num">3.</span> Service selection</legend>
-        <p class="section-desc">Choose one or more services.</p>
-
-        <div class="checkbox-group">
-          <label class="option" for="svc_remote_ree">
-            <input type="checkbox" id="svc_remote_ree" name="services[]" value="remote_ree_kuth" />
-            <span>Remote REE–KUTH Modelling</span>
-          </label>
-          <label class="option" for="svc_onsite">
-            <input type="checkbox" id="svc_onsite" name="services[]" value="onsite_survey" />
-            <span>On-Site Survey + Platform Outputs</span>
-          </label>
-          <label class="option" for="svc_3d">
-            <input type="checkbox" id="svc_3d" name="services[]" value="3d_deposit_modelling" />
-            <span>3D Deposit Modelling (Leapfrog)</span>
-          </label>
-          <label class="option" for="svc_subscription">
-            <input type="checkbox" id="svc_subscription" name="services[]" value="platform_subscription" />
-            <span>Platform Subscription</span>
-          </label>
-          <label class="option" for="svc_full">
-            <input type="checkbox" id="svc_full" name="services[]" value="full_instruments" />
-            <span>Full Instruments + Platform Suite</span>
-          </label>
-          <label class="option" for="svc_expert">
-            <input type="checkbox" id="svc_expert" name="services[]" value="expert_modelling" />
-            <span>Expert Geo-Modelling Support</span>
-          </label>
-        </div>
-
-        <p class="helper note" style="margin-top: 10px; font-style: italic;">Select at least one core service.</p>
-
-        <hr class="divider" />
-
-        <label class="option option--quote" for="free_quote">
-          <input type="checkbox" id="free_quote" name="free_quote" value="true" />
-          <span><strong>I just want a free initial quote</strong> — tick this box to skip data upload on the next page.</span>
-        </label>
-      </fieldset>
-
-      <!-- 4. Detector and data options -->
-      <fieldset class="section" data-step="4">
-        <legend><span class="num">4.</span> Detector and data options</legend>
-        <p class="section-desc">What detector will be used for the survey?</p>
-
-        <div class="radio-group">
-          <label class="option" for="det_high">
-            <input type="radio" id="det_high" name="detector_type" value="high_resolution_gamma" />
-            <span>High-resolution gamma</span>
-          </label>
-          <label class="option" for="det_low">
-            <input type="radio" id="det_low" name="detector_type" value="low_resolution_gamma" />
-            <span>Low-resolution gamma</span>
-          </label>
-          <label class="option" for="det_own">
-            <input type="radio" id="det_own" name="detector_type" value="client_own" />
-            <span>Client's own detector</span>
-          </label>
-        </div>
-
-        <div class="field-group" style="margin-top: 14px;">
-          <label class="field-label" for="detector_model">Model / name <span class="optional">(if client's own)</span></label>
-          <input type="text" id="detector_model" name="detector_model" placeholder="e.g. RS-230, Exploranium GR-135" />
-        </div>
-      </fieldset>
-
-      <!-- 5. Contact & timing -->
-      <fieldset class="section" data-step="5">
-        <legend><span class="num">5.</span> Contact &amp; timing</legend>
-        <p class="section-desc">How should we reach you, and when do you want to start?</p>
-
-        <div class="settings-grid">
-          <div class="field-group">
-            <label class="field-label" for="contact_name">Primary contact name <span class="req-dot">*</span></label>
-            <input type="text" id="contact_name" name="contact_name" placeholder="Full name" required />
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="email">Email <span class="req-dot">*</span></label>
-            <input type="email" id="email" name="email" placeholder="name@example.com" required />
-          </div>
-        </div>
-
-        <div class="settings-grid">
-          <div class="field-group">
-            <label class="field-label" for="start_date">Preferred start date</label>
-            <input type="date" id="start_date" name="start_date" />
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="referral">How did you hear about us?</label>
-            <select id="referral" name="referral">
-              <option value="">— Please select —</option>
-              <option value="conference">Conference</option>
-              <option value="referral">Referral</option>
-              <option value="web">Web search</option>
-              <option value="existing_client">Existing client</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-        </div>
-      </fieldset>
-
-      <div class="actions">
-        <span class="required-hint"><span class="req-dot">*</span> Required fields</span>
-        <button type="submit" class="btn-primary">Submit &amp; continue</button>
-      </div>
-
-      <div class="footer-note">
-        EDGE Geointelligence · info@edgeengineers.net
-      </div>
-    </form>
-  </main>
-
-  <!-- Leaflet + leaflet-geoman (local, no CDN) -->
-  <script src="lib/leaflet/leaflet.js"></script>
-  <script src="lib/geoman/leaflet-geoman.js"></script>
-
-  <script>
-    // ---- Progress bar: highlight current section based on scroll ----
-    const sections = document.querySelectorAll('.section');
-    const stepCount = document.getElementById('step-count');
-    const totalSteps = sections.length;
-
-    function updateProgress() {
-      let current = 1;
-      const mid = window.innerHeight / 2;
-      sections.forEach((s, i) => {
-        const r = s.getBoundingClientRect();
-        if (r.top <= mid) current = i + 1;
-      });
-      stepCount.textContent = 'Step ' + current + ' of ' + totalSteps;
-    }
-    window.addEventListener('scroll', updateProgress, { passive: true });
-    updateProgress();
-
-    // ---- Free quote toggle — disable other sections if checked ----
-    const freeQuote = document.getElementById('free_quote');
-    freeQuote.addEventListener('change', function () {
-      document.querySelectorAll('.section').forEach(function (section) {
-        const legend = section.querySelector('legend');
-        if (legend && !legend.textContent.includes('3. Service')) {
-          section.classList.toggle('is-disabled', freeQuote.checked);
-        }
-      });
-    });
-
-    // ---- Checkbox / radio "is-checked" highlight ----
-    function syncCheckedState() {
-      document.querySelectorAll('.option').forEach(function (opt) {
-        const input = opt.querySelector('input[type="checkbox"], input[type="radio"]');
-        if (input) opt.classList.toggle('is-checked', input.checked);
-      });
-    }
-    document.addEventListener('change', syncCheckedState);
-    syncCheckedState();
-
-    // ---- Leaflet satellite rectangle selector (free, no API key) ----
-    (function () {
-      const mapLoading = document.getElementById('map-loading');
-      const mapHint = document.getElementById('map-hint');
-      const btnDraw = document.getElementById('btn-draw-rectangle');
-      const btnClear = document.getElementById('btn-clear-area');
-      const areaInput = document.getElementById('calculated_area');
-      const rectSwInput = document.getElementById('rect_sw');
-      const rectNeInput = document.getElementById('rect_ne');
-
-      let map;
-      let drawnRectangle = null;
-      let drawingActive = false;
-
-      function calculateAreaM2(sw, ne) {
-        var R = 6371000;
-        var dLat = (ne.lat - sw.lat) * Math.PI / 180;
-        var dLng = (ne.lng - sw.lng) * Math.PI / 180;
-        var latAvg = ((sw.lat + ne.lat) / 2) * Math.PI / 180;
-        var width = Math.cos(latAvg) * dLng * R;
-        var height = dLat * R;
-        return Math.abs(width * height);
-      }
-
-      function updateAreaDisplay(bounds) {
-        var sw = bounds.getSouthWest();
-        var ne = bounds.getNorthEast();
-        var areaM2 = calculateAreaM2(sw, ne);
-        var areaKm2 = areaM2 / 1e6;
-        var areaHa = areaM2 / 1e4;
-
-        if (areaKm2 >= 1) {
-          areaInput.value = areaKm2.toFixed(2) + ' km²';
-        } else if (areaHa >= 0.1) {
-          areaInput.value = areaHa.toFixed(2) + ' ha';
-        } else {
-          areaInput.value = Math.round(areaM2) + ' m²';
-        }
-
-        rectSwInput.value = sw.lat.toFixed(6) + ',' + sw.lng.toFixed(6);
-        rectNeInput.value = ne.lat.toFixed(6) + ',' + ne.lng.toFixed(6);
-      }
-
-      function clearSelection() {
-        if (drawnRectangle) { map.removeLayer(drawnRectangle); drawnRectangle = null; }
-        areaInput.value = '';
-        rectSwInput.value = '';
-        rectNeInput.value = '';
-        mapHint.textContent = 'Click "Select area on map" to begin';
-        mapHint.classList.remove('corner-placed');
-        btnClear.disabled = true;
-        btnDraw.textContent = 'Select area on map';
-        drawingActive = false;
-      }
-
-      function initMap() {
-        try {
-          map = L.map('map-canvas', { center: [53.5, -8.0], zoom: 7, zoomControl: true });
-
-          L.tileLayer(
-            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-            { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
-          ).addTo(map);
-
-          L.tileLayer(
-            'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-            { maxZoom: 19, opacity: 0.7 }
-          ).addTo(map);
-
-          map.pm.addControls({
-            drawRectangle: true, drawMarker: false, drawCircle: false,
-            drawPolygon: false, drawPolyline: false, drawCircleMarker: false,
-            drawText: false, editMode: true, dragMode: true,
-            cutPolygon: false, removalMode: true, position: 'topleft'
-          });
-
-          map.pm.setPathOptions({
-            color: '#2d6a4f', weight: 2, fillColor: '#40916c', fillOpacity: 0.25
-          });
-
-          map.on('pm:create', function (e) {
-            if (drawnRectangle) map.removeLayer(drawnRectangle);
-            drawnRectangle = e.layer;
-            drawnRectangle.pm.enable({ allowSelfIntersection: false });
-            updateAreaDisplay(drawnRectangle.getBounds());
-            mapHint.textContent = 'Area selected — drag corners to adjust';
-            mapHint.classList.add('corner-placed');
-            btnClear.disabled = false;
-            btnDraw.textContent = 'Draw new area';
-            drawingActive = false;
-          });
-
-          map.on('pm:edit', function (e) {
-            if (e.layer === drawnRectangle) updateAreaDisplay(drawnRectangle.getBounds());
-          });
-          map.on('pm:dragend', function (e) {
-            if (e.layer === drawnRectangle) updateAreaDisplay(drawnRectangle.getBounds());
-          });
-
-          mapLoading.classList.add('is-hidden');
-          setTimeout(function () { mapLoading.style.display = 'none'; }, 300);
-        } catch (e) {
-          console.error('Map init failed:', e);
-          mapLoading.innerHTML = '<span style="color:#c00">Failed to load map.<br>' + e.message + '</span>';
-        }
-      }
-
-      btnDraw.addEventListener('click', function () {
-        if (drawingActive) return;
-        clearSelection();
-        drawingActive = true;
-        map.pm.enableDraw('Rectangle');
-        mapHint.textContent = 'Click and drag on the map to draw';
-        mapHint.classList.remove('corner-placed');
-        this.textContent = 'Drawing… click & drag on map';
-      });
-
-      btnClear.addEventListener('click', function () {
-        clearSelection();
-        if (map.pm) map.pm.disableDraw('Rectangle');
-      });
-
-      if (typeof L !== 'undefined' && L.map) {
-        initMap();
-      } else {
-        mapLoading.innerHTML = '<span style="color:#c00">Leaflet library failed to load.<br>Check that lib/leaflet/leaflet.js exists.</span>';
-      }
-    })();
-  </script>
-</body>
-</html>
+2	<html lang="en">
+3	<head>
+4	  <meta charset="utf-8" />
+5	  <title>Edge GeoIntelligence – Project Setup &amp; Service Selection</title>
+6	  <meta name="viewport" content="width=device-width, initial-scale=1" />
+7	  <link rel="preconnect" href="https://fonts.googleapis.com" />
+8	  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+9	  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+10	
+11	  <!-- Leaflet + leaflet-geoman (CDN) -->
+12	  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+13	  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman@2.16.0/dist/leaflet-geoman.css" />
+14	
+15	  <style>
+16	    /* ============================================================
+17	       EDGE GeoIntelligence – Project Setup Form
+18	       Brand palette + Google Forms-inspired question cards
+19	       ============================================================ */
+20	
+21	    :root {
+22	      /* Brand greens */
+23	      --green-900: #0f2a1a;
+24	      --green-700: #1b4332;
+25	      --green-600: #2d6a4f;
+26	      --green-500: #40916c;
+27	      --green-400: #52b788;
+28	      --green-100: #d8f3dc;
+29	      --green-50:  #f0faf3;
+30	
+31	      /* Brand blues */
+32	      --blue-700: #1e3a5f;
+33	      --blue-600: #1d4e89;
+34	      --blue-500: #2a6cb0;
+35	      --blue-400: #3a86c8;
+36	      --blue-100: #dbeaf8;
+37	      --blue-50:  #eef5fc;
+38	
+39	      /* Neutrals */
+40	      --ink:        #101828;
+41	      --ink-soft:   #344054;
+42	      --ink-muted:  #667085;
+43	      --line:       #d0d5dd;
+44	      --line-soft:  #eaecf0;
+45	      --surface:    #f9fafb;
+46	      --white:      #ffffff;
+47	
+48	      /* Accent */
+49	      --required: #b42318;
+50	      --accent:   var(--blue-500);
+51	
+52	      --radius-card: 12px;
+53	      --radius-input: 8px;
+54	      --radius-pill: 100px;
+55	
+56	      --shadow-card: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.06);
+57	      --shadow-pop:  0 12px 24px -8px rgba(16, 24, 40, 0.18), 0 4px 8px -2px rgba(16, 24, 40, 0.08);
+58	      --shadow-focus: 0 0 0 4px var(--green-100);
+59	      --shadow-focus-blue: 0 0 0 4px var(--blue-100);
+60	    }
+61	
+62	    * { box-sizing: border-box; }
+63	
+64	    html { scroll-behavior: smooth; }
+65	
+66	    body {
+67	      margin: 0;
+68	      font-family: "Inter", "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+69	      background: var(--surface);
+70	      color: var(--ink);
+71	      line-height: 1.55;
+72	      -webkit-font-smoothing: antialiased;
+73	    }
+74	
+75	    /* ---- Page background header band ---- */
+76	    body::before {
+77	      content: "";
+78	      display: block;
+79	      height: 220px;
+80	      background:
+81	        radial-gradient(1100px 220px at 85% -40%, rgba(58,134,200,0.18), transparent 70%),
+82	        radial-gradient(900px 220px at 10% -30%,  rgba(82,183,136,0.20),  transparent 70%),
+83	        linear-gradient(135deg, var(--green-700) 0%, var(--blue-700) 100%);
+84	    }
+85	
+86	    main {
+87	      position: relative;
+88	      margin-top: -160px;
+89	      max-width: 720px;
+90	      padding: 0 16px 64px;
+91	      margin-left: auto;
+92	      margin-right: auto;
+93	    }
+94	
+95	    /* ---------- Top progress / brand bar ---------- */
+96	    .form-progress {
+97	      display: flex;
+98	      align-items: center;
+99	      justify-content: space-between;
+100	      color: var(--white);
+101	      margin-bottom: 16px;
+102	      padding: 0 4px;
+103	    }
+104	    .form-progress .brand-pill {
+105	      display: inline-flex;
+106	      align-items: center;
+107	      gap: 8px;
+108	      font-weight: 600;
+109	      font-size: 0.92rem;
+110	      letter-spacing: 0.02em;
+111	    }
+112	    .form-progress .brand-pill .dot {
+113	      width: 9px; height: 9px; border-radius: 50%;
+114	      background: var(--green-400);
+115	      box-shadow: 0 0 0 4px rgba(82,183,136,0.25);
+116	    }
+117	    .form-progress .step-count {
+118	      font-size: 0.82rem;
+119	      opacity: 0.85;
+120	      font-variant-numeric: tabular-nums;
+121	    }
+122	
+123	    /* ---------- Hero / intro card ---------- */
+124	    .card-intro {
+125	      background: var(--white);
+126	      border: 1px solid var(--line);
+127	      border-top: 4px solid var(--green-500);
+128	      border-radius: var(--radius-card);
+129	      box-shadow: var(--shadow-pop);
+130	      padding: 22px 28px 24px;
+131	      margin-bottom: 16px;
+132	    }
+133	
+134	    .card-intro h1 {
+135	      margin: 0 0 6px;
+136	      font-size: 1.5rem;
+137	      font-weight: 700;
+138	      color: var(--green-900);
+139	      letter-spacing: -0.01em;
+140	    }
+141	    .card-intro .subhead {
+142	      margin: 0;
+143	      color: var(--ink-soft);
+144	      font-size: 0.95rem;
+145	    }
+146	    .card-intro .tag {
+147	      display: inline-block;
+148	      margin-bottom: 12px;
+149	      background: var(--blue-50);
+150	      color: var(--blue-700);
+151	      font-size: 0.72rem;
+152	      font-weight: 600;
+153	      letter-spacing: 0.08em;
+154	      text-transform: uppercase;
+155	      padding: 3px 10px;
+156	      border-radius: var(--radius-pill);
+157	    }
+158	
+159	    /* ---------- Question cards (Google Forms-style) ---------- */
+160	    .section {
+161	      background: var(--white);
+162	      border: 1px solid var(--line);
+163	      border-radius: var(--radius-card);
+164	      box-shadow: var(--shadow-card);
+165	      padding: 20px 24px;
+166	      margin-bottom: 14px;
+167	      position: relative;
+168	      overflow: hidden;
+169	      transition: box-shadow 0.18s, border-color 0.18s, opacity 0.18s;
+170	    }
+171	
+172	    .section::before {
+173	      content: "";
+174	      position: absolute;
+175	      top: 0; left: 0;
+176	      width: 4px;
+177	      height: 100%;
+178	      background: var(--green-500);
+179	    }
+180	    .section.section--blue::before { background: var(--blue-500); }
+181	
+182	    .section.is-disabled {
+183	      opacity: 0.42;
+184	      pointer-events: none;
+185	    }
+186	
+187	    legend {
+188	      display: block;
+189	      font-size: 1.05rem;
+190	      font-weight: 600;
+191	      color: var(--ink);
+192	      margin: 0 0 2px;
+193	      padding: 0;
+194	      float: left;
+195	      width: 100%;
+196	    }
+197	    legend .num {
+198	      color: var(--green-600);
+199	      font-weight: 700;
+200	      margin-right: 6px;
+201	    }
+202	    .section--blue legend .num { color: var(--blue-600); }
+203	
+204	    .section-desc {
+205	      clear: both;
+206	      margin: 0 0 14px;
+207	      color: var(--ink-muted);
+208	      font-size: 0.86rem;
+209	    }
+210	
+211	    /* ---------- Fields ---------- */
+212	    .field-group { margin-bottom: 16px; }
+213	    .field-group:last-child { margin-bottom: 0; }
+214	
+215	    label.field-label {
+216	      display: block;
+217	      font-weight: 500;
+218	      font-size: 0.88rem;
+219	      color: var(--ink-soft);
+220	      margin-bottom: 6px;
+221	    }
+222	
+223	    input[type="text"],
+224	    input[type="email"],
+225	    input[type="date"],
+226	    textarea,
+227	    select {
+228	      width: 100%;
+229	      padding: 10px 12px;
+230	      border: 1px solid var(--line);
+231	      border-radius: var(--radius-input);
+232	      font-size: 0.92rem;
+233	      font-family: inherit;
+234	      color: var(--ink);
+235	      background: var(--white);
+236	      transition: border-color 0.15s, box-shadow 0.15s;
+237	    }
+238	    input:hover, textarea:hover, select:hover { border-color: var(--ink-muted); }
+239	    input:focus, textarea:focus, select:focus {
+240	      outline: none;
+241	      border-color: var(--green-500);
+242	      box-shadow: var(--shadow-focus);
+243	    }
+244	    textarea { resize: vertical; min-height: 80px; }
+245	
+246	    input[readonly] {
+247	      background: var(--green-50);
+248	      color: var(--green-700);
+249	      font-weight: 600;
+250	      border-color: var(--green-100);
+251	    }
+252	
+253	    .helper {
+254	      font-size: 0.78rem;
+255	      color: var(--ink-muted);
+256	      margin-top: 5px;
+257	    }
+258	    .optional { color: var(--ink-muted); font-weight: 400; font-size: 0.78rem; }
+259	
+260	    .settings-grid {
+261	      display: grid;
+262	      grid-template-columns: 1fr 1fr;
+263	      gap: 14px;
+264	    }
+265	    @media (max-width: 560px) {
+266	      .settings-grid { grid-template-columns: 1fr; }
+267	    }
+268	
+269	    /* ---------- Map ---------- */
+270	    .map-container {
+271	      position: relative;
+272	      border: 1px solid var(--line);
+273	      border-radius: var(--radius-input);
+274	      overflow: hidden;
+275	      margin-top: 10px;
+276	      height: 360px;
+277	      background: var(--green-50);
+278	    }
+279	    .map-canvas { position: absolute; inset: 0; height: 100%; width: 100%; }
+280	
+281	    .map-loading {
+282	      position: absolute; inset: 0; z-index: 500;
+283	      display: flex; flex-direction: column;
+284	      align-items: center; justify-content: center;
+285	      gap: 10px;
+286	      background: var(--green-50);
+287	      color: var(--ink-soft);
+288	      font-size: 0.88rem;
+289	      transition: opacity 0.3s;
+290	    }
+291	    .map-loading.is-hidden { opacity: 0; pointer-events: none; }
+292	    .spinner {
+293	      width: 26px; height: 26px;
+294	      border: 3px solid var(--green-100);
+295	      border-top-color: var(--green-500);
+296	      border-radius: 50%;
+297	      animation: spin 0.8s linear infinite;
+298	    }
+299	    @keyframes spin { to { transform: rotate(360deg); } }
+300	
+301	    .map-controls {
+302	      position: absolute;
+303	      bottom: 10px; left: 10px; right: 10px;
+304	      z-index: 400;
+305	      display: flex;
+306	      align-items: center;
+307	      justify-content: space-between;
+308	      gap: 10px;
+309	      background: rgba(255,255,255,0.94);
+310	      padding: 6px 12px;
+311	      border-radius: 8px;
+312	      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+313	      font-size: 0.82rem;
+314	      backdrop-filter: blur(4px);
+315	    }
+316	    .map-hint { color: var(--ink-soft); }
+317	    .map-hint.corner-placed { color: var(--green-600); font-weight: 600; }
+318	
+319	    /* ---------- Buttons ---------- */
+320	    .inline-actions {
+321	      display: flex;
+322	      align-items: center;
+323	      gap: 10px;
+324	      flex-wrap: wrap;
+325	    }
+326	    .separator { color: var(--ink-muted); font-size: 0.85rem; }
+327	
+328	    .btn-outline {
+329	      background: var(--white);
+330	      border: 1.5px solid var(--green-600);
+331	      color: var(--green-700);
+332	      padding: 9px 16px;
+333	      border-radius: var(--radius-input);
+334	      font-size: 0.88rem;
+335	      font-weight: 600;
+336	      cursor: pointer;
+337	      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+338	    }
+339	    .btn-outline:hover {
+340	      background: var(--green-600);
+341	      color: var(--white);
+342	      box-shadow: 0 2px 6px rgba(45,106,79,0.3);
+343	    }
+344	
+345	    .btn-small {
+346	      background: var(--white);
+347	      border: 1px solid var(--line);
+348	      color: var(--ink-soft);
+349	      padding: 5px 12px;
+350	      border-radius: 6px;
+351	      font-size: 0.8rem;
+352	      font-weight: 500;
+353	      cursor: pointer;
+354	      transition: background 0.15s;
+355	    }
+356	    .btn-small:disabled { opacity: 0.4; cursor: not-allowed; }
+357	    .btn-small:not(:disabled):hover { background: var(--surface); }
+358	
+359	    .file-upload-label {
+360	      display: inline-block;
+361	      background: var(--blue-50);
+362	      border: 1.5px dashed var(--blue-400);
+363	      padding: 9px 16px;
+364	      border-radius: var(--radius-input);
+365	      font-size: 0.88rem;
+366	      font-weight: 500;
+367	      cursor: pointer;
+368	      color: var(--blue-700);
+369	      transition: background 0.15s;
+370	    }
+371	    .file-upload-label:hover { background: var(--blue-100); }
+372	
+373	    /* ---------- Checkboxes / radios (card-style options) ---------- */
+374	    .checkbox-group, .radio-group {
+375	      display: flex;
+376	      flex-direction: column;
+377	      gap: 8px;
+378	      margin-top: 4px;
+379	    }
+380	
+381	    .option {
+382	      display: flex;
+383	      align-items: center;
+384	      gap: 10px;
+385	      padding: 10px 12px;
+386	      border: 1px solid var(--line);
+387	      border-radius: var(--radius-input);
+388	      cursor: pointer;
+389	      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+390	      user-select: none;
+391	    }
+392	    .option:hover {
+393	      border-color: var(--green-400);
+394	      background: var(--green-50);
+395	    }
+396	    .option input { accent-color: var(--green-600); width: 16px; height: 16px; }
+397	    .option label { margin: 0; font-weight: 400; font-size: 0.92rem; color: var(--ink); cursor: pointer; }
+398	    .option.is-checked {
+399	      border-color: var(--green-500);
+400	      background: var(--green-50);
+401	      box-shadow: var(--shadow-focus);
+402	    }
+403	
+404	    .section--blue .option:hover {
+405	      border-color: var(--blue-400);
+406	      background: var(--blue-50);
+407	    }
+408	    .section--blue .option input { accent-color: var(--blue-600); }
+409	    .section--blue .option.is-checked {
+410	      border-color: var(--blue-500);
+411	      background: var(--blue-50);
+412	      box-shadow: var(--shadow-focus-blue);
+413	    }
+414	
+415	    .option--quote {
+416	      background: var(--blue-50);
+417	      border-style: dashed;
+418	      border-color: var(--blue-400);
+419	    }
+420	    .option--quote:hover {
+421	      background: var(--blue-100);
+422	      border-color: var(--blue-500);
+423	    }
+424	
+425	    .divider { border: none; border-top: 1px solid var(--line-soft); margin: 16px 0; }
+426	
+427	    /* ---------- Submit ---------- */
+428	    .actions {
+429	      display: flex;
+430	      align-items: center;
+431	      justify-content: space-between;
+432	      gap: 16px;
+433	      margin-top: 20px;
+434	    }
+435	    @media (max-width: 560px) {
+436	      .actions { flex-direction: column-reverse; align-items: stretch; }
+437	    }
+438	
+439	    .btn-primary {
+440	      background: var(--green-600);
+441	      color: var(--white);
+442	      border: none;
+443	      padding: 12px 28px;
+444	      border-radius: var(--radius-input);
+445	      font-size: 0.95rem;
+446	      font-weight: 600;
+447	      cursor: pointer;
+448	      transition: background 0.15s, box-shadow 0.15s, transform 0.05s;
+449	      box-shadow: 0 2px 6px rgba(45,106,79,0.25);
+450	    }
+451	    .btn-primary:hover {
+452	      background: var(--green-700);
+453	      box-shadow: 0 4px 12px rgba(45,106,79,0.32);
+454	    }
+455	    .btn-primary:active { transform: translateY(1px); }
+456	
+457	    .required-hint {
+458	      font-size: 0.78rem;
+459	      color: var(--ink-muted);
+460	    }
+461	    .required-hint .req-dot { color: var(--required); font-weight: 700; }
+462	
+463	    .footer-note {
+464	      text-align: center;
+465	      font-size: 0.78rem;
+466	      color: var(--ink-muted);
+467	      margin-top: 28px;
+468	      padding-top: 16px;
+469	      border-top: 1px solid rgba(255,255,255,0.2);
+470	      color: rgba(255,255,255,0.85);
+471	    }
+472	  </style>
+473	</head>
+474	<body>
+475	
+476	  <!-- Progress / brand bar -->
+477	  <div class="form-progress">
+478	    <span class="brand-pill"><span class="dot"></span> EDGE GeoIntelligence</span>
+479	    <span class="step-count" id="step-count">Step 1 of 5</span>
+480	  </div>
+481	
+482	  <main>
+483	
+484	    <!-- Intro card -->
+485	    <section class="card-intro">
+486	      <span class="tag">Project Setup</span>
+487	      <h1>Project Setup &amp; Service Selection</h1>
+488	      <p class="subhead">Tell us about your project and choose the services you need. We'll get back to you within 1–2 business days.</p>
+489	    </section>
+490	
+491	    <form action="https://pbot.edgeengineers.net/edge-kuth/upload" method="POST" enctype="multipart/form-data" id="setup-form">
+492	
+493	      <!-- 1. Project details -->
+494	      <fieldset class="section" data-step="1">
+495	        <legend><span class="num">1.</span> Project details</legend>
+496	        <p class="section-desc">A few basics so we know what we're working on.</p>
+497	
+498	        <div class="field-group">
+499	          <label class="field-label" for="project_name">Project name <span class="req-dot">*</span></label>
+500	          <input type="text" id="project_name" name="project_name" placeholder="e.g. Donegal REE Survey 2026" required />
+501	        </div>
+502	
+503	        <div class="field-group">
+504	          <label class="field-label" for="organisation">Organisation / client <span class="req-dot">*</span></label>
+505	          <input type="text" id="organisation" name="organisation" placeholder="Company or client name" required />
+506	        </div>
+507	
+508	        <div class="field-group">
+509	          <label class="field-label" for="project_description">Short project description</label>
+510	          <textarea id="project_description" name="project_description" rows="3" placeholder="2–3 lines describing the project scope, location, and objectives…"></textarea>
+511	        </div>
+512	      </fieldset>
+513	
+514	      <!-- 2. Area of interest -->
+515	      <fieldset class="section" data-step="2">
+516	        <legend><span class="num">2.</span> Area of interest</legend>
+517	        <p class="section-desc">Draw your survey area on the map, or upload a boundary file.</p>
+518	
+519	        <div class="field-group">
+520	          <label class="field-label">Define your area</label>
+521	          <div class="inline-actions">
+522	            <button type="button" class="btn-outline" id="btn-draw-rectangle">Select area on map</button>
+523	            <span class="separator">or</span>
+524	            <label class="file-upload-label">
+525	              Upload boundary file
+526	              <input type="file" id="boundary_file" name="boundary_file" accept=".zip,.shp,.geojson,.kml,.csv" hidden />
+527	            </label>
+528	          </div>
+529	          <div class="helper">Click and drag on the satellite map to draw your survey area rectangle. The area will be calculated automatically.</div>
+530	        </div>
+531	
+532	        <!-- Leaflet satellite map -->
+533	        <div class="map-container" id="map-container">
+534	          <div class="map-loading" id="map-loading">
+535	            <div class="spinner"></div>
+536	            <span>Loading satellite map…</span>
+537	          </div>
+538	          <div class="map-canvas" id="map-canvas"></div>
+539	          <div class="map-controls">
+540	            <span class="map-hint" id="map-hint">Click "Select area on map" to begin</span>
+541	            <button type="button" class="btn-small" id="btn-clear-area" disabled>Clear selection</button>
+542	          </div>
+543	        </div>
+544	
+545	        <div class="settings-grid" style="margin-top: 14px;">
+546	          <div class="field-group">
+547	            <label class="field-label" for="calculated_area">Calculated area</label>
+548	            <input type="text" id="calculated_area" name="calculated_area" readonly placeholder="km² / ha" />
+549	            <div class="helper">Auto-filled when a rectangle is drawn on the map.</div>
+550	          </div>
+551	
+552	          <div class="field-group">
+553	            <label class="field-label" for="country">Country / region</label>
+554	            <input type="text" id="country" name="country" placeholder="e.g. Ireland, Connemara" list="country-list" />
+555	            <datalist id="country-list">
+556	              <option value="Ireland"></option>
+557	              <option value="United Kingdom"></option>
+558	              <option value="Sweden"></option>
+559	              <option value="Finland"></option>
+560	              <option value="Canada"></option>
+561	              <option value="Australia"></option>
+562	              <option value="United States"></option>
+563	              <option value="Brazil"></option>
+564	            </datalist>
+565	          </div>
+566	        </div>
+567	
+568	        <input type="hidden" id="rect_sw" name="rect_sw" />
+569	        <input type="hidden" id="rect_ne" name="rect_ne" />
+570	      </fieldset>
+571	
+572	      <!-- 3. Service selection -->
+573	      <fieldset class="section section--blue" data-step="3">
+574	        <legend><span class="num">3.</span> Service selection</legend>
+575	        <p class="section-desc">Choose one or more services.</p>
+576	
+577	        <div class="checkbox-group">
+578	          <label class="option" for="svc_remote_ree">
+579	            <input type="checkbox" id="svc_remote_ree" name="services[]" value="remote_ree_kuth" />
+580	            <span>Remote REE–KUTH Modelling</span>
+581	          </label>
+582	          <label class="option" for="svc_onsite">
+583	            <input type="checkbox" id="svc_onsite" name="services[]" value="onsite_survey" />
+584	            <span>On-Site Survey + Platform Outputs</span>
+585	          </label>
+586	          <label class="option" for="svc_3d">
+587	            <input type="checkbox" id="svc_3d" name="services[]" value="3d_deposit_modelling" />
+588	            <span>3D Deposit Modelling (Leapfrog)</span>
+589	          </label>
+590	          <label class="option" for="svc_subscription">
+591	            <input type="checkbox" id="svc_subscription" name="services[]" value="platform_subscription" />
+592	            <span>Platform Subscription</span>
+593	          </label>
+594	          <label class="option" for="svc_full">
+595	            <input type="checkbox" id="svc_full" name="services[]" value="full_instruments" />
+596	            <span>Full Instruments + Platform Suite</span>
+597	          </label>
+598	          <label class="option" for="svc_expert">
+599	            <input type="checkbox" id="svc_expert" name="services[]" value="expert_modelling" />
+600	            <span>Expert Geo-Modelling Support</span>
+601	          </label>
+602	        </div>
+603	
+604	        <p class="helper note" style="margin-top: 10px; font-style: italic;">Select at least one core service.</p>
+605	
+606	        <hr class="divider" />
+607	
+608	        <label class="option option--quote" for="free_quote">
+609	          <input type="checkbox" id="free_quote" name="free_quote" value="true" />
+610	          <span><strong>I just want a free initial quote</strong> — tick this box to skip data upload on the next page.</span>
+611	        </label>
+612	      </fieldset>
+613	
+614	      <!-- 4. Detector and data options -->
+615	      <fieldset class="section" data-step="4">
+616	        <legend><span class="num">4.</span> Detector and data options</legend>
+617	        <p class="section-desc">What detector will be used for the survey?</p>
+618	
+619	        <div class="radio-group">
+620	          <label class="option" for="det_high">
+621	            <input type="radio" id="det_high" name="detector_type" value="high_resolution_gamma" />
+622	            <span>High-resolution gamma</span>
+623	          </label>
+624	          <label class="option" for="det_low">
+625	            <input type="radio" id="det_low" name="detector_type" value="low_resolution_gamma" />
+626	            <span>Low-resolution gamma</span>
+627	          </label>
+628	          <label class="option" for="det_own">
+629	            <input type="radio" id="det_own" name="detector_type" value="client_own" />
+630	            <span>Client's own detector</span>
+631	          </label>
+632	        </div>
+633	
+634	        <div class="field-group" style="margin-top: 14px;">
+635	          <label class="field-label" for="detector_model">Model / name <span class="optional">(if client's own)</span></label>
+636	          <input type="text" id="detector_model" name="detector_model" placeholder="e.g. RS-230, Exploranium GR-135" />
+637	        </div>
+638	      </fieldset>
+639	
+640	      <!-- 5. Contact & timing -->
+641	      <fieldset class="section" data-step="5">
+642	        <legend><span class="num">5.</span> Contact &amp; timing</legend>
+643	        <p class="section-desc">How should we reach you, and when do you want to start?</p>
+644	
+645	        <div class="settings-grid">
+646	          <div class="field-group">
+647	            <label class="field-label" for="contact_name">Primary contact name <span class="req-dot">*</span></label>
+648	            <input type="text" id="contact_name" name="contact_name" placeholder="Full name" required />
+649	          </div>
+650	
+651	          <div class="field-group">
+652	            <label class="field-label" for="email">Email <span class="req-dot">*</span></label>
+653	            <input type="email" id="email" name="email" placeholder="name@example.com" required />
+654	          </div>
+655	        </div>
+656	
+657	        <div class="settings-grid">
+658	          <div class="field-group">
+659	            <label class="field-label" for="start_date">Preferred start date</label>
+660	            <input type="date" id="start_date" name="start_date" />
+661	          </div>
+662	
+663	          <div class="field-group">
+664	            <label class="field-label" for="referral">How did you hear about us?</label>
+665	            <select id="referral" name="referral">
+666	              <option value="">— Please select —</option>
+667	              <option value="conference">Conference</option>
+668	              <option value="referral">Referral</option>
+669	              <option value="web">Web search</option>
+670	              <option value="existing_client">Existing client</option>
+671	              <option value="other">Other</option>
+672	            </select>
+673	          </div>
+674	        </div>
+675	      </fieldset>
+676	
+677	      <div class="actions">
+678	        <span class="required-hint"><span class="req-dot">*</span> Required fields</span>
+679	        <button type="submit" class="btn-primary">Submit &amp; continue</button>
+680	      </div>
+681	
+682	      <div class="footer-note">
+683	        EDGE Geointelligence · info@edgeengineers.net
+684	      </div>
+685	    </form>
+686	  </main>
+687	
+688	  <!-- Leaflet + leaflet-geoman (CDN) -->
+689	  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+690	  <script src="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman@2.16.0/dist/leaflet-geoman.js"></script>
+691	
+692	  <script>
+693	    // ---- Progress bar: highlight current section based on scroll ----
+694	    const sections = document.querySelectorAll('.section');
+695	    const stepCount = document.getElementById('step-count');
+696	    const totalSteps = sections.length;
+697	
+698	    function updateProgress() {
+699	      let current = 1;
+700	      const mid = window.innerHeight / 2;
+701	      sections.forEach((s, i) => {
+702	        const r = s.getBoundingClientRect();
+703	        if (r.top <= mid) current = i + 1;
+704	      });
+705	      stepCount.textContent = 'Step ' + current + ' of ' + totalSteps;
+706	    }
+707	    window.addEventListener('scroll', updateProgress, { passive: true });
+708	    updateProgress();
+709	
+710	    // ---- Free quote toggle — disable other sections if checked ----
+711	    const freeQuote = document.getElementById('free_quote');
+712	    freeQuote.addEventListener('change', function () {
+713	      document.querySelectorAll('.section').forEach(function (section) {
+714	        const legend = section.querySelector('legend');
+715	        if (legend && !legend.textContent.includes('3. Service')) {
+716	          section.classList.toggle('is-disabled', freeQuote.checked);
+717	        }
+718	      });
+719	    });
+720	
+721	    // ---- Checkbox / radio "is-checked" highlight ----
+722	    function syncCheckedState() {
+723	      document.querySelectorAll('.option').forEach(function (opt) {
+724	        const input = opt.querySelector('input[type="checkbox"], input[type="radio"]');
+725	        if (input) opt.classList.toggle('is-checked', input.checked);
+726	      });
+727	    }
+728	    document.addEventListener('change', syncCheckedState);
+729	    syncCheckedState();
+730	
+731	    // ---- Leaflet satellite rectangle selector (free, no API key) ----
+732	    (function () {
+733	      const mapLoading = document.getElementById('map-loading');
+734	      const mapHint = document.getElementById('map-hint');
+735	      const btnDraw = document.getElementById('btn-draw-rectangle');
+736	      const btnClear = document.getElementById('btn-clear-area');
+737	      const areaInput = document.getElementById('calculated_area');
+738	      const rectSwInput = document.getElementById('rect_sw');
+739	      const rectNeInput = document.getElementById('rect_ne');
+740	
+741	      let map;
+742	      let drawnRectangle = null;
+743	      let drawingActive = false;
+744	
+745	      function calculateAreaM2(sw, ne) {
+746	        var R = 6371000;
+747	        var dLat = (ne.lat - sw.lat) * Math.PI / 180;
+748	        var dLng = (ne.lng - sw.lng) * Math.PI / 180;
+749	        var latAvg = ((sw.lat + ne.lat) / 2) * Math.PI / 180;
+750	        var width = Math.cos(latAvg) * dLng * R;
+751	        var height = dLat * R;
+752	        return Math.abs(width * height);
+753	      }
+754	
+755	      function updateAreaDisplay(bounds) {
+756	        var sw = bounds.getSouthWest();
+757	        var ne = bounds.getNorthEast();
+758	        var areaM2 = calculateAreaM2(sw, ne);
+759	        var areaKm2 = areaM2 / 1e6;
+760	        var areaHa = areaM2 / 1e4;
+761	
+762	        if (areaKm2 >= 1) {
+763	          areaInput.value = areaKm2.toFixed(2) + ' km²';
+764	        } else if (areaHa >= 0.1) {
+765	          areaInput.value = areaHa.toFixed(2) + ' ha';
+766	        } else {
+767	          areaInput.value = Math.round(areaM2) + ' m²';
+768	        }
+769	
+770	        rectSwInput.value = sw.lat.toFixed(6) + ',' + sw.lng.toFixed(6);
+771	        rectNeInput.value = ne.lat.toFixed(6) + ',' + ne.lng.toFixed(6);
+772	      }
+773	
+774	      function clearSelection() {
+775	        if (drawnRectangle) { map.removeLayer(drawnRectangle); drawnRectangle = null; }
+776	        areaInput.value = '';
+777	        rectSwInput.value = '';
+778	        rectNeInput.value = '';
+779	        mapHint.textContent = 'Click "Select area on map" to begin';
+780	        mapHint.classList.remove('corner-placed');
+781	        btnClear.disabled = true;
+782	        btnDraw.textContent = 'Select area on map';
+783	        drawingActive = false;
+784	      }
+785	
+786	      function initMap() {
+787	        try {
+788	          map = L.map('map-canvas', { center: [53.5, -8.0], zoom: 7, zoomControl: true });
+789	
+790	          L.tileLayer(
+791	            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+792	            { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
+793	          ).addTo(map);
+794	
+795	          L.tileLayer(
+796	            'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+797	            { maxZoom: 19, opacity: 0.7 }
+798	          ).addTo(map);
+799	
+800	          map.pm.addControls({
+801	            drawRectangle: true, drawMarker: false, drawCircle: false,
+802	            drawPolygon: false, drawPolyline: false, drawCircleMarker: false,
+803	            drawText: false, editMode: true, dragMode: true,
+804	            cutPolygon: false, removalMode: true, position: 'topleft'
+805	          });
+806	
+807	          map.pm.setPathOptions({
+808	            color: '#2d6a4f', weight: 2, fillColor: '#40916c', fillOpacity: 0.25
+809	          });
+810	
+811	          map.on('pm:create', function (e) {
+812	            if (drawnRectangle) map.removeLayer(drawnRectangle);
+813	            drawnRectangle = e.layer;
+814	            drawnRectangle.pm.enable({ allowSelfIntersection: false });
+815	            updateAreaDisplay(drawnRectangle.getBounds());
+816	            mapHint.textContent = 'Area selected — drag corners to adjust';
+817	            mapHint.classList.add('corner-placed');
+818	            btnClear.disabled = false;
+819	            btnDraw.textContent = 'Draw new area';
+820	            drawingActive = false;
+821	          });
+822	
+823	          map.on('pm:edit', function (e) {
+824	            if (e.layer === drawnRectangle) updateAreaDisplay(drawnRectangle.getBounds());
+825	          });
+826	          map.on('pm:dragend', function (e) {
+827	            if (e.layer === drawnRectangle) updateAreaDisplay(drawnRectangle.getBounds());
+828	          });
+829	
+830	          mapLoading.classList.add('is-hidden');
+831	          setTimeout(function () { mapLoading.style.display = 'none'; }, 300);
+832	        } catch (e) {
+833	          console.error('Map init failed:', e);
+834	          mapLoading.innerHTML = '<span style="color:#c00">Failed to load map.<br>' + e.message + '</span>';
+835	        }
+836	      }
+837	
+838	      btnDraw.addEventListener('click', function () {
+839	        if (drawingActive) return;
+840	        clearSelection();
+841	        drawingActive = true;
+842	        map.pm.enableDraw('Rectangle');
+843	        mapHint.textContent = 'Click and drag on the map to draw';
+844	        mapHint.classList.remove('corner-placed');
+845	        this.textContent = 'Drawing… click & drag on map';
+846	      });
+847	
+848	      btnClear.addEventListener('click', function () {
+849	        clearSelection();
+850	        if (map.pm) map.pm.disableDraw('Rectangle');
+851	      });
+852	
+853	      if (typeof L !== 'undefined' && L.map) {
+854	        initMap();
+855	      } else {
+856	        mapLoading.innerHTML = '<span style="color:#c00">Failed to load Leaflet from CDN.<br>Check your internet connection.</span>';
+857	      }
+858	    })();
+859	  </script>
+860	</body>
+861	</html>
