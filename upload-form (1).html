@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Edge GeoIntelligence – Project Setup &amp; Service Selection</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Leaflet + leaflet-geoman (local, no CDN) -->
+  <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
+  <link rel="stylesheet" href="lib/geoman/leaflet-geoman.css" />
+</head>
+<body>
+
+  <!-- Progress / brand bar -->
+  <div class="form-progress">
+    <span class="brand-pill"><span class="dot"></span> EDGE GeoIntelligence</span>
+    <span class="step-count" id="step-count">Step 1 of 5</span>
+  </div>
+
+  <main>
+
+    <!-- Intro card -->
+    <section class="card-intro">
+      <span class="tag">Project Setup</span>
+      <h1>Project Setup &amp; Service Selection</h1>
+      <p class="subhead">Tell us about your project and choose the services you need. We'll get back to you within 1–2 business days.</p>
+    </section>
+
+    <form action="#" method="POST" enctype="multipart/form-data" id="setup-form">
+
+      <!-- 1. Project details -->
+      <fieldset class="section" data-step="1">
+        <legend><span class="num">1.</span> Project details</legend>
+        <p class="section-desc">A few basics so we know what we're working on.</p>
+
+        <div class="field-group">
+          <label class="field-label" for="project_name">Project name <span class="req-dot">*</span></label>
+          <input type="text" id="project_name" name="project_name" placeholder="e.g. Donegal REE Survey 2026" required />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="organisation">Organisation / client <span class="req-dot">*</span></label>
+          <input type="text" id="organisation" name="organisation" placeholder="Company or client name" required />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="project_description">Short project description</label>
+          <textarea id="project_description" name="project_description" rows="3" placeholder="2–3 lines describing the project scope, location, and objectives…"></textarea>
+        </div>
+      </fieldset>
+
+      <!-- 2. Area of interest -->
+      <fieldset class="section" data-step="2">
+        <legend><span class="num">2.</span> Area of interest</legend>
+        <p class="section-desc">Draw your survey area on the map, or upload a boundary file.</p>
+
+        <div class="field-group">
+          <label class="field-label">Define your area</label>
+          <div class="inline-actions">
+            <button type="button" class="btn-outline" id="btn-draw-rectangle">Select area on map</button>
+            <span class="separator">or</span>
+            <label class="file-upload-label">
+              Upload boundary file
+              <input type="file" id="boundary_file" name="boundary_file" accept=".zip,.shp,.geojson,.kml,.csv" hidden />
+            </label>
+          </div>
+          <div class="helper">Click and drag on the satellite map to draw your survey area rectangle. The area will be calculated automatically.</div>
+        </div>
+
+        <!-- Leaflet satellite map -->
+        <div class="map-container" id="map-container">
+          <div class="map-loading" id="map-loading">
+            <div class="spinner"></div>
+            <span>Loading satellite map…</span>
+          </div>
+          <div class="map-canvas" id="map-canvas"></div>
+          <div class="map-controls">
+            <span class="map-hint" id="map-hint">Click "Select area on map" to begin</span>
+            <button type="button" class="btn-small" id="btn-clear-area" disabled>Clear selection</button>
+          </div>
+        </div>
+
+        <div class="settings-grid" style="margin-top: 14px;">
+          <div class="field-group">
+            <label class="field-label" for="calculated_area">Calculated area</label>
+            <input type="text" id="calculated_area" name="calculated_area" readonly placeholder="km² / ha" />
+            <div class="helper">Auto-filled when a rectangle is drawn on the map.</div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="country">Country / region</label>
+            <input type="text" id="country" name="country" placeholder="e.g. Ireland, Connemara" list="country-list" />
+            <datalist id="country-list">
+              <option value="Ireland"></option>
+              <option value="United Kingdom"></option>
+              <option value="Sweden"></option>
+              <option value="Finland"></option>
+              <option value="Canada"></option>
+              <option value="Australia"></option>
+              <option value="United States"></option>
+              <option value="Brazil"></option>
+            </datalist>
+          </div>
+        </div>
+
+        <input type="hidden" id="rect_sw" name="rect_sw" />
+        <input type="hidden" id="rect_ne" name="rect_ne" />
+      </fieldset>
+
+      <!-- 3. Service selection -->
+      <fieldset class="section section--blue" data-step="3">
+        <legend><span class="num">3.</span> Service selection</legend>
+        <p class="section-desc">Choose one or more services.</p>
+
+        <div class="checkbox-group">
+          <label class="option" for="svc_remote_ree">
+            <input type="checkbox" id="svc_remote_ree" name="services[]" value="remote_ree_kuth" />
+            <span>Remote REE–KUTH Modelling</span>
+          </label>
+          <label class="option" for="svc_onsite">
+            <input type="checkbox" id="svc_onsite" name="services[]" value="onsite_survey" />
+            <span>On-Site Survey + Platform Outputs</span>
+          </label>
+          <label class="option" for="svc_3d">
+            <input type="checkbox" id="svc_3d" name="services[]" value="3d_deposit_modelling" />
+            <span>3D Deposit Modelling (Leapfrog)</span>
+          </label>
+          <label class="option" for="svc_subscription">
+            <input type="checkbox" id="svc_subscription" name="services[]" value="platform_subscription" />
+            <span>Platform Subscription</span>
+          </label>
+          <label class="option" for="svc_full">
+            <input type="checkbox" id="svc_full" name="services[]" value="full_instruments" />
+            <span>Full Instruments + Platform Suite</span>
+          </label>
+          <label class="option" for="svc_expert">
+            <input type="checkbox" id="svc_expert" name="services[]" value="expert_modelling" />
+            <span>Expert Geo-Modelling Support</span>
+          </label>
+        </div>
+
+        <p class="helper note" style="margin-top: 10px; font-style: italic;">Select at least one core service.</p>
+
+        <hr class="divider" />
+
+        <label class="option option--quote" for="free_quote">
+          <input type="checkbox" id="free_quote" name="free_quote" value="true" />
+          <span><strong>I just want a free initial quote</strong> — tick this box to skip data upload on the next page.</span>
+        </label>
+      </fieldset>
+
+      <!-- 4. Detector and data options -->
+      <fieldset class="section" data-step="4">
+        <legend><span class="num">4.</span> Detector and data options</legend>
+        <p class="section-desc">What detector will be used for the survey?</p>
+
+        <div class="radio-group">
+          <label class="option" for="det_high">
+            <input type="radio" id="det_high" name="detector_type" value="high_resolution_gamma" />
+            <span>High-resolution gamma</span>
+          </label>
+          <label class="option" for="det_low">
+            <input type="radio" id="det_low" name="detector_type" value="low_resolution_gamma" />
+            <span>Low-resolution gamma</span>
+          </label>
+          <label class="option" for="det_own">
+            <input type="radio" id="det_own" name="detector_type" value="client_own" />
+            <span>Client's own detector</span>
+          </label>
+        </div>
+
+        <div class="field-group" style="margin-top: 14px;">
+          <label class="field-label" for="detector_model">Model / name <span class="optional">(if client's own)</span></label>
+          <input type="text" id="detector_model" name="detector_model" placeholder="e.g. RS-230, Exploranium GR-135" />
+        </div>
+      </fieldset>
+
+      <!-- 5. Contact & timing -->
+      <fieldset class="section" data-step="5">
+        <legend><span class="num">5.</span> Contact &amp; timing</legend>
+        <p class="section-desc">How should we reach you, and when do you want to start?</p>
+
+        <div class="settings-grid">
+          <div class="field-group">
+            <label class="field-label" for="contact_name">Primary contact name <span class="req-dot">*</span></label>
+            <input type="text" id="contact_name" name="contact_name" placeholder="Full name" required />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="email">Email <span class="req-dot">*</span></label>
+            <input type="email" id="email" name="email" placeholder="name@example.com" required />
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <div class="field-group">
+            <label class="field-label" for="start_date">Preferred start date</label>
+            <input type="date" id="start_date" name="start_date" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="referral">How did you hear about us?</label>
+            <select id="referral" name="referral">
+              <option value="">— Please select —</option>
+              <option value="conference">Conference</option>
+              <option value="referral">Referral</option>
+              <option value="web">Web search</option>
+              <option value="existing_client">Existing client</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="actions">
+        <span class="required-hint"><span class="req-dot">*</span> Required fields</span>
+        <button type="submit" class="btn-primary">Submit &amp; continue</button>
+      </div>
+
+      <div class="footer-note">
+        EDGE Geointelligence · info@edgeengineers.net
+      </div>
+    </form>
+  </main>
+
+  <!-- Leaflet + leaflet-geoman (local, no CDN) -->
+  <script src="lib/leaflet/leaflet.js"></script>
+  <script src="lib/geoman/leaflet-geoman.js"></script>
+
+  <script>
+    // ---- Progress bar: highlight current section based on scroll ----
+    const sections = document.querySelectorAll('.section');
+    const stepCount = document.getElementById('step-count');
+    const totalSteps = sections.length;
+
+    function updateProgress() {
+      let current = 1;
+      const mid = window.innerHeight / 2;
+      sections.forEach((s, i) => {
+        const r = s.getBoundingClientRect();
+        if (r.top <= mid) current = i + 1;
+      });
+      stepCount.textContent = 'Step ' + current + ' of ' + totalSteps;
+    }
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+
+    // ---- Free quote toggle — disable other sections if checked ----
+    const freeQuote = document.getElementById('free_quote');
+    freeQuote.addEventListener('change', function () {
+      document.querySelectorAll('.section').forEach(function (section) {
+        const legend = section.querySelector('legend');
+        if (legend && !legend.textContent.includes('3. Service')) {
+          section.classList.toggle('is-disabled', freeQuote.checked);
+        }
+      });
+    });
+
+    // ---- Checkbox / radio "is-checked" highlight ----
+    function syncCheckedState() {
+      document.querySelectorAll('.option').forEach(function (opt) {
+        const input = opt.querySelector('input[type="checkbox"], input[type="radio"]');
+        if (input) opt.classList.toggle('is-checked', input.checked);
+      });
+    }
+    document.addEventListener('change', syncCheckedState);
+    syncCheckedState();
+
+    // ---- Leaflet satellite rectangle selector (free, no API key) ----
+    (function () {
+      const mapLoading = document.getElementById('map-loading');
+      const mapHint = document.getElementById('map-hint');
+      const btnDraw = document.getElementById('btn-draw-rectangle');
+      const btnClear = document.getElementById('btn-clear-area');
+      const areaInput = document.getElementById('calculated_area');
+      const rectSwInput = document.getElementById('rect_sw');
+      const rectNeInput = document.getElementById('rect_ne');
+
+      let map;
+      let drawnRectangle = null;
+      let drawingActive = false;
+
+      function calculateAreaM2(sw, ne) {
+        var R = 6371000;
+        var dLat = (ne.lat - sw.lat) * Math.PI / 180;
+        var dLng = (ne.lng - sw.lng) * Math.PI / 180;
+        var latAvg = ((sw.lat + ne.lat) / 2) * Math.PI / 180;
+        var width = Math.cos(latAvg) * dLng * R;
+        var height = dLat * R;
+        return Math.abs(width * height);
+      }
+
+      function updateAreaDisplay(bounds) {
+        var sw = bounds.getSouthWest();
+        var ne = bounds.getNorthEast();
+        var areaM2 = calculateAreaM2(sw, ne);
+        var areaKm2 = areaM2 / 1e6;
+        var areaHa = areaM2 / 1e4;
+
+        if (areaKm2 >= 1) {
+          areaInput.value = areaKm2.toFixed(2) + ' km²';
+        } else if (areaHa >= 0.1) {
+          areaInput.value = areaHa.toFixed(2) + ' ha';
+        } else {
+          areaInput.value = Math.round(areaM2) + ' m²';
+        }
+
+        rectSwInput.value = sw.lat.toFixed(6) + ',' + sw.lng.toFixed(6);
+        rectNeInput.value = ne.lat.toFixed(6) + ',' + ne.lng.toFixed(6);
+      }
+
+      function clearSelection() {
+        if (drawnRectangle) { map.removeLayer(drawnRectangle); drawnRectangle = null; }
+        areaInput.value = '';
+        rectSwInput.value = '';
+        rectNeInput.value = '';
+        mapHint.textContent = 'Click "Select area on map" to begin';
+        mapHint.classList.remove('corner-placed');
+        btnClear.disabled = true;
+        btnDraw.textContent = 'Select area on map';
+        drawingActive = false;
+      }
+
+      function initMap() {
+        try {
+          map = L.map('map-canvas', { center: [53.5, -8.0], zoom: 7, zoomControl: true });
+
+          L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
+          ).addTo(map);
+
+          L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+            { maxZoom: 19, opacity: 0.7 }
+          ).addTo(map);
+
+          map.pm.addControls({
+            drawRectangle: true, drawMarker: false, drawCircle: false,
+            drawPolygon: false, drawPolyline: false, drawCircleMarker: false,
+            drawText: false, editMode: true, dragMode: true,
+            cutPolygon: false, removalMode: true, position: 'topleft'
+          });
+
+          map.pm.setPathOptions({
+            color: '#2d6a4f', weight: 2, fillColor: '#40916c', fillOpacity: 0.25
+          });
+
+          map.on('pm:create', function (e) {
+            if (drawnRectangle) map.removeLayer(drawnRectangle);
+            drawnRectangle = e.layer;
+            drawnRectangle.pm.enable({ allowSelfIntersection: false });
+            updateAreaDisplay(drawnRectangle.getBounds());
+            mapHint.textContent = 'Area selected — drag corners to adjust';
+            mapHint.classList.add('corner-placed');
+            btnClear.disabled = false;
+            btnDraw.textContent = 'Draw new area';
+            drawingActive = false;
+          });
+
+          map.on('pm:edit', function (e) {
+            if (e.layer === drawnRectangle) updateAreaDisplay(drawnRectangle.getBounds());
+          });
+          map.on('pm:dragend', function (e) {
+            if (e.layer === drawnRectangle) updateAreaDisplay(drawnRectangle.getBounds());
+          });
+
+          mapLoading.classList.add('is-hidden');
+          setTimeout(function () { mapLoading.style.display = 'none'; }, 300);
+        } catch (e) {
+          console.error('Map init failed:', e);
+          mapLoading.innerHTML = '<span style="color:#c00">Failed to load map.<br>' + e.message + '</span>';
+        }
+      }
+
+      btnDraw.addEventListener('click', function () {
+        if (drawingActive) return;
+        clearSelection();
+        drawingActive = true;
+        map.pm.enableDraw('Rectangle');
+        mapHint.textContent = 'Click and drag on the map to draw';
+        mapHint.classList.remove('corner-placed');
+        this.textContent = 'Drawing… click & drag on map';
+      });
+
+      btnClear.addEventListener('click', function () {
+        clearSelection();
+        if (map.pm) map.pm.disableDraw('Rectangle');
+      });
+
+      if (typeof L !== 'undefined' && L.map) {
+        initMap();
+      } else {
+        mapLoading.innerHTML = '<span style="color:#c00">Leaflet library failed to load.<br>Check that lib/leaflet/leaflet.js exists.</span>';
+      }
+    })();
+  </script>
+</body>
+</html>
