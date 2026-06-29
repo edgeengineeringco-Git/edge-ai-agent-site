@@ -12,6 +12,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman-free@2.14.1/dist/leaflet-geoman.css" />
 
   <style>
+  /* ============================================================
+     EDGE GeoIntelligence – Project Setup Form
+     Brand palette + Google Forms-inspired question cards
+     ============================================================ */
   :root {
     --green-900: #0f2a1a; --green-700: #1b4332; --green-600: #2d6a4f;
     --green-500: #40916c; --green-400: #52b788; --green-100: #d8f3dc; --green-50: #f0faf3;
@@ -142,6 +146,8 @@
   }
   .confirm-card .icon--green { background: var(--green-500); }
   .confirm-card .icon--blue { background: var(--blue-500); }
+  .confirm-card .icon--red { background: var(--required); color: var(--white); }
+  #confirm-error { border-left-color: var(--required); }
   .confirm-card h2 { margin: 0 0 8px; font-size: 1.3rem; font-weight: 700; color: var(--ink); }
   .confirm-card p { margin: 0 0 20px; color: var(--ink-soft); font-size: 0.95rem; }
   .confirm-card .btn-primary { margin-top: 8px; }
@@ -165,7 +171,7 @@
       <p class="subhead">Tell us about your project and choose the services you need. We'll get back to you within 1–2 business days.</p>
     </section>
 
-    <form action="https://pbot.edgeengineers.net/edge-kuth/upload" method="POST" enctype="multipart/form-data" id="setup-form">
+    <form action="javascript:void(0)" method="POST" enctype="multipart/form-data" id="setup-form">
 
       <!-- 1. Project details -->
       <fieldset class="section" data-step="1">
@@ -366,7 +372,7 @@
     <div class="confirm-card" id="confirm-quote">
       <div class="icon icon--green">&#10003;</div>
       <h2>Thank you — we'll be in touch</h2>
-      <p>Your project details have been received. We'll review and get back to you within 1–2 business days with a free initial quote.</p>
+      <p>Your project details have been received and saved to our secure Drive folder. We'll review and get back to you within 1–2 business days with a free initial quote.</p>
       <a href="index.html" class="btn-primary" style="display:inline-block;text-decoration:none;">Back to portal</a>
     </div>
 
@@ -374,8 +380,16 @@
     <div class="confirm-card" id="confirm-continue">
       <div class="icon icon--blue">&#10003;</div>
       <h2>Project details received</h2>
-      <p>Now upload your exploration data so we can prepare an accurate quote.</p>
+      <p>Your data has been saved to our secure Drive folder. Now upload your exploration files so we can prepare an accurate quote.</p>
       <a href="data-upload.html" class="btn-primary" id="continue-btn" style="display:inline-block;text-decoration:none;">Continue to data upload &rarr;</a>
+    </div>
+
+    <!-- Submission error card -->
+    <div class="confirm-card" id="confirm-error" style="border-left-color:#b42318;">
+      <div class="icon icon--red" style="background:#b42318;color:#fff;">!</div>
+      <h2>Submission could not be delivered</h2>
+      <p id="error-detail">Something went wrong. Please try again or email info@edgeengineers.net.</p>
+      <button type="button" class="btn-outline" onclick="document.getElementById('confirm-error').classList.remove('is-visible');document.getElementById('setup-form').classList.remove('form-is-submitted');" style="display:inline-block;">Try again</button>
     </div>
   </main>
 
@@ -383,15 +397,27 @@
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman-free@2.14.1/dist/leaflet-geoman.min.js"></script>
 
+  <!--
+    Google Apps Script Web App URL
+    ─── DEPLOY gas-portal-receiver.gs at https://script.google.com → Deploy as Web App → paste URL below ───
+  -->
   <script>
-    // ---- Progress bar ----
+    var GAS_URL = 'https://script.google.com/macros/s/AKfycbyZt2dIRtmLymB6vIoYOxmcjHGZIXTDVFgJRdg-2-qFHgFnT0YxQCuTnr-TQ6rLl3z7Mg/exec';
+  </script>
+
+  <script>
+    // ---- Progress bar: highlight current section based on scroll ----
     const sections = document.querySelectorAll('.section');
     const stepCount = document.getElementById('step-count');
     const totalSteps = sections.length;
+
     function updateProgress() {
       let current = 1;
       const mid = window.innerHeight / 2;
-      sections.forEach((s, i) => { const r = s.getBoundingClientRect(); if (r.top <= mid) current = i + 1; });
+      sections.forEach((s, i) => {
+        const r = s.getBoundingClientRect();
+        if (r.top <= mid) current = i + 1;
+      });
       stepCount.textContent = 'Step ' + current + ' of ' + totalSteps;
     }
     window.addEventListener('scroll', updateProgress, { passive: true });
@@ -403,49 +429,94 @@
       // No-op: intentionally keep all sections active
     });
 
-    // ---- Form submission: intercept, POST via fetch, show inline confirmation ----
+    // ---- Form submission: convert to JSON+base64, POST to Google Apps Script → Drive ----
     const setupForm = document.getElementById('setup-form');
     const confirmQuote = document.getElementById('confirm-quote');
     const confirmContinue = document.getElementById('confirm-continue');
+    const confirmError = document.getElementById('confirm-error');
 
-    setupForm.addEventListener('submit', function (e) {
+    function collectFields(formEl) {
+      const fields = {};
+      const els = formEl.querySelectorAll('input:not([type=file]), textarea, select');
+      els.forEach(function (el) {
+        if (!el.name) return;
+        if (el.type === 'checkbox') { fields[el.name] = el.checked; }
+        else if (el.type === 'radio') { if (el.checked) fields[el.name] = el.value; }
+        else { fields[el.name] = el.value; }
+      });
+      const checks = formEl.querySelectorAll('input[type=checkbox][name="services[]"]:checked');
+      fields.services = Array.from(checks).map(function (c) { return c.value; }).join(',');
+      return fields;
+    }
+
+    function fileToBase64(file) {
+      return new Promise(function (resolve, reject) {
+        const reader = new FileReader();
+        reader.onload = function () { resolve(reader.result.split(',')[1]); };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function buildPayload(formEl) {
+      const fields = collectFields(formEl);
+      const files = [];
+      const fileInputs = formEl.querySelectorAll('input[type=file]');
+      for (let i = 0; i < fileInputs.length; i++) {
+        const input = fileInputs[i];
+        for (let j = 0; j < input.files.length; j++) {
+          const f = input.files[j];
+          const b64 = await fileToBase64(f);
+          files.push({ name: input.name || ('file_' + i), filename: f.name, mimeType: f.type || 'application/octet-stream', size: f.size, data: b64 });
+        }
+      }
+      return { fields: fields, files: files };
+    }
+
+    setupForm.addEventListener('submit', async function (e) {
       e.preventDefault();
+
+      if (!GAS_URL || GAS_URL.indexOf('YOUR_DEPLOYMENT_ID') !== -1) {
+        confirmError.querySelector('#error-detail').textContent = 'Form receiver not configured. Please set GAS_URL in the page source.';
+        confirmError.classList.add('is-visible');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
 
       var submitBtn = setupForm.querySelector('button[type="submit"]');
       submitBtn.disabled = true;
       submitBtn.textContent = 'Submitting…';
 
-      var formData = new FormData(setupForm);
+      try {
+        const payload = await buildPayload(setupForm);
+        const resp = await fetch(GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(payload),
+        });
+        const result = await resp.json();
 
-      fetch(setupForm.action, {
-        method: 'POST',
-        body: formData,
-      })
-      .then(function () {
-        setupForm.classList.add('form-is-submitted');
-        if (freeQuote.checked) {
-          confirmQuote.classList.add('is-visible');
+        if (result.ok) {
+          setupForm.classList.add('form-is-submitted');
+          if (freeQuote.checked) {
+            confirmQuote.classList.add('is-visible');
+          } else {
+            confirmContinue.classList.add('is-visible');
+            sessionStorage.setItem('portal_step', 'data_upload');
+          }
         } else {
-          confirmContinue.classList.add('is-visible');
-          sessionStorage.setItem('portal_step', 'data_upload');
+          confirmError.querySelector('#error-detail').textContent = (result.error || 'Unknown error') + ' — please try again.';
+          confirmError.classList.add('is-visible');
         }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      })
-      .catch(function (err) {
+      } catch (err) {
         console.error('Submit error:', err);
-        // Proceed anyway — upload server may have received it
-        setupForm.classList.add('form-is-submitted');
-        if (freeQuote.checked) {
-          confirmQuote.classList.add('is-visible');
-        } else {
-          confirmContinue.classList.add('is-visible');
-          sessionStorage.setItem('portal_step', 'data_upload');
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
+        confirmError.querySelector('#error-detail').textContent = 'Network error: ' + err.message;
+        confirmError.classList.add('is-visible');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    // ---- Checkbox / radio highlight ----
+    // ---- Checkbox / radio "is-checked" highlight ----
     function syncCheckedState() {
       document.querySelectorAll('.option').forEach(function (opt) {
         const input = opt.querySelector('input[type="checkbox"], input[type="radio"]');
@@ -455,7 +526,7 @@
     document.addEventListener('change', syncCheckedState);
     syncCheckedState();
 
-    // ---- Leaflet satellite rectangle selector ----
+    // ---- Leaflet satellite rectangle selector (free, no API key) ----
     (function () {
       const mapLoading = document.getElementById('map-loading');
       const mapHint = document.getElementById('map-hint');
@@ -485,27 +556,44 @@
         var areaM2 = calculateAreaM2(sw, ne);
         var areaKm2 = areaM2 / 1e6;
         var areaHa = areaM2 / 1e4;
-        if (areaKm2 >= 1) { areaInput.value = areaKm2.toFixed(2) + ' km²'; }
-        else if (areaHa >= 0.1) { areaInput.value = areaHa.toFixed(2) + ' ha'; }
-        else { areaInput.value = Math.round(areaM2) + ' m²'; }
+
+        if (areaKm2 >= 1) {
+          areaInput.value = areaKm2.toFixed(2) + ' km²';
+        } else if (areaHa >= 0.1) {
+          areaInput.value = areaHa.toFixed(2) + ' ha';
+        } else {
+          areaInput.value = Math.round(areaM2) + ' m²';
+        }
+
         rectSwInput.value = sw.lat.toFixed(6) + ',' + sw.lng.toFixed(6);
         rectNeInput.value = ne.lat.toFixed(6) + ',' + ne.lng.toFixed(6);
       }
 
       function clearSelection() {
         if (drawnRectangle) { map.removeLayer(drawnRectangle); drawnRectangle = null; }
-        areaInput.value = ''; rectSwInput.value = ''; rectNeInput.value = '';
+        areaInput.value = '';
+        rectSwInput.value = '';
+        rectNeInput.value = '';
         mapHint.textContent = 'Click "Select area on map" to begin';
         mapHint.classList.remove('corner-placed');
-        btnClear.disabled = true; btnDraw.textContent = 'Select area on map';
+        btnClear.disabled = true;
+        btnDraw.textContent = 'Select area on map';
         drawingActive = false;
       }
 
       function initMap() {
         try {
           map = L.map('map-canvas', { center: [53.5, -8.0], zoom: 7, zoomControl: true });
-          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri', maxZoom: 19 }).addTo(map);
-          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, opacity: 0.7 }).addTo(map);
+
+          L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
+          ).addTo(map);
+
+          L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+            { maxZoom: 19, opacity: 0.7 }
+          ).addTo(map);
 
           map.pm.addControls({
             drawRectangle: true, drawMarker: false, drawCircle: false,
@@ -513,7 +601,10 @@
             drawText: false, editMode: true, dragMode: true,
             cutPolygon: false, removalMode: true, position: 'topleft'
           });
-          map.pm.setPathOptions({ color: '#2d6a4f', weight: 2, fillColor: '#40916c', fillOpacity: 0.25 });
+
+          map.pm.setPathOptions({
+            color: '#2d6a4f', weight: 2, fillColor: '#40916c', fillOpacity: 0.25
+          });
 
           map.on('pm:create', function (e) {
             if (drawnRectangle) map.removeLayer(drawnRectangle);
@@ -522,12 +613,17 @@
             updateAreaDisplay(drawnRectangle.getBounds());
             mapHint.textContent = 'Area selected — drag corners to adjust';
             mapHint.classList.add('corner-placed');
-            btnClear.disabled = false; btnDraw.textContent = 'Draw new area';
+            btnClear.disabled = false;
+            btnDraw.textContent = 'Draw new area';
             drawingActive = false;
           });
 
-          map.on('pm:edit', function (e) { if (e.layer === drawnRectangle) updateAreaDisplay(drawnRectangle.getBounds()); });
-          map.on('pm:dragend', function (e) { if (e.layer === drawnRectangle) updateAreaDisplay(drawnRectangle.getBounds()); });
+          map.on('pm:edit', function (e) {
+            if (e.layer === drawnRectangle) updateAreaDisplay(drawnRectangle.getBounds());
+          });
+          map.on('pm:dragend', function (e) {
+            if (e.layer === drawnRectangle) updateAreaDisplay(drawnRectangle.getBounds());
+          });
 
           mapLoading.classList.add('is-hidden');
           setTimeout(function () { mapLoading.style.display = 'none'; }, 300);
@@ -552,8 +648,11 @@
         if (map.pm) map.pm.disableDraw('Rectangle');
       });
 
-      if (typeof L !== 'undefined' && L.map) { initMap(); }
-      else { mapLoading.innerHTML = '<span style="color:#c00">Failed to load Leaflet from CDN.<br>Check your internet connection.</span>'; }
+      if (typeof L !== 'undefined' && L.map) {
+        initMap();
+      } else {
+        mapLoading.innerHTML = '<span style="color:#c00">Leaflet library failed to load.<br>Check that lib/leaflet/leaflet.js exists.</span>';
+      }
     })();
   </script>
 </body>
