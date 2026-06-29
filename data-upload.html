@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Edge GeoIntelligence – Data Upload</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green-900: #0f2a1a; --green-700: #1b4332; --green-600: #2d6a4f;
+      --green-500: #40916c; --green-400: #52b788; --green-100: #d8f3dc; --green-50: #f0faf3;
+      --blue-700: #1e3a5f; --blue-600: #1d4e89; --blue-500: #2a6cb0;
+      --blue-400: #3a86c8; --blue-100: #dbeaf8; --blue-50: #eef5fc;
+      --ink: #101828; --ink-soft: #344054; --ink-muted: #667085;
+      --line: #d0d5dd; --line-soft: #eaecf0; --surface: #f9fafb; --white: #ffffff;
+      --required: #b42318; --accent: var(--blue-500);
+      --radius-card: 12px; --radius-input: 8px;
+      --shadow-card: 0 1px 3px rgba(16,24,40,0.08), 0 1px 2px rgba(16,24,40,0.06);
+      --shadow-pop: 0 12px 24px -8px rgba(16,24,40,0.18), 0 4px 8px -2px rgba(16,24,40,0.08);
+      --shadow-focus: 0 0 0 4px var(--green-100);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; font-family: "Inter","Segoe UI",Roboto,-apple-system,sans-serif;
+      background: var(--surface); color: var(--ink); line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content: ""; display: block; height: 200px;
+      background:
+        radial-gradient(1000px 200px at 85% -40%, rgba(58,134,200,0.18), transparent 70%),
+        radial-gradient(800px 200px at 10% -30%, rgba(82,183,136,0.20), transparent 70%),
+        linear-gradient(135deg, var(--green-700) 0%, var(--blue-700) 100%);
+    }
+    main {
+      position: relative; margin-top: -145px; max-width: 760px;
+      padding: 0 16px 48px; margin-left: auto; margin-right: auto;
+    }
+
+    /* ---- Progress bar ---- */
+    .form-progress {
+      display: flex; align-items: center; justify-content: space-between;
+      color: var(--white); margin-bottom: 16px; padding: 0 4px;
+      flex-wrap: wrap; gap: 6px;
+    }
+    .brand-pill {
+      display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.92rem;
+    }
+    .brand-pill .dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--green-400); box-shadow: 0 0 0 4px rgba(82,183,136,0.25);
+    }
+    .step-indicators { display: flex; gap: 6px; align-items: center; }
+    .step-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255,255,255,0.35); transition: background 0.2s;
+    }
+    .step-dot.active { background: var(--green-400); }
+    .step-dot.done { background: rgba(255,255,255,0.7); }
+
+    /* ---- Intro card ---- */
+    .card-intro {
+      background: var(--white); border: 1px solid var(--line); border-top: 4px solid var(--green-500);
+      border-radius: var(--radius-card); box-shadow: var(--shadow-pop);
+      padding: 22px 28px 24px; margin-bottom: 16px;
+    }
+    .card-intro h1 { margin: 0 0 6px; font-size: 1.5rem; font-weight: 700; color: var(--green-900); letter-spacing: -0.01em; }
+    .card-intro .subhead { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
+    .card-intro .tag {
+      display: inline-block; margin-bottom: 12px; background: var(--blue-50);
+      color: var(--blue-700); font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: 100px;
+    }
+    .card-intro .note {
+      margin: 12px 0 0; padding: 12px 16px; background: var(--blue-50);
+      border-radius: var(--radius-input); color: var(--blue-700);
+      font-size: 0.88rem; border-left: 3px solid var(--blue-400);
+    }
+    .card-intro .note strong { color: var(--blue-600); }
+
+    /* ---- Upload blocks ---- */
+    .upload-block {
+      background: var(--white); border: 1px solid var(--line);
+      border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+      margin-bottom: 12px; overflow: hidden;
+      transition: box-shadow 0.18s;
+    }
+    .upload-block:hover { box-shadow: var(--shadow-pop); }
+    .upload-block::before {
+      content: ""; position: absolute; top: 0; left: 0;
+      width: 4px; height: 100%; background: var(--green-500);
+    }
+    .upload-block { position: relative; }
+    .upload-block:nth-child(odd)::before { background: var(--blue-500); }
+
+    .block-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 24px; cursor: pointer; user-select: none;
+      transition: background 0.15s;
+    }
+    .block-header:hover { background: var(--green-50); }
+    .block-header .block-num {
+      flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+      background: var(--green-500); color: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.82rem; font-weight: 700;
+    }
+    .upload-block:nth-child(odd) .block-num { background: var(--blue-500); }
+    .block-header .block-title { font-weight: 600; font-size: 0.95rem; color: var(--ink); flex: 1; }
+    .block-header .block-toggle {
+      font-size: 1.2rem; color: var(--ink-muted);
+      transition: transform 0.2s;
+    }
+    .block-header.collapsed .block-toggle { transform: rotate(-90deg); }
+
+    .block-body {
+      padding: 0 24px 20px; border-top: 1px solid var(--line-soft);
+      transition: max-height 0.25s ease;
+    }
+    .block-header.collapsed + .block-body { display: none; }
+
+    .block-desc { font-size: 0.85rem; color: var(--ink-muted); margin: 14px 0 12px; }
+
+    .upload-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; margin-bottom: 8px;
+      border: 1.5px dashed var(--line); border-radius: var(--radius-input);
+      background: var(--surface); transition: border-color 0.15s, background 0.15s;
+    }
+    .upload-row:hover { border-color: var(--green-400); background: var(--green-50); }
+
+    .upload-row .row-label {
+      flex: 1; font-size: 0.88rem; font-weight: 500; color: var(--ink-soft);
+    }
+    .upload-row .row-label small { display: block; font-weight: 400; font-size: 0.78rem; color: var(--ink-muted); margin-top: 2px; }
+
+    .file-btn {
+      flex-shrink: 0; display: inline-block;
+      background: var(--white); border: 1px solid var(--line);
+      padding: 7px 16px; border-radius: 6px;
+      font-size: 0.82rem; font-weight: 500; cursor: pointer;
+      color: var(--ink-soft); transition: background 0.15s, border-color 0.15s;
+      text-align: center; min-width: 100px;
+    }
+    .file-btn:hover { border-color: var(--green-500); color: var(--green-700); }
+    .file-btn.has-file { background: var(--green-50); border-color: var(--green-500); color: var(--green-700); }
+    .file-btn input { display: none; }
+
+    .upload-row .file-name {
+      flex-shrink: 0; font-size: 0.78rem; color: var(--green-600);
+      max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* ---- Textarea block ---- */
+    .desc-block {
+      padding: 0 24px 20px; border-top: 1px solid var(--line-soft);
+    }
+    .desc-block textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--line);
+      border-radius: var(--radius-input); font-size: 0.9rem; font-family: inherit;
+      color: var(--ink); resize: vertical; min-height: 72px; margin-top: 12px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .desc-block textarea:focus { outline: none; border-color: var(--green-500); box-shadow: var(--shadow-focus); }
+
+    /* ---- Confirmation ---- */
+    .confirmation {
+      background: var(--white); border: 2px solid var(--green-500);
+      border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+      padding: 20px 24px; margin-bottom: 16px;
+    }
+    .confirmation .option {
+      display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
+    }
+    .confirmation .option input {
+      margin-top: 3px; width: 18px; height: 18px;
+      accent-color: var(--green-600); flex-shrink: 0;
+    }
+    .confirmation .option-text { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.5; }
+    .confirmation .option-text strong { color: var(--ink); }
+
+    /* ---- Footer actions ---- */
+    .actions {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; margin-top: 20px; flex-wrap: wrap;
+    }
+    @media (max-width: 560px) { .actions { flex-direction: column-reverse; } }
+    .btn-primary {
+      background: var(--green-600); color: var(--white); border: none;
+      padding: 12px 28px; border-radius: var(--radius-input);
+      font-size: 0.95rem; font-weight: 600; cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s, transform 0.05s;
+      box-shadow: 0 2px 6px rgba(45,106,79,0.25);
+    }
+    .btn-primary:hover { background: var(--green-700); box-shadow: 0 4px 12px rgba(45,106,79,0.32); }
+    .btn-primary:active { transform: translateY(1px); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-outline {
+      background: var(--white); border: 1.5px solid var(--green-600);
+      color: var(--green-700); padding: 12px 24px; border-radius: var(--radius-input);
+      font-size: 0.92rem; font-weight: 600; cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-outline:hover { background: var(--green-600); color: var(--white); }
+
+    .btn-outline-blue {
+      background: var(--white); border: 1.5px solid var(--blue-500);
+      color: var(--blue-700); padding: 12px 24px; border-radius: var(--radius-input);
+      font-size: 0.92rem; font-weight: 600; cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-outline-blue:hover { background: var(--blue-500); color: var(--white); }
+
+    .actions-left { display: flex; gap: 10px; flex-wrap: wrap; }
+    .actions-right { display: flex; gap: 10px; }
+
+    .footer-note {
+      text-align: center; font-size: 0.78rem; margin-top: 28px;
+      padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.85);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Progress / brand bar -->
+  <div class="form-progress">
+    <span class="brand-pill"><span class="dot"></span> EDGE GeoIntelligence</span>
+    <div class="step-indicators">
+      <span class="step-dot done"></span>
+      <span class="step-dot active"></span>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- Intro card -->
+    <section class="card-intro">
+      <span class="tag">Step 2 of 2</span>
+      <h1>Data Upload</h1>
+      <p class="subhead">Upload ZIP files of only the blocks relevant to your project. You can skip any section that doesn't apply.</p>
+      <div class="note"><strong>Tip:</strong> ZIP multiple files together per block. Accepted formats: .zip, .csv, .pdf, .geojson, .kml, .shp, .dxf, .tiff, .las, .jpg, .png</div>
+      <div style="margin-top:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <label style="font-weight:500;font-size:0.88rem;color:#344054;">Project name <span style="color:#b42318;">*</span></label>
+        <input type="text" name="project_name" placeholder="e.g. Donegal REE Survey 2026" required
+               style="flex:1;min-width:200px;padding:10px 12px;border:1px solid #d0d5dd;border-radius:8px;font-size:0.92rem;font-family:inherit;" />
+      </div>
+    </section>
+
+    <form action="https://pbot.edgeengineers.net/edge-kuth/upload" method="POST" enctype="multipart/form-data" id="data-upload-form">
+
+      <!-- Hidden field to tie back to project setup -->
+      <input type="hidden" name="form_step" value="data_upload" />
+
+      <!-- Block 1 – Project Boundary & Maps -->
+      <div class="upload-block">
+        <div class="block-header">
+          <span class="block-num">1</span>
+          <span class="block-title">Project Boundary &amp; Maps</span>
+          <span class="block-toggle">▼</span>
+        </div>
+        <div class="block-body">
+          <p class="block-desc">Upload your project boundary and any base maps.</p>
+          <div class="upload-row">
+            <span class="row-label">AOI boundary <small>Shapefile / GeoJSON / KML</small></span>
+            <label class="file-btn">
+              Choose file
+              <input type="file" name="block1_boundary" accept=".zip,.geojson,.kml,.shp" />
+            </label>
+            <span class="file-name"></span>
+          </div>
+          <div class="upload-row">
+            <span class="row-label">Base maps <small>Geology / topo / claim maps (PDF, image, GIS)</small></span>
+            <label class="file-btn">
+              Choose file
+              <input type="file" name="block1_basemaps" accept=".pdf,.jpg,.png,.tiff,.geotiff,.zip" />
+            </label>
+            <span class="file-name"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Block 2 – Geochemical Data -->
+      <div class="upload-block">
+        <div class="block-header">
+          <span class="block-num">2</span>
+          <span class="block-title">Geochemical Data</span>
+          <span class="block-toggle">▼</span>
+        </div>
+        <div class="block-body">
+          <p class="block-desc">Soil, rock, or stream sediment assays and supporting documents.</p>
+          <div class="upload-row">
+            <span class="row-label">Soil / rock / stream assays <small>CSV or Excel template</small></span>
+            <label class="file-btn">
+              Choose file
+              <input type="file" name="block2_assays" accept=".csv,.xlsx,.xls,.zip" />
+            </label>
+            <span class="file-name"></span>
+          </div>
+          <div class="upload-row">
+            <span class="row-label">Assay key / detection limits <small>Lab certificate or PDF</small></span>
+            <label class="file-btn">
+              Choose file
+              <input type="file" name="block2_labcert" accept=".pdf,.csv,.xlsx" />
+            </label>
+            <span class="file-name"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Block 3 – Drilling & Logs -->
+      <div class="upload-block">
+        <div class="block-header">
+          <span class="block-num">3</span>
+          <span class="block-title">Drilling &amp; Logs</span>
+          <span class="block-toggle">▼</span>
+        </div>
+        <div class="block-body">
+          <p class="block-desc">Collars, surveys, lithology logs, and assay intervals.</p>
+          <div class="upload-row">
+            <span class="row-label">Collars / surveys / lithology / assays <small>Drilling data template</small></span>
+            <label class="file-btn">
+              Choose file
+              <input type="file" name="block3_drilling" accept=".csv,.xlsx,.xls,.zip" />
+            </label>
+            <span class="file-name"></span>
+          </div>
+          <div class="upload-row">
+            <span class="row-label">Supporting sections / logs <small>Optional — PDF or images</small></span>
+            <label class="file-btn">
+              Choose file
+              <input type="file" name="block3_logs" accept=".pdf,.jpg,.png,.zip" />
+            </label>
+            <span class="file-name"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Block 4 – Radiation & Geophysics -->
+      <div class="upload-block">
+        <div class="block-header">
+          <span class="block-num">4</span>
+          <span class="block-title">Radiation &amp; Geophysics</span>
+          <span class="block-toggle">▼</span>
+        </div>
+        <div class="block-body">
+          <p class="block-desc">Gamma spectrometry and other geophysical surveys.</p>
+          <div class="upload-row">
+            <span class="row-label">Gamma / spectrometry data <small>CSV, LAS, or instrument export</small></span>
+            <label class="file-btn">
+              Choose file
+              <input type="file" name="block4_gamma" accept=".csv,.las,.spc,.zip" />
+            </label>
+            <span class="file-name"></span>
+          </div>
+          <div class="upload-row">
+            <span class="row-label">Other geophysics <small>Mag, EM, gravity — grids or line data</small></span>
+            <label class="file-btn">
+              Choose file
+              <input type="file" name="block4_geophysics" accept=".csv,.zip,.dat,.gxf,.ers" />
+            </label>
+            <span class="file-name"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Block 5 – Structural & Field Mapping -->
+      <div class="upload-block">
+        <div class="block-header">
+          <span class="block-num">5</span>
+          <span class="block-title">Structural &amp; Field Mapping</span>
+          <span class="block-toggle">▼</span>
+        </div>
+        <div class="block-body">
+          <p class="block-desc">Field measurements, mapping files, and notes.</p>
+          <div class="upload-row">
+            <span class="row-label">Structural measurements / mapping files <small>GIS, CSV, or images</small></span>
+            <label class="file-btn">
+              Choose file
+              <input type="file" name="block5_structural" accept=".csv,.geojson,.shp,.zip,.jpg,.png" />
+            </label>
+            <span class="file-name"></span>
+          </div>
+          <div class="upload-row">
+            <span class="row-label">Field notes <small>Scan or PDF</small></span>
+            <label class="file-btn">
+              Choose file
+              <input type="file" name="block5_notes" accept=".pdf,.jpg,.png" />
+            </label>
+            <span class="file-name"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Block 6 – Remote Sensing & Imagery -->
+      <div class="upload-block">
+        <div class="block-header">
+          <span class="block-num">6</span>
+          <span class="block-title">Remote Sensing &amp; Imagery</span>
+          <span class="block-toggle">▼</span>
+        </div>
+        <div class="block-body">
+          <p class="block-desc">Satellite, drone, and derived remote-sensing products.</p>
+          <div class="upload-row">
+            <span class="row-label">Satellite / drone imagery <small>GeoTIFF, image, or link to Google Drive</small></span>
+            <label class="file-btn">
+              Choose file
+              <input type="file" name="block6_imagery" accept=".tiff,.tif,.geotiff,.jpg,.png,.zip" />
+            </label>
+            <span class="file-name"></span>
+          </div>
+          <div class="upload-row">
+            <span class="row-label">Classification / RS products <small>Indices, alteration maps, etc.</small></span>
+            <label class="file-btn">
+              Choose file
+              <input type="file" name="block6_rs_products" accept=".tiff,.geotiff,.jpg,.png,.pdf,.zip" />
+            </label>
+            <span class="file-name"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Block 7 – Existing Models & Reports -->
+      <div class="upload-block">
+        <div class="block-header">
+          <span class="block-num">7</span>
+          <span class="block-title">Existing Models &amp; Reports</span>
+          <span class="block-toggle">▼</span>
+        </div>
+        <div class="block-body">
+          <p class="block-desc">Previous 3D models, historic reports, and interpretations.</p>
+          <div class="upload-row">
+            <span class="row-label">Existing 3D models <small>Leapfrog exports / surfaces / wireframes</small></span>
+            <label class="file-btn">
+              Choose file
+              <input type="file" name="block7_models" accept=".zip,.dxf,.dwg,.csv,.json" />
+            </label>
+            <span class="file-name"></span>
+          </div>
+          <div class="upload-row">
+            <span class="row-label">Historic reports &amp; interpretations <small>PDF or Word</small></span>
+            <label class="file-btn">
+              Choose file
+              <input type="file" name="block7_reports" accept=".pdf,.doc,.docx" />
+            </label>
+            <span class="file-name"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Block 8 – Other Relevant Data -->
+      <div class="upload-block">
+        <div class="block-header">
+          <span class="block-num">8</span>
+          <span class="block-title">Other Relevant Data</span>
+          <span class="block-toggle">▼</span>
+        </div>
+        <div class="block-body">
+          <p class="block-desc">Anything not covered by the blocks above.</p>
+          <div class="upload-row">
+            <span class="row-label">Other files <small>Any format</small></span>
+            <label class="file-btn">
+              Choose file
+              <input type="file" name="block8_other" />
+            </label>
+            <span class="file-name"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Block 8 continued – short description -->
+      <div class="upload-block" style="margin-top: -4px;">
+        <div class="block-header">
+          <span class="block-num" style="background: var(--ink-muted);">i</span>
+          <span class="block-title">Additional notes</span>
+          <span class="block-toggle">▼</span>
+        </div>
+        <div class="desc-block">
+          <textarea name="additional_notes" placeholder="Describe any additional data you're uploading, or note anything else we should know about your project…"></textarea>
+        </div>
+      </div>
+
+      <!-- Confirmation -->
+      <div class="confirmation">
+        <label class="option">
+          <input type="checkbox" name="confirmation" value="confirmed" id="confirm-checkbox" />
+          <span class="option-text">
+            <strong>I have uploaded all data I want considered for this quote.</strong><br />
+            I confirm that I have the right to share these data and give Edge GeoIntelligence permission to securely store, process, and analyse them for the purpose of preparing this quote and related services.
+          </span>
+        </label>
+      </div>
+
+      <!-- Footer controls -->
+      <div class="actions">
+        <div class="actions-left">
+          <a href="upload-form.html" class="btn-outline">← Back to project details</a>
+        </div>
+        <div class="actions-right">
+          <button type="submit" class="btn-primary" id="submit-btn" disabled>Save &amp; continue to Service Summary</button>
+        </div>
+      </div>
+
+    </form>
+
+    <div class="footer-note">
+      EDGE Geointelligence · info@edgeengineers.net
+    </div>
+  </main>
+
+  <script>
+    // ---- Collapsible blocks ----
+    document.querySelectorAll('.block-header').forEach(function (header) {
+      header.addEventListener('click', function () {
+        this.classList.toggle('collapsed');
+      });
+    });
+
+    // ---- File picker: show selected filename ----
+    document.querySelectorAll('.file-btn input[type="file"]').forEach(function (input) {
+      input.addEventListener('change', function () {
+        var label = this.closest('.file-btn');
+        var nameSpan = this.closest('.upload-row').querySelector('.file-name');
+        if (this.files && this.files.length > 0) {
+          label.classList.add('has-file');
+          label.textContent = this.files[0].name.length > 20
+            ? this.files[0].name.slice(0, 17) + '…'
+            : this.files[0].name;
+          nameSpan.textContent = (this.files[0].size / 1024 / 1024).toFixed(1) + ' MB';
+          // Re-append the input element (it gets detached)
+          label.appendChild(this);
+        } else {
+          label.classList.remove('has-file');
+          label.textContent = 'Choose file';
+          nameSpan.textContent = '';
+          label.appendChild(this);
+        }
+      });
+    });
+
+    // ---- Confirmation checkbox enables submit ----
+    document.getElementById('confirm-checkbox').addEventListener('change', function () {
+      document.getElementById('submit-btn').disabled = !this.checked;
+    });
+
+    // ---- Form submit: show loading state ----
+    document.getElementById('data-upload-form').addEventListener('submit', function (e) {
+      var btn = document.getElementById('submit-btn');
+      if (btn.disabled) {
+        e.preventDefault();
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Uploading…';
+    });
+  </script>
+</body>
+</html>
