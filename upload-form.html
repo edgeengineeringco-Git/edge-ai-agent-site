@@ -361,15 +361,10 @@
     window.addEventListener('scroll', updateProgress, { passive: true });
     updateProgress();
 
-    // ---- Free quote toggle ----
+    // ---- Free quote toggle — no sections disabled; all stay active ----
     const freeQuote = document.getElementById('free_quote');
     freeQuote.addEventListener('change', function () {
-      document.querySelectorAll('.section').forEach(function (section) {
-        const legend = section.querySelector('legend');
-        if (legend && !legend.textContent.includes('3. Service')) {
-          section.classList.toggle('is-disabled', freeQuote.checked);
-        }
-      });
+      // No-op: intentionally keep all sections active
     });
 
     // ---- Checkbox / radio highlight ----
