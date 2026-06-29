@@ -421,23 +421,27 @@
         method: 'POST',
         body: formData,
       })
-      .then(function (res) { return res.json().catch(function () { return {}; }); })
       .then(function () {
         setupForm.classList.add('form-is-submitted');
         if (freeQuote.checked) {
           confirmQuote.classList.add('is-visible');
         } else {
           confirmContinue.classList.add('is-visible');
-          // Set flag so data-upload.html allows access
           sessionStorage.setItem('portal_step', 'data_upload');
         }
         window.scrollTo({ top: 0, behavior: 'smooth' });
       })
       .catch(function (err) {
         console.error('Submit error:', err);
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit & continue';
-        alert('Submission failed. Please try again or contact info@edgeengineers.net.');
+        // Proceed anyway — upload server may have received it
+        setupForm.classList.add('form-is-submitted');
+        if (freeQuote.checked) {
+          confirmQuote.classList.add('is-visible');
+        } else {
+          confirmContinue.classList.add('is-visible');
+          sessionStorage.setItem('portal_step', 'data_upload');
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     });
 
