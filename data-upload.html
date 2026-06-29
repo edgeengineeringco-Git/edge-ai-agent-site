@@ -229,6 +229,18 @@
 </head>
 <body>
 
+  <!-- Access guard: only reachable after submitting form 1 (not free quote) -->
+  <script>
+    (function () {
+      var allowed = sessionStorage.getItem('portal_step') === 'data_upload';
+      if (!allowed) {
+        window.location.replace('upload-form.html');
+      }
+      // Clear flag after confirming access (so refresh won't loop)
+      sessionStorage.removeItem('portal_step');
+    })();
+  </script>
+
   <!-- Progress / brand bar -->
   <div class="form-progress">
     <span class="brand-pill"><span class="dot"></span> EDGE GeoIntelligence</span>

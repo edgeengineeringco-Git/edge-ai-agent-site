@@ -126,6 +126,26 @@
   .required-hint { font-size: 0.78rem; color: var(--ink-muted); }
   .required-hint .req-dot { color: var(--required); font-weight: 700; }
   .footer-note { text-align: center; font-size: 0.78rem; color: rgba(255,255,255,0.85); margin-top: 28px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.2); }
+
+  /* ---- Post-submit confirmation cards ---- */
+  .confirm-card {
+    display: none;
+    background: var(--white); border: 1px solid var(--line);
+    border-radius: var(--radius-card); box-shadow: var(--shadow-pop);
+    padding: 40px 32px; text-align: center; margin-top: 20px;
+  }
+  .confirm-card.is-visible { display: block; }
+  .confirm-card .icon {
+    width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; font-weight: 700; color: var(--white);
+  }
+  .confirm-card .icon--green { background: var(--green-500); }
+  .confirm-card .icon--blue { background: var(--blue-500); }
+  .confirm-card h2 { margin: 0 0 8px; font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+  .confirm-card p { margin: 0 0 20px; color: var(--ink-soft); font-size: 0.95rem; }
+  .confirm-card .btn-primary { margin-top: 8px; }
+  .form-is-submitted { display: none; }
   </style>
 </head>
 <body>
@@ -341,6 +361,22 @@
         EDGE Geointelligence · info@edgeengineers.net
       </div>
     </form>
+
+    <!-- Post-submit confirmation: free quote (no data upload) -->
+    <div class="confirm-card" id="confirm-quote">
+      <div class="icon icon--green">&#10003;</div>
+      <h2>Thank you — we'll be in touch</h2>
+      <p>Your project details have been received. We'll review and get back to you within 1–2 business days with a free initial quote.</p>
+      <a href="index.html" class="btn-primary" style="display:inline-block;text-decoration:none;">Back to portal</a>
+    </div>
+
+    <!-- Post-submit confirmation: continue to data upload -->
+    <div class="confirm-card" id="confirm-continue">
+      <div class="icon icon--blue">&#10003;</div>
+      <h2>Project details received</h2>
+      <p>Now upload your exploration data so we can prepare an accurate quote.</p>
+      <a href="data-upload.html" class="btn-primary" id="continue-btn" style="display:inline-block;text-decoration:none;">Continue to data upload &rarr;</a>
+    </div>
   </main>
 
   <!-- Leaflet + leaflet-geoman (CDN — works on GitHub Pages) -->
@@ -361,10 +397,48 @@
     window.addEventListener('scroll', updateProgress, { passive: true });
     updateProgress();
 
-    // ---- Free quote toggle — no sections disabled; all stay active ----
+    // ---- Free quote toggle — no sections disabled ----
     const freeQuote = document.getElementById('free_quote');
     freeQuote.addEventListener('change', function () {
       // No-op: intentionally keep all sections active
+    });
+
+    // ---- Form submission: intercept, POST via fetch, show inline confirmation ----
+    const setupForm = document.getElementById('setup-form');
+    const confirmQuote = document.getElementById('confirm-quote');
+    const confirmContinue = document.getElementById('confirm-continue');
+
+    setupForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var submitBtn = setupForm.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting…';
+
+      var formData = new FormData(setupForm);
+
+      fetch(setupForm.action, {
+        method: 'POST',
+        body: formData,
+      })
+      .then(function (res) { return res.json().catch(function () { return {}; }); })
+      .then(function () {
+        setupForm.classList.add('form-is-submitted');
+        if (freeQuote.checked) {
+          confirmQuote.classList.add('is-visible');
+        } else {
+          confirmContinue.classList.add('is-visible');
+          // Set flag so data-upload.html allows access
+          sessionStorage.setItem('portal_step', 'data_upload');
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      })
+      .catch(function (err) {
+        console.error('Submit error:', err);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit & continue';
+        alert('Submission failed. Please try again or contact info@edgeengineers.net.');
+      });
     });
 
     // ---- Checkbox / radio highlight ----
