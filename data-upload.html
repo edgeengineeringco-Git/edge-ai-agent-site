@@ -265,7 +265,7 @@
       </div>
     </section>
 
-    <form action="https://pbot.edgeengineers.net/edge-kuth/upload" method="POST" enctype="multipart/form-data" id="data-upload-form">
+    <form action="javascript:void(0)" method="POST" enctype="multipart/form-data" id="data-upload-form">
 
       <!-- Hidden field to tie back to project setup -->
       <input type="hidden" name="form_step" value="data_upload" />
@@ -526,6 +526,14 @@
     </div>
   </main>
 
+  <!--
+    Google Apps Script Web App URL (same as form 1)
+    ─── Paste your deployment URL here ───
+  -->
+  <script>
+    var GAS_URL = 'https://script.google.com/macros/s/AKfycbyZt2dIRtmLymB6vIoYOxmcjHGZIXTDVFgJRdg-2-qFHgFnT0YxQCuTnr-TQ6rLl3z7Mg/exec';
+  </script>
+
   <script>
     // ---- Collapsible blocks ----
     document.querySelectorAll('.block-header').forEach(function (header) {
@@ -545,7 +553,6 @@
             ? this.files[0].name.slice(0, 17) + '…'
             : this.files[0].name;
           nameSpan.textContent = (this.files[0].size / 1024 / 1024).toFixed(1) + ' MB';
-          // Re-append the input element (it gets detached)
           label.appendChild(this);
         } else {
           label.classList.remove('has-file');
@@ -561,15 +568,104 @@
       document.getElementById('submit-btn').disabled = !this.checked;
     });
 
-    // ---- Form submit: show loading state ----
-    document.getElementById('data-upload-form').addEventListener('submit', function (e) {
+    // ---- Helpers ----
+    function fileToBase64(file) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function () {
+          resolve(reader.result.split(',')[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function collectFields(formEl) {
+      var fields = {};
+      var els = formEl.querySelectorAll('input:not([type=file]):not([type=hidden]), textarea, select');
+      els.forEach(function (el) {
+        if (!el.name) return;
+        if (el.type === 'checkbox') {
+          fields[el.name] = el.checked;
+        } else if (el.type === 'radio') {
+          if (el.checked) fields[el.name] = el.value;
+        } else {
+          fields[el.name] = el.value;
+        }
+      });
+      // Include hidden fields
+      var hidden = formEl.querySelectorAll('input[type=hidden]');
+      hidden.forEach(function (el) {
+        if (el.name) fields[el.name] = el.value;
+      });
+      return fields;
+    }
+
+    async function buildPayload(formEl) {
+      var fields = collectFields(formEl);
+      var files = [];
+      var fileInputs = formEl.querySelectorAll('input[type=file]');
+      for (var i = 0; i < fileInputs.length; i++) {
+        var input = fileInputs[i];
+        for (var j = 0; j < input.files.length; j++) {
+          var f = input.files[j];
+          var b64 = await fileToBase64(f);
+          files.push({
+            name: input.name || ('file_' + i),
+            filename: f.name,
+            mimeType: f.type || 'application/octet-stream',
+            size: f.size,
+            data: b64,
+          });
+        }
+      }
+      return { fields: fields, files: files };
+    }
+
+    // ---- Form submit: JSON+base64 → Google Apps Script → Drive ----
+    document.getElementById('data-upload-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
       var btn = document.getElementById('submit-btn');
-      if (btn.disabled) {
-        e.preventDefault();
+      if (btn.disabled) return;
+
+      if (!GAS_URL || GAS_URL.indexOf('YOUR_DEPLOYMENT_ID') !== -1) {
+        alert('Form receiver not configured. Please set GAS_URL to your Google Apps Script deployment URL.');
         return;
       }
+
       btn.disabled = true;
       btn.textContent = 'Uploading…';
+
+      try {
+        var payload = await buildPayload(this);
+        var resp = await fetch(GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(payload),
+        });
+        var result = await resp.json();
+
+        if (result.ok) {
+          // Show success inline
+          var note = document.createElement('div');
+          note.className = 'note';
+          note.style.cssText = 'background:#d8f3dc;border:1px solid #2d6a4f;color:#1b4332;padding:16px;border-radius:8px;margin-top:16px;text-align:center;';
+          note.innerHTML = '<strong>&#10003; Upload complete</strong><br>' +
+            result.fileCount + ' file(s) saved to your Drive folder.<br>' +
+            '<a href="' + result.folderUrl + '" target="_blank" style="color:#2d6a4f;font-weight:600">View Drive folder &rarr;</a>';
+          this.parentElement.appendChild(note);
+          this.style.display = 'none';
+        } else {
+          alert('Submission failed: ' + (result.error || 'Unknown error') + '\n\nPlease try again or email info@edgeengineers.net.');
+          btn.disabled = false;
+          btn.textContent = 'Save & continue to Service Summary';
+        }
+      } catch (err) {
+        console.error('Upload error:', err);
+        alert('Network error: ' + err.message + '\n\nPlease check your connection and try again.');
+        btn.disabled = false;
+        btn.textContent = 'Save & continue to Service Summary';
+      }
     });
   </script>
 </body>
