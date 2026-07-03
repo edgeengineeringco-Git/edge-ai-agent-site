@@ -146,7 +146,7 @@ function processSubmission(data) {
   }
 
   // ── Telegram notification ──
-  sendTelegram(projectName, formType, fields, uploadedFiles.length, subFolder.getUrl());
+  var telegramResult = sendTelegram(projectName, formType, fields, uploadedFiles.length, subFolder.getUrl());
 
   return {
     ok: true,
@@ -154,6 +154,7 @@ function processSubmission(data) {
     folderId: subFolder.getId(),
     fileCount: uploadedFiles.filter(function(f) { return !f.error; }).length,
     sheetLink: sheetLink,
+    telegram: telegramResult,
     timestamp: ts.toISOString()
   };
 }
@@ -354,24 +355,25 @@ function rowToHtml(label, val) {
 function sendTelegram(projectName, formType, fields, fileCount, folderUrl) {
   if (!CONFIG.TELEGRAM_BOT_TOKEN || !CONFIG.TELEGRAM_CHAT_ID) {
     Logger.log('Telegram not configured — skipping');
-    return;
+    return { ok: false, reason: 'not_configured' };
   }
 
-  var message = '📋 *New EDGE Portal Submission*\n\n' +
-    '*Project:* ' + escapeMarkdown(projectName) + '\n' +
-    '*Form:* ' + escapeMarkdown(formType) + '\n' +
-    '*Contact:* ' + escapeMarkdown(fields.contact_name || '—') + '\n' +
-    '*Email:* ' + escapeMarkdown(fields.email || '—') + '\n' +
-    '*Organisation:* ' + escapeMarkdown(fields.organisation || '—') + '\n' +
-    '*Files:* ' + fileCount + '\n\n' +
-    '[Open Drive Folder](' + folderUrl + ')';
+  var message =
+    '<b>📋 New EDGE Portal Submission</b>\n\n' +
+    '<b>Project:</b> ' + escapeHtml(projectName) + '\n' +
+    '<b>Form:</b> ' + escapeHtml(formType) + '\n' +
+    '<b>Contact:</b> ' + escapeHtml(fields.contact_name || '—') + '\n' +
+    '<b>Email:</b> ' + escapeHtml(fields.email || '—') + '\n' +
+    '<b>Organisation:</b> ' + escapeHtml(fields.organisation || '—') + '\n' +
+    '<b>Files:</b> ' + fileCount + '\n\n' +
+    '<a href="' + folderUrl + '">Open Drive Folder</a>';
 
   try {
     var url = 'https://api.telegram.org/bot' + CONFIG.TELEGRAM_BOT_TOKEN + '/sendMessage';
     var payload = {
       chat_id: CONFIG.TELEGRAM_CHAT_ID,
       text: message,
-      parse_mode: 'Markdown',
+      parse_mode: 'HTML',
       disable_web_page_preview: true
     };
     var options = {
@@ -380,30 +382,26 @@ function sendTelegram(projectName, formType, fields, fileCount, folderUrl) {
       payload: JSON.stringify(payload)
     };
     var response = UrlFetchApp.fetch(url, options);
-    Logger.log('Telegram response: ' + response.getContentText());
+    var respText = response.getContentText();
+    Logger.log('Telegram response: ' + respText);
+    return { ok: true, response: respText };
   } catch (err) {
     Logger.log('Telegram notification failed: ' + err);
+    return { ok: false, error: err.toString() };
   }
 }
 
-function escapeMarkdown(text) {
-  return String(text || '')
-    .replace(/_/g, '\\_')
-    .replace(/\*/g, '\\*')
-    .replace(/\[/g, '\\[')
-    .replace(/\]/g, '\\]')
-    .replace(/\(/g, '\\(')
-    .replace(/\)/g, '\\)')
-    .replace(/~/g, '\\~')
-    .replace(/`/g, '\\`')
-    .replace(/>/g, '\\>')
-    .replace(/#/g, '\\#')
-    .replace(/\+/g, '\\+')
-    .replace(/-/g, '\\-')
-    .replace(/=/g, '\\=')
-    .replace(/\|/g, '\\|')
-    .replace(/\{/g, '\\{')
-    .replace(/\}/g, '\\}')
-    .replace(/\./g, '\\.')
-    .replace(/!/g, '\\!');
+/**
+ * Run this directly in the GAS editor to test Telegram connectivity.
+ * Select this function and click the Run button (▶).
+ */
+function testTelegram() {
+  var result = sendTelegram(
+    'Test Project',
+    'project_setup',
+    { contact_name: 'Test User', email: 'test@example.com', organisation: 'Test Org' },
+    3,
+    'https://drive.google.com/drive/folders/TEST'
+  );
+  Logger.log('testTelegram result: ' + JSON.stringify(result));
 }
