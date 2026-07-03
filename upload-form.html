@@ -582,6 +582,21 @@
             confirmContinue.classList.add('is-visible');
             sessionStorage.setItem('portal_step', 'data_upload');
           }
+          // Notify Telegram (fire-and-forget)
+          var fields = payload.fields || {};
+          fetch('https://pbot.edgeengineers.net/intake/notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              form_type: 'project_setup',
+              project_name: fields.project_name || '',
+              contact_name: fields.contact_name || '',
+              email: fields.email || '',
+              organisation: fields.organisation || '',
+              file_count: result.fileCount || 0,
+              folder_url: result.folderUrl || ''
+            })
+          }).catch(function(e) { console.log('Telegram notify skipped:', e); });
         } else {
           confirmError.querySelector('#error-detail').textContent = (result.error || 'Unknown error') + ' — please try again or email info@edgeengineers.net.';
           confirmError.classList.add('is-visible');

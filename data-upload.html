@@ -590,6 +590,22 @@
           var tlink = document.getElementById('thank-link');
           tlink.href = result.folderUrl || '#';
           document.getElementById('thank-you').classList.add('is-visible');
+
+          // Notify Telegram (fire-and-forget)
+          var fields = payload.fields || {};
+          fetch('https://pbot.edgeengineers.net/intake/notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              form_type: 'data_upload',
+              project_name: fields.project_name || '',
+              contact_name: fields.contact_name || '',
+              email: fields.email || '',
+              organisation: fields.organisation || '',
+              file_count: result.fileCount || 0,
+              folder_url: result.folderUrl || ''
+            })
+          }).catch(function(e) { console.log('Telegram notify skipped:', e); });
         } else {
           document.getElementById('error-message').textContent = (result.error || 'Unknown error') + ' — please try again or email info@edgeengineers.net.';
           document.getElementById('error-banner').classList.add('is-visible');
