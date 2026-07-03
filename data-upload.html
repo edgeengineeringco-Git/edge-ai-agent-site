@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Edge GeoIntelligence – Data Upload</title>
+  <title>EDGE GeoIntelligence – Data Upload</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,7 +15,7 @@
       --blue-400: #3a86c8; --blue-100: #dbeaf8; --blue-50: #eef5fc;
       --ink: #101828; --ink-soft: #344054; --ink-muted: #667085;
       --line: #d0d5dd; --line-soft: #eaecf0; --surface: #f9fafb; --white: #ffffff;
-      --required: #b42318; --accent: var(--blue-500);
+      --required: #b42318;
       --radius-card: 12px; --radius-input: 8px;
       --shadow-card: 0 1px 3px rgba(16,24,40,0.08), 0 1px 2px rgba(16,24,40,0.06);
       --shadow-pop: 0 12px 24px -8px rgba(16,24,40,0.18), 0 4px 8px -2px rgba(16,24,40,0.08);
@@ -39,8 +39,6 @@
       position: relative; margin-top: -145px; max-width: 760px;
       padding: 0 16px 48px; margin-left: auto; margin-right: auto;
     }
-
-    /* ---- Progress bar ---- */
     .form-progress {
       display: flex; align-items: center; justify-content: space-between;
       color: var(--white); margin-bottom: 16px; padding: 0 4px;
@@ -60,8 +58,6 @@
     }
     .step-dot.active { background: var(--green-400); }
     .step-dot.done { background: rgba(255,255,255,0.7); }
-
-    /* ---- Intro card ---- */
     .card-intro {
       background: var(--white); border: 1px solid var(--line); border-top: 4px solid var(--green-500);
       border-radius: var(--radius-card); box-shadow: var(--shadow-pop);
@@ -80,22 +76,18 @@
       font-size: 0.88rem; border-left: 3px solid var(--blue-400);
     }
     .card-intro .note strong { color: var(--blue-600); }
-
-    /* ---- Upload blocks ---- */
     .upload-block {
       background: var(--white); border: 1px solid var(--line);
       border-radius: var(--radius-card); box-shadow: var(--shadow-card);
       margin-bottom: 12px; overflow: hidden;
-      transition: box-shadow 0.18s;
+      transition: box-shadow 0.18s; position: relative;
     }
     .upload-block:hover { box-shadow: var(--shadow-pop); }
     .upload-block::before {
       content: ""; position: absolute; top: 0; left: 0;
       width: 4px; height: 100%; background: var(--green-500);
     }
-    .upload-block { position: relative; }
     .upload-block:nth-child(odd)::before { background: var(--blue-500); }
-
     .block-header {
       display: flex; align-items: center; gap: 12px;
       padding: 16px 24px; cursor: pointer; user-select: none;
@@ -115,15 +107,12 @@
       transition: transform 0.2s;
     }
     .block-header.collapsed .block-toggle { transform: rotate(-90deg); }
-
     .block-body {
       padding: 0 24px 20px; border-top: 1px solid var(--line-soft);
       transition: max-height 0.25s ease;
     }
     .block-header.collapsed + .block-body { display: none; }
-
     .block-desc { font-size: 0.85rem; color: var(--ink-muted); margin: 14px 0 12px; }
-
     .upload-row {
       display: flex; align-items: center; gap: 12px;
       padding: 10px 12px; margin-bottom: 8px;
@@ -131,12 +120,10 @@
       background: var(--surface); transition: border-color 0.15s, background 0.15s;
     }
     .upload-row:hover { border-color: var(--green-400); background: var(--green-50); }
-
     .upload-row .row-label {
       flex: 1; font-size: 0.88rem; font-weight: 500; color: var(--ink-soft);
     }
     .upload-row .row-label small { display: block; font-weight: 400; font-size: 0.78rem; color: var(--ink-muted); margin-top: 2px; }
-
     .file-btn {
       flex-shrink: 0; display: inline-block;
       background: var(--white); border: 1px solid var(--line);
@@ -148,13 +135,10 @@
     .file-btn:hover { border-color: var(--green-500); color: var(--green-700); }
     .file-btn.has-file { background: var(--green-50); border-color: var(--green-500); color: var(--green-700); }
     .file-btn input { display: none; }
-
     .upload-row .file-name {
       flex-shrink: 0; font-size: 0.78rem; color: var(--green-600);
       max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-
-    /* ---- Textarea block ---- */
     .desc-block {
       padding: 0 24px 20px; border-top: 1px solid var(--line-soft);
     }
@@ -165,8 +149,6 @@
       transition: border-color 0.15s, box-shadow 0.15s;
     }
     .desc-block textarea:focus { outline: none; border-color: var(--green-500); box-shadow: var(--shadow-focus); }
-
-    /* ---- Confirmation ---- */
     .confirmation {
       background: var(--white); border: 2px solid var(--green-500);
       border-radius: var(--radius-card); box-shadow: var(--shadow-card);
@@ -181,8 +163,6 @@
     }
     .confirmation .option-text { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.5; }
     .confirmation .option-text strong { color: var(--ink); }
-
-    /* ---- Footer actions ---- */
     .actions {
       display: flex; align-items: center; justify-content: space-between;
       gap: 12px; margin-top: 20px; flex-wrap: wrap;
@@ -198,7 +178,6 @@
     .btn-primary:hover { background: var(--green-700); box-shadow: 0 4px 12px rgba(45,106,79,0.32); }
     .btn-primary:active { transform: translateY(1px); }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
     .btn-outline {
       background: var(--white); border: 1.5px solid var(--green-600);
       color: var(--green-700); padding: 12px 24px; border-radius: var(--radius-input);
@@ -207,41 +186,29 @@
       transition: background 0.15s, color 0.15s;
     }
     .btn-outline:hover { background: var(--green-600); color: var(--white); }
-
-    .btn-outline-blue {
-      background: var(--white); border: 1.5px solid var(--blue-500);
-      color: var(--blue-700); padding: 12px 24px; border-radius: var(--radius-input);
-      font-size: 0.92rem; font-weight: 600; cursor: pointer; text-decoration: none;
-      display: inline-flex; align-items: center; gap: 6px;
-      transition: background 0.15s, color 0.15s;
-    }
-    .btn-outline-blue:hover { background: var(--blue-500); color: var(--white); }
-
     .actions-left { display: flex; gap: 10px; flex-wrap: wrap; }
     .actions-right { display: flex; gap: 10px; }
-
     .footer-note {
       text-align: center; font-size: 0.78rem; margin-top: 28px;
       padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.2);
       color: rgba(255,255,255,0.85);
     }
+    .success-banner {
+      display: none; background: #d8f3dc; border: 1px solid #2d6a4f;
+      color: #1b4332; padding: 20px; border-radius: 8px;
+      margin-top: 16px; text-align: center;
+    }
+    .success-banner.is-visible { display: block; }
+    .error-banner {
+      display: none; background: #fef2f2; border: 1px solid #b42318;
+      color: #7f1d1d; padding: 16px 20px; border-radius: 8px;
+      margin-top: 16px;
+    }
+    .error-banner.is-visible { display: block; }
   </style>
 </head>
 <body>
 
-  <!-- Access guard: only reachable after submitting form 1 (not free quote) -->
-  <script>
-    (function () {
-      var allowed = sessionStorage.getItem('portal_step') === 'data_upload';
-      if (!allowed) {
-        window.location.replace('upload-form.html');
-      }
-      // Clear flag after confirming access (so refresh won't loop)
-      sessionStorage.removeItem('portal_step');
-    })();
-  </script>
-
-  <!-- Progress / brand bar -->
   <div class="form-progress">
     <span class="brand-pill"><span class="dot"></span> EDGE GeoIntelligence</span>
     <div class="step-indicators">
@@ -251,24 +218,23 @@
   </div>
 
   <main>
-
-    <!-- Intro card -->
     <section class="card-intro">
       <span class="tag">Step 2 of 2</span>
       <h1>Data Upload</h1>
       <p class="subhead">Upload ZIP files of only the blocks relevant to your project. You can skip any section that doesn't apply.</p>
       <div class="note"><strong>Tip:</strong> ZIP multiple files together per block. Accepted formats: .zip, .csv, .pdf, .geojson, .kml, .shp, .dxf, .tiff, .las, .jpg, .png</div>
-      <div style="margin-top:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-        <label style="font-weight:500;font-size:0.88rem;color:#344054;">Project name <span style="color:#b42318;">*</span></label>
-        <input type="text" name="project_name" placeholder="e.g. Donegal REE Survey 2026" required
-               style="flex:1;min-width:200px;padding:10px 12px;border:1px solid #d0d5dd;border-radius:8px;font-size:0.92rem;font-family:inherit;" />
-      </div>
     </section>
 
-    <form action="https://pbot.edgeengineers.net/edge-kuth/upload" method="POST" enctype="multipart/form-data" id="data-upload-form">
+    <form action="javascript:void(0)" method="POST" enctype="multipart/form-data" id="data-upload-form">
 
-      <!-- Hidden field to tie back to project setup -->
-      <input type="hidden" name="form_step" value="data_upload" />
+      <!-- Project name moved INSIDE the form -->
+      <div class="card-intro" style="padding: 16px 24px; margin-bottom: 14px;">
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <label style="font-weight:500; font-size:0.88rem; color:var(--ink-soft);">Project name <span style="color:var(--required);">*</span></label>
+          <input type="text" name="project_name" id="project_name" placeholder="e.g. Donegal REE Survey 2026" required
+                 style="flex:1; min-width:200px; padding:10px 12px; border:1px solid #d0d5dd; border-radius:8px; font-size:0.92rem; font-family:inherit;" />
+        </div>
+      </div>
 
       <!-- Block 1 – Project Boundary & Maps -->
       <div class="upload-block">
@@ -281,18 +247,12 @@
           <p class="block-desc">Upload your project boundary and any base maps.</p>
           <div class="upload-row">
             <span class="row-label">AOI boundary <small>Shapefile / GeoJSON / KML</small></span>
-            <label class="file-btn">
-              Choose file
-              <input type="file" name="block1_boundary" accept=".zip,.geojson,.kml,.shp" />
-            </label>
+            <label class="file-btn">Choose file<input type="file" name="block1_boundary" accept=".zip,.geojson,.kml,.shp" /></label>
             <span class="file-name"></span>
           </div>
           <div class="upload-row">
             <span class="row-label">Base maps <small>Geology / topo / claim maps (PDF, image, GIS)</small></span>
-            <label class="file-btn">
-              Choose file
-              <input type="file" name="block1_basemaps" accept=".pdf,.jpg,.png,.tiff,.geotiff,.zip" />
-            </label>
+            <label class="file-btn">Choose file<input type="file" name="block1_basemaps" accept=".pdf,.jpg,.png,.tiff,.geotiff,.zip" /></label>
             <span class="file-name"></span>
           </div>
         </div>
@@ -309,18 +269,12 @@
           <p class="block-desc">Soil, rock, or stream sediment assays and supporting documents.</p>
           <div class="upload-row">
             <span class="row-label">Soil / rock / stream assays <small>CSV or Excel template</small></span>
-            <label class="file-btn">
-              Choose file
-              <input type="file" name="block2_assays" accept=".csv,.xlsx,.xls,.zip" />
-            </label>
+            <label class="file-btn">Choose file<input type="file" name="block2_assays" accept=".csv,.xlsx,.xls,.zip" /></label>
             <span class="file-name"></span>
           </div>
           <div class="upload-row">
             <span class="row-label">Assay key / detection limits <small>Lab certificate or PDF</small></span>
-            <label class="file-btn">
-              Choose file
-              <input type="file" name="block2_labcert" accept=".pdf,.csv,.xlsx" />
-            </label>
+            <label class="file-btn">Choose file<input type="file" name="block2_labcert" accept=".pdf,.csv,.xlsx" /></label>
             <span class="file-name"></span>
           </div>
         </div>
@@ -337,18 +291,12 @@
           <p class="block-desc">Collars, surveys, lithology logs, and assay intervals.</p>
           <div class="upload-row">
             <span class="row-label">Collars / surveys / lithology / assays <small>Drilling data template</small></span>
-            <label class="file-btn">
-              Choose file
-              <input type="file" name="block3_drilling" accept=".csv,.xlsx,.xls,.zip" />
-            </label>
+            <label class="file-btn">Choose file<input type="file" name="block3_drilling" accept=".csv,.xlsx,.xls,.zip" /></label>
             <span class="file-name"></span>
           </div>
           <div class="upload-row">
             <span class="row-label">Supporting sections / logs <small>Optional — PDF or images</small></span>
-            <label class="file-btn">
-              Choose file
-              <input type="file" name="block3_logs" accept=".pdf,.jpg,.png,.zip" />
-            </label>
+            <label class="file-btn">Choose file<input type="file" name="block3_logs" accept=".pdf,.jpg,.png,.zip" /></label>
             <span class="file-name"></span>
           </div>
         </div>
@@ -365,18 +313,12 @@
           <p class="block-desc">Gamma spectrometry and other geophysical surveys.</p>
           <div class="upload-row">
             <span class="row-label">Gamma / spectrometry data <small>CSV, LAS, or instrument export</small></span>
-            <label class="file-btn">
-              Choose file
-              <input type="file" name="block4_gamma" accept=".csv,.las,.spc,.zip" />
-            </label>
+            <label class="file-btn">Choose file<input type="file" name="block4_gamma" accept=".csv,.las,.spc,.zip" /></label>
             <span class="file-name"></span>
           </div>
           <div class="upload-row">
             <span class="row-label">Other geophysics <small>Mag, EM, gravity — grids or line data</small></span>
-            <label class="file-btn">
-              Choose file
-              <input type="file" name="block4_geophysics" accept=".csv,.zip,.dat,.gxf,.ers" />
-            </label>
+            <label class="file-btn">Choose file<input type="file" name="block4_geophysics" accept=".csv,.zip,.dat,.gxf,.ers" /></label>
             <span class="file-name"></span>
           </div>
         </div>
@@ -393,18 +335,12 @@
           <p class="block-desc">Field measurements, mapping files, and notes.</p>
           <div class="upload-row">
             <span class="row-label">Structural measurements / mapping files <small>GIS, CSV, or images</small></span>
-            <label class="file-btn">
-              Choose file
-              <input type="file" name="block5_structural" accept=".csv,.geojson,.shp,.zip,.jpg,.png" />
-            </label>
+            <label class="file-btn">Choose file<input type="file" name="block5_structural" accept=".csv,.geojson,.shp,.zip,.jpg,.png" /></label>
             <span class="file-name"></span>
           </div>
           <div class="upload-row">
             <span class="row-label">Field notes <small>Scan or PDF</small></span>
-            <label class="file-btn">
-              Choose file
-              <input type="file" name="block5_notes" accept=".pdf,.jpg,.png" />
-            </label>
+            <label class="file-btn">Choose file<input type="file" name="block5_notes" accept=".pdf,.jpg,.png" /></label>
             <span class="file-name"></span>
           </div>
         </div>
@@ -421,18 +357,12 @@
           <p class="block-desc">Satellite, drone, and derived remote-sensing products.</p>
           <div class="upload-row">
             <span class="row-label">Satellite / drone imagery <small>GeoTIFF, image, or link to Google Drive</small></span>
-            <label class="file-btn">
-              Choose file
-              <input type="file" name="block6_imagery" accept=".tiff,.tif,.geotiff,.jpg,.png,.zip" />
-            </label>
+            <label class="file-btn">Choose file<input type="file" name="block6_imagery" accept=".tiff,.tif,.geotiff,.jpg,.png,.zip" /></label>
             <span class="file-name"></span>
           </div>
           <div class="upload-row">
             <span class="row-label">Classification / RS products <small>Indices, alteration maps, etc.</small></span>
-            <label class="file-btn">
-              Choose file
-              <input type="file" name="block6_rs_products" accept=".tiff,.geotiff,.jpg,.png,.pdf,.zip" />
-            </label>
+            <label class="file-btn">Choose file<input type="file" name="block6_rs_products" accept=".tiff,.geotiff,.jpg,.png,.pdf,.zip" /></label>
             <span class="file-name"></span>
           </div>
         </div>
@@ -449,18 +379,12 @@
           <p class="block-desc">Previous 3D models, historic reports, and interpretations.</p>
           <div class="upload-row">
             <span class="row-label">Existing 3D models <small>Leapfrog exports / surfaces / wireframes</small></span>
-            <label class="file-btn">
-              Choose file
-              <input type="file" name="block7_models" accept=".zip,.dxf,.dwg,.csv,.json" />
-            </label>
+            <label class="file-btn">Choose file<input type="file" name="block7_models" accept=".zip,.dxf,.dwg,.csv,.json" /></label>
             <span class="file-name"></span>
           </div>
           <div class="upload-row">
             <span class="row-label">Historic reports &amp; interpretations <small>PDF or Word</small></span>
-            <label class="file-btn">
-              Choose file
-              <input type="file" name="block7_reports" accept=".pdf,.doc,.docx" />
-            </label>
+            <label class="file-btn">Choose file<input type="file" name="block7_reports" accept=".pdf,.doc,.docx" /></label>
             <span class="file-name"></span>
           </div>
         </div>
@@ -477,16 +401,13 @@
           <p class="block-desc">Anything not covered by the blocks above.</p>
           <div class="upload-row">
             <span class="row-label">Other files <small>Any format</small></span>
-            <label class="file-btn">
-              Choose file
-              <input type="file" name="block8_other" />
-            </label>
+            <label class="file-btn">Choose file<input type="file" name="block8_other" /></label>
             <span class="file-name"></span>
           </div>
         </div>
       </div>
 
-      <!-- Block 8 continued – short description -->
+      <!-- Additional notes -->
       <div class="upload-block" style="margin-top: -4px;">
         <div class="block-header">
           <span class="block-num" style="background: var(--ink-muted);">i</span>
@@ -519,6 +440,16 @@
         </div>
       </div>
 
+      <!-- Success / error banners -->
+      <div class="success-banner" id="success-banner">
+        <strong>&#10003; Upload complete</strong><br>
+        <span id="success-files">0</span> file(s) saved to your Drive folder.<br>
+        <a id="success-link" href="#" target="_blank" style="color:#1b4332; font-weight:600">View Drive folder &rarr;</a>
+      </div>
+      <div class="error-banner" id="error-banner">
+        <strong>Upload failed</strong><br>
+        <span id="error-message">Please try again or email info@edgeengineers.net.</span>
+      </div>
     </form>
 
     <div class="footer-note">
@@ -526,32 +457,30 @@
     </div>
   </main>
 
-  <!--
-    Google Apps Script Web App URL (same as form 1)
-    ─── Paste your deployment URL here ───
-  -->
+  <!-- ════════════════════════════════════════════════════════════════════════
+       CONFIG: Paste your Google Apps Script Web App URL below
+       ════════════════════════════════════════════════════════════════════════ -->
   <script>
-    var GAS_URL = 'https://pbot.edgeengineers.net/edge-kuth/upload';
+    // ═══════════════════════════════════════════════════════════════════════
+    // GAS backend endpoint — deployed and live
+    // ═══════════════════════════════════════════════════════════════════════
+    var GAS_URL = 'https://script.google.com/macros/s/AKfycbyAUE4OJCz_xByhoP0ZE0-SVmNoB68c95pOEU313WW6OD3yVeUkUMN0-leSLI7F0-ohtQ/exec';
   </script>
 
   <script>
-    // ---- Collapsible blocks ----
+    // ── Collapsible blocks ──
     document.querySelectorAll('.block-header').forEach(function (header) {
-      header.addEventListener('click', function () {
-        this.classList.toggle('collapsed');
-      });
+      header.addEventListener('click', function () { this.classList.toggle('collapsed'); });
     });
 
-    // ---- File picker: show selected filename ----
+    // ── File picker: show selected filename ──
     document.querySelectorAll('.file-btn input[type="file"]').forEach(function (input) {
       input.addEventListener('change', function () {
         var label = this.closest('.file-btn');
         var nameSpan = this.closest('.upload-row').querySelector('.file-name');
         if (this.files && this.files.length > 0) {
           label.classList.add('has-file');
-          label.textContent = this.files[0].name.length > 20
-            ? this.files[0].name.slice(0, 17) + '…'
-            : this.files[0].name;
+          label.textContent = this.files[0].name.length > 20 ? this.files[0].name.slice(0, 17) + '…' : this.files[0].name;
           nameSpan.textContent = (this.files[0].size / 1024 / 1024).toFixed(1) + ' MB';
           label.appendChild(this);
         } else {
@@ -563,44 +492,31 @@
       });
     });
 
-    // ---- Confirmation checkbox enables submit ----
+    // ── Confirmation checkbox enables submit ──
     document.getElementById('confirm-checkbox').addEventListener('change', function () {
       document.getElementById('submit-btn').disabled = !this.checked;
     });
 
-    // ---- Helpers ----
+    // ── Helpers ──
     function fileToBase64(file) {
       return new Promise(function (resolve, reject) {
         var reader = new FileReader();
-        reader.onload = function () {
-          resolve(reader.result.split(',')[1]);
-        };
+        reader.onload = function () { resolve(reader.result.split(',')[1]); };
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
     }
-
     function collectFields(formEl) {
       var fields = {};
       var els = formEl.querySelectorAll('input:not([type=file]):not([type=hidden]), textarea, select');
       els.forEach(function (el) {
         if (!el.name) return;
-        if (el.type === 'checkbox') {
-          fields[el.name] = el.checked;
-        } else if (el.type === 'radio') {
-          if (el.checked) fields[el.name] = el.value;
-        } else {
-          fields[el.name] = el.value;
-        }
-      });
-      // Include hidden fields
-      var hidden = formEl.querySelectorAll('input[type=hidden]');
-      hidden.forEach(function (el) {
-        if (el.name) fields[el.name] = el.value;
+        if (el.type === 'checkbox') { fields[el.name] = el.checked; }
+        else if (el.type === 'radio') { if (el.checked) fields[el.name] = el.value; }
+        else { fields[el.name] = el.value; }
       });
       return fields;
     }
-
     async function buildPayload(formEl) {
       var fields = collectFields(formEl);
       var files = [];
@@ -610,31 +526,28 @@
         for (var j = 0; j < input.files.length; j++) {
           var f = input.files[j];
           var b64 = await fileToBase64(f);
-          files.push({
-            name: input.name || ('file_' + i),
-            filename: f.name,
-            mimeType: f.type || 'application/octet-stream',
-            size: f.size,
-            data: b64,
-          });
+          files.push({ name: input.name || ('file_' + i), filename: f.name, mimeType: f.type || 'application/octet-stream', size: f.size, data: b64 });
         }
       }
-      return { fields: fields, files: files };
+      return { form_type: 'data_upload', fields: fields, files: files };
     }
 
-    // ---- Form submit: JSON+base64 → Google Apps Script → Drive ----
+    // ── Form submit ──
     document.getElementById('data-upload-form').addEventListener('submit', async function (e) {
       e.preventDefault();
       var btn = document.getElementById('submit-btn');
       if (btn.disabled) return;
 
       if (!GAS_URL || GAS_URL.indexOf('YOUR_DEPLOYMENT_ID') !== -1) {
-        alert('Form receiver not configured. Please set GAS_URL to your Google Apps Script deployment URL.');
+        document.getElementById('error-message').textContent = 'Form receiver not configured. Please set GAS_URL in the page source.';
+        document.getElementById('error-banner').classList.add('is-visible');
         return;
       }
 
       btn.disabled = true;
       btn.textContent = 'Uploading…';
+      document.getElementById('success-banner').classList.remove('is-visible');
+      document.getElementById('error-banner').classList.remove('is-visible');
 
       try {
         var payload = await buildPayload(this);
@@ -646,23 +559,22 @@
         var result = await resp.json();
 
         if (result.ok) {
-          // Show success inline
-          var note = document.createElement('div');
-          note.className = 'note';
-          note.style.cssText = 'background:#d8f3dc;border:1px solid #2d6a4f;color:#1b4332;padding:16px;border-radius:8px;margin-top:16px;text-align:center;';
-          note.innerHTML = '<strong>&#10003; Upload complete</strong><br>' +
-            result.fileCount + ' file(s) saved to your Drive folder.<br>' +
-            '<a href="' + result.folderUrl + '" target="_blank" style="color:#2d6a4f;font-weight:600">View Drive folder &rarr;</a>';
-          this.parentElement.appendChild(note);
+          document.getElementById('success-files').textContent = result.fileCount || 0;
+          var link = document.getElementById('success-link');
+          link.href = result.folderUrl || '#';
+          link.textContent = result.folderUrl ? 'View Drive folder →' : 'Upload successful';
+          document.getElementById('success-banner').classList.add('is-visible');
           this.style.display = 'none';
         } else {
-          alert('Submission failed: ' + (result.error || 'Unknown error') + '\n\nPlease try again or email info@edgeengineers.net.');
+          document.getElementById('error-message').textContent = (result.error || 'Unknown error') + ' — please try again or email info@edgeengineers.net.';
+          document.getElementById('error-banner').classList.add('is-visible');
           btn.disabled = false;
           btn.textContent = 'Save & continue to Service Summary';
         }
       } catch (err) {
         console.error('Upload error:', err);
-        alert('Network error: ' + err.message + '\n\nPlease check your connection and try again.');
+        document.getElementById('error-message').textContent = 'Network error: ' + err.message + ' — please check your connection and try again.';
+        document.getElementById('error-banner').classList.add('is-visible');
         btn.disabled = false;
         btn.textContent = 'Save & continue to Service Summary';
       }

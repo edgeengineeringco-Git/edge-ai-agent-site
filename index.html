@@ -30,14 +30,8 @@
         radial-gradient(1000px 300px at 20% -10%, rgba(82,183,136,0.15), transparent 70%),
         linear-gradient(180deg, var(--green-700) 0%, var(--blue-700) 35%, var(--surface) 60%);
     }
-    main {
-      max-width: 680px; margin: 0 auto; padding: 40px 20px 64px;
-    }
-
-    /* ---- Hero ---- */
-    .hero {
-      text-align: center; margin-bottom: 40px;
-    }
+    main { max-width: 680px; margin: 0 auto; padding: 40px 20px 64px; }
+    .hero { text-align: center; margin-bottom: 40px; }
     .hero .logo {
       display: inline-flex; align-items: center; gap: 10px;
       background: rgba(255,255,255,0.12); color: var(--white);
@@ -49,18 +43,9 @@
       width: 10px; height: 10px; border-radius: 50%;
       background: var(--green-400); box-shadow: 0 0 0 4px rgba(82,183,136,0.3);
     }
-    .hero h1 {
-      margin: 0 0 12px; font-size: 2rem; font-weight: 700;
-      color: var(--white); letter-spacing: -0.02em;
-    }
-    .hero p {
-      margin: 0; font-size: 1.05rem; color: rgba(255,255,255,0.8);
-      max-width: 480px; margin-left: auto; margin-right: auto;
-    }
-
-    /* ---- Cards ---- */
+    .hero h1 { margin: 0 0 12px; font-size: 2rem; font-weight: 700; color: var(--white); letter-spacing: -0.02em; }
+    .hero p { margin: 0; font-size: 1.05rem; color: rgba(255,255,255,0.8); max-width: 480px; margin-left: auto; margin-right: auto; }
     .card-grid { display: grid; gap: 20px; }
-
     .portal-card {
       background: var(--white); border: 1px solid var(--line);
       border-radius: var(--radius-card); box-shadow: var(--shadow-card);
@@ -69,52 +54,16 @@
       transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
       position: relative; overflow: hidden;
     }
-    .portal-card:hover {
-      box-shadow: var(--shadow-pop); transform: translateY(-2px);
-      border-color: var(--green-400);
-    }
-    .portal-card:first-child:hover { border-color: var(--green-400); }
-    .portal-card:last-child:hover { border-color: var(--blue-400); }
-
-    .portal-card::before {
-      content: ""; position: absolute; top: 0; left: 0;
-      width: 4px; height: 100%;
-    }
-    .portal-card:first-child::before { background: var(--green-500); }
-    .portal-card:last-child::before { background: var(--blue-500); }
-
-    .card-icon {
-      flex-shrink: 0; width: 48px; height: 48px; border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.4rem; font-weight: 700; color: var(--white);
-    }
-    .portal-card:first-child .card-icon { background: var(--green-500); }
-    .portal-card:last-child .card-icon { background: var(--blue-500); }
-
+    .portal-card:hover { box-shadow: var(--shadow-pop); transform: translateY(-2px); border-color: var(--green-400); }
+    .portal-card::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--green-500); }
+    .card-icon { flex-shrink: 0; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 700; color: var(--white); background: var(--green-500); }
     .card-body { flex: 1; }
     .card-body h2 { margin: 0 0 4px; font-size: 1.15rem; font-weight: 600; }
     .card-body p { margin: 0; font-size: 0.88rem; color: var(--ink-muted); }
-    .card-body .badge {
-      display: inline-block; margin-top: 10px;
-      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em;
-      text-transform: uppercase; padding: 2px 8px; border-radius: 100px;
-    }
-    .portal-card:first-child .badge { background: var(--green-50); color: var(--green-700); }
-    .portal-card:last-child .badge { background: var(--blue-50); color: var(--blue-700); }
-
-    .card-arrow {
-      flex-shrink: 0; font-size: 1.3rem; color: var(--ink-muted);
-      align-self: center; transition: transform 0.2s;
-    }
+    .card-body .badge { display: inline-block; margin-top: 10px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; background: var(--green-50); color: var(--green-700); }
+    .card-arrow { flex-shrink: 0; font-size: 1.3rem; color: var(--ink-muted); align-self: center; transition: transform 0.2s; }
     .portal-card:hover .card-arrow { transform: translateX(4px); }
-
-    /* ---- Footer ---- */
-    .site-footer {
-      text-align: center; margin-top: 48px; padding-top: 20px;
-      border-top: 1px solid var(--line);
-      font-size: 0.8rem; color: var(--ink-muted);
-    }
-
+    .site-footer { text-align: center; margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 0.8rem; color: var(--ink-muted); }
     @media (max-width: 480px) {
       .portal-card { flex-direction: column; gap: 12px; padding: 22px; }
       .card-arrow { align-self: flex-end; }
@@ -131,7 +80,6 @@
     </div>
 
     <div class="card-grid">
-
       <a href="upload-form.html" class="portal-card">
         <div class="card-icon">1</div>
         <div class="card-body">
@@ -141,7 +89,6 @@
         </div>
         <div class="card-arrow">→</div>
       </a>
-
     </div>
 
     <div class="site-footer">

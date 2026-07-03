@@ -2,203 +2,231 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Edge GeoIntelligence – Project Setup &amp; Service Selection</title>
+  <title>EDGE GeoIntelligence – Project Setup &amp; Service Selection</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <!-- Leaflet + leaflet-geoman (CDN — works on GitHub Pages) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman-free@2.14.1/dist/leaflet-geoman.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman-free@2.16.0/dist/leaflet-geoman.css" />
 
   <style>
-  /* ============================================================
-     EDGE GeoIntelligence – Project Setup Form
-     Brand palette + Google Forms-inspired question cards
-     ============================================================ */
-  :root {
-    --green-900: #0f2a1a; --green-700: #1b4332; --green-600: #2d6a4f;
-    --green-500: #40916c; --green-400: #52b788; --green-100: #d8f3dc; --green-50: #f0faf3;
-    --blue-700: #1e3a5f; --blue-600: #1d4e89; --blue-500: #2a6cb0;
-    --blue-400: #3a86c8; --blue-100: #dbeaf8; --blue-50: #eef5fc;
-    --ink: #101828; --ink-soft: #344054; --ink-muted: #667085;
-    --line: #d0d5dd; --line-soft: #eaecf0; --surface: #f9fafb; --white: #ffffff;
-    --required: #b42318; --accent: var(--blue-500);
-    --radius-card: 12px; --radius-input: 8px; --radius-pill: 100px;
-    --shadow-card: 0 1px 3px rgba(16,24,40,0.08), 0 1px 2px rgba(16,24,40,0.06);
-    --shadow-pop: 0 12px 24px -8px rgba(16,24,40,0.18), 0 4px 8px -2px rgba(16,24,40,0.08);
-    --shadow-focus: 0 0 0 4px var(--green-100);
-    --shadow-focus-blue: 0 0 0 4px var(--blue-100);
-  }
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    margin: 0;
-    font-family: "Inter", "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
-    background: var(--surface); color: var(--ink); line-height: 1.55;
-    -webkit-font-smoothing: antialiased;
-  }
-  body::before {
-    content: ""; display: block; height: 220px;
-    background:
-      radial-gradient(1100px 220px at 85% -40%, rgba(58,134,200,0.18), transparent 70%),
-      radial-gradient(900px 220px at 10% -30%, rgba(82,183,136,0.20), transparent 70%),
-      linear-gradient(135deg, var(--green-700) 0%, var(--blue-700) 100%);
-  }
-  main {
-    position: relative; margin-top: -160px; max-width: 720px;
-    padding: 0 16px 64px; margin-left: auto; margin-right: auto;
-  }
-  .form-progress {
-    display: flex; align-items: center; justify-content: space-between;
-    color: var(--white); margin-bottom: 16px; padding: 0 4px;
-  }
-  .form-progress .brand-pill { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.92rem; }
-  .form-progress .brand-pill .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green-400); box-shadow: 0 0 0 4px rgba(82,183,136,0.25); }
-  .form-progress .step-count { font-size: 0.82rem; opacity: 0.85; font-variant-numeric: tabular-nums; }
-  .card-intro {
-    background: var(--white); border: 1px solid var(--line); border-top: 4px solid var(--green-500);
-    border-radius: var(--radius-card); box-shadow: var(--shadow-pop); padding: 22px 28px 24px; margin-bottom: 16px;
-  }
-  .card-intro h1 { margin: 0 0 6px; font-size: 1.5rem; font-weight: 700; color: var(--green-900); letter-spacing: -0.01em; }
-  .card-intro .subhead { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
-  .card-intro .tag { display: inline-block; margin-bottom: 12px; background: var(--blue-50); color: var(--blue-700); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 10px; border-radius: var(--radius-pill); }
-  .section {
-    background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card); padding: 20px 24px; margin-bottom: 14px;
-    position: relative; overflow: hidden; transition: box-shadow 0.18s, border-color 0.18s, opacity 0.18s;
-  }
-  .section::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--green-500); }
-  .section.section--blue::before { background: var(--blue-500); }
-  .section:hover { box-shadow: var(--shadow-pop); }
-  .section.is-disabled { opacity: 0.42; pointer-events: none; }
-  legend { display: block; font-size: 1.05rem; font-weight: 600; color: var(--ink); margin: 0 0 2px; padding: 0; float: left; width: 100%; }
-  legend .num { color: var(--green-600); font-weight: 700; margin-right: 6px; }
-  .section--blue legend .num { color: var(--blue-600); }
-  legend .req-dot { color: var(--required); margin-left: 2px; }
-  .section-desc { clear: both; margin: 0 0 14px; color: var(--ink-muted); font-size: 0.86rem; }
-  .field-group { margin-bottom: 16px; }
-  .field-group:last-child { margin-bottom: 0; }
-  label.field-label { display: block; font-weight: 500; font-size: 0.88rem; color: var(--ink-soft); margin-bottom: 6px; }
-  input[type="text"], input[type="email"], input[type="date"], textarea, select {
-    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-input);
-    font-size: 0.92rem; font-family: inherit; color: var(--ink); background: var(--white); transition: border-color 0.15s, box-shadow 0.15s;
-  }
-  input:hover, textarea:hover, select:hover { border-color: var(--ink-muted); }
-  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--green-500); box-shadow: var(--shadow-focus); }
-  textarea { resize: vertical; min-height: 80px; }
-  input[readonly] { background: var(--green-50); color: var(--green-700); font-weight: 600; border-color: var(--green-100); }
-  .helper { font-size: 0.78rem; color: var(--ink-muted); margin-top: 5px; }
-  .optional { color: var(--ink-muted); font-weight: 400; font-size: 0.78rem; }
-  .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media (max-width: 560px) { .settings-grid { grid-template-columns: 1fr; } }
-  .inline-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .separator { color: var(--ink-muted); font-size: 0.85rem; }
-  .btn-outline { background: var(--white); border: 1.5px solid var(--green-600); color: var(--green-700); padding: 9px 16px; border-radius: var(--radius-input); font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s, box-shadow 0.15s; }
-  .btn-outline:hover { background: var(--green-600); color: var(--white); box-shadow: 0 2px 6px rgba(45,106,79,0.3); }
-  .btn-small { background: var(--white); border: 1px solid var(--line); color: var(--ink-soft); padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: background 0.15s; }
-  .btn-small:disabled { opacity: 0.4; cursor: not-allowed; }
-  .btn-small:not(:disabled):hover { background: var(--surface); }
-  .file-upload-label { display: inline-block; background: var(--blue-50); border: 1.5px dashed var(--blue-400); padding: 9px 16px; border-radius: var(--radius-input); font-size: 0.88rem; font-weight: 500; cursor: pointer; color: var(--blue-700); transition: background 0.15s; }
-  .file-upload-label:hover { background: var(--blue-100); }
-  .map-container { position: relative; border: 1px solid var(--line); border-radius: var(--radius-input); overflow: hidden; margin-top: 10px; height: 360px; background: var(--green-50); }
-  .map-canvas { position: absolute; inset: 0; height: 100%; width: 100%; }
-  .map-loading { position: absolute; inset: 0; z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: var(--green-50); color: var(--ink-soft); font-size: 0.88rem; transition: opacity 0.3s; }
-  .map-loading.is-hidden { opacity: 0; pointer-events: none; }
-  .spinner { width: 26px; height: 26px; border: 3px solid var(--green-100); border-top-color: var(--green-500); border-radius: 50%; animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .map-controls { position: absolute; bottom: 10px; left: 10px; right: 10px; z-index: 400; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: rgba(255,255,255,0.94); padding: 6px 12px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); font-size: 0.82rem; backdrop-filter: blur(4px); }
-  .map-hint { color: var(--ink-soft); }
-  .map-hint.corner-placed { color: var(--green-600); font-weight: 600; }
-  .checkbox-group, .radio-group { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-  .option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-input); cursor: pointer; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; user-select: none; }
-  .option:hover { border-color: var(--green-400); background: var(--green-50); }
-  .option input { accent-color: var(--green-600); width: 16px; height: 16px; }
-  .option label { margin: 0; font-weight: 400; font-size: 0.92rem; color: var(--ink); cursor: pointer; }
-  .option.is-checked { border-color: var(--green-500); background: var(--green-50); box-shadow: var(--shadow-focus); }
-  .section--blue .option:hover { border-color: var(--blue-400); background: var(--blue-50); }
-  .section--blue .option input { accent-color: var(--blue-600); }
-  .section--blue .option.is-checked { border-color: var(--blue-500); background: var(--blue-50); box-shadow: var(--shadow-focus-blue); }
-  .option--quote { background: var(--blue-50); border-style: dashed; border-color: var(--blue-400); }
-  .option--quote:hover { background: var(--blue-100); border-color: var(--blue-500); }
-  .divider { border: none; border-top: 1px solid var(--line-soft); margin: 16px 0; }
-  .actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px; }
-  @media (max-width: 560px) { .actions { flex-direction: column-reverse; align-items: stretch; } }
-  .btn-primary { background: var(--green-600); color: var(--white); border: none; padding: 12px 28px; border-radius: var(--radius-input); font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.15s, box-shadow 0.15s, transform 0.05s; box-shadow: 0 2px 6px rgba(45,106,79,0.25); }
-  .btn-primary:hover { background: var(--green-700); box-shadow: 0 4px 12px rgba(45,106,79,0.32); }
-  .btn-primary:active { transform: translateY(1px); }
-  .required-hint { font-size: 0.78rem; color: var(--ink-muted); }
-  .required-hint .req-dot { color: var(--required); font-weight: 700; }
-  .footer-note { text-align: center; font-size: 0.78rem; color: rgba(255,255,255,0.85); margin-top: 28px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.2); }
-
-  /* ---- Post-submit confirmation cards ---- */
-  .confirm-card {
-    display: none;
-    background: var(--white); border: 1px solid var(--line);
-    border-radius: var(--radius-card); box-shadow: var(--shadow-pop);
-    padding: 40px 32px; text-align: center; margin-top: 20px;
-  }
-  .confirm-card.is-visible { display: block; }
-  .confirm-card .icon {
-    width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 16px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.8rem; font-weight: 700; color: var(--white);
-  }
-  .confirm-card .icon--green { background: var(--green-500); }
-  .confirm-card .icon--blue { background: var(--blue-500); }
-  .confirm-card .icon--red { background: var(--required); color: var(--white); }
-  #confirm-error { border-left-color: var(--required); }
-  .confirm-card h2 { margin: 0 0 8px; font-size: 1.3rem; font-weight: 700; color: var(--ink); }
-  .confirm-card p { margin: 0 0 20px; color: var(--ink-soft); font-size: 0.95rem; }
-  .confirm-card .btn-primary { margin-top: 8px; }
-  .form-is-submitted { display: none; }
+    :root {
+      --green-900: #0f2a1a; --green-700: #1b4332; --green-600: #2d6a4f;
+      --green-500: #40916c; --green-400: #52b788; --green-100: #d8f3dc; --green-50: #f0faf3;
+      --blue-700: #1e3a5f; --blue-600: #1d4e89; --blue-500: #2a6cb0;
+      --blue-400: #3a86c8; --blue-100: #dbeaf8; --blue-50: #eef5fc;
+      --ink: #101828; --ink-soft: #344054; --ink-muted: #667085;
+      --line: #d0d5dd; --line-soft: #eaecf0; --surface: #f9fafb; --white: #ffffff;
+      --required: #b42318; --accent: var(--blue-500);
+      --radius-card: 12px; --radius-input: 8px; --radius-pill: 100px;
+      --shadow-card: 0 1px 3px rgba(16,24,40,0.08), 0 1px 2px rgba(16,24,40,0.06);
+      --shadow-pop:  0 12px 24px -8px rgba(16,24,40,0.18), 0 4px 8px -2px rgba(16,24,40,0.08);
+      --shadow-focus: 0 0 0 4px var(--green-100);
+      --shadow-focus-blue: 0 0 0 4px var(--blue-100);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Inter", "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+      background: var(--surface); color: var(--ink); line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    body::before {
+      content: ""; display: block; height: 220px;
+      background:
+        radial-gradient(1100px 220px at 85% -40%, rgba(58,134,200,0.18), transparent 70%),
+        radial-gradient(900px 220px at 10% -30%,  rgba(82,183,136,0.20),  transparent 70%),
+        linear-gradient(135deg, var(--green-700) 0%, var(--blue-700) 100%);
+    }
+    main {
+      position: relative; margin-top: -160px; max-width: 720px;
+      padding: 0 16px 64px; margin-left: auto; margin-right: auto;
+    }
+    .form-progress {
+      display: flex; align-items: center; justify-content: space-between;
+      color: var(--white); margin-bottom: 16px; padding: 0 4px;
+    }
+    .form-progress .brand-pill {
+      display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.92rem; letter-spacing: 0.02em;
+    }
+    .form-progress .brand-pill .dot {
+      width: 9px; height: 9px; border-radius: 50%; background: var(--green-400);
+      box-shadow: 0 0 0 4px rgba(82,183,136,0.25);
+    }
+    .form-progress .step-count { font-size: 0.82rem; opacity: 0.85; font-variant-numeric: tabular-nums; }
+    .card-intro {
+      background: var(--white); border: 1px solid var(--line); border-top: 4px solid var(--green-500);
+      border-radius: var(--radius-card); box-shadow: var(--shadow-pop);
+      padding: 22px 28px 24px; margin-bottom: 16px;
+    }
+    .card-intro h1 { margin: 0 0 6px; font-size: 1.5rem; font-weight: 700; color: var(--green-900); letter-spacing: -0.01em; }
+    .card-intro .subhead { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
+    .card-intro .tag {
+      display: inline-block; margin-bottom: 12px; background: var(--blue-50); color: var(--blue-700);
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 3px 10px; border-radius: var(--radius-pill);
+    }
+    .section {
+      background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card); padding: 20px 24px; margin-bottom: 14px;
+      position: relative; overflow: hidden;
+      transition: box-shadow 0.18s, border-color 0.18s, opacity 0.18s;
+    }
+    .section::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--green-500); }
+    .section.section--blue::before { background: var(--blue-500); }
+    .section.is-disabled { opacity: 0.42; pointer-events: none; }
+    legend { display: block; font-size: 1.05rem; font-weight: 600; color: var(--ink); margin: 0 0 2px; padding: 0; float: left; width: 100%; }
+    legend .num { color: var(--green-600); font-weight: 700; margin-right: 6px; }
+    .section--blue legend .num { color: var(--blue-600); }
+    .section-desc { clear: both; margin: 0 0 14px; color: var(--ink-muted); font-size: 0.86rem; }
+    .field-group { margin-bottom: 16px; }
+    .field-group:last-child { margin-bottom: 0; }
+    label.field-label { display: block; font-weight: 500; font-size: 0.88rem; color: var(--ink-soft); margin-bottom: 6px; }
+    input[type="text"], input[type="email"], input[type="date"], textarea, select {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-input);
+      font-size: 0.92rem; font-family: inherit; color: var(--ink); background: var(--white);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:hover, textarea:hover, select:hover { border-color: var(--ink-muted); }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--green-500); box-shadow: var(--shadow-focus); }
+    textarea { resize: vertical; min-height: 80px; }
+    input[readonly] { background: var(--green-50); color: var(--green-700); font-weight: 600; border-color: var(--green-100); }
+    .helper { font-size: 0.78rem; color: var(--ink-muted); margin-top: 5px; }
+    .optional { color: var(--ink-muted); font-weight: 400; font-size: 0.78rem; }
+    .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 560px) { .settings-grid { grid-template-columns: 1fr; } }
+    .inline-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .separator { color: var(--ink-muted); font-size: 0.85rem; }
+    .btn-outline {
+      background: var(--white); border: 1.5px solid var(--green-600); color: var(--green-700);
+      padding: 9px 16px; border-radius: var(--radius-input); font-size: 0.88rem; font-weight: 600;
+      cursor: pointer; transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    }
+    .btn-outline:hover { background: var(--green-600); color: var(--white); box-shadow: 0 2px 6px rgba(45,106,79,0.3); }
+    .btn-small {
+      background: var(--white); border: 1px solid var(--line); color: var(--ink-soft);
+      padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 500;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .btn-small:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-small:not(:disabled):hover { background: var(--surface); }
+    .file-upload-label {
+      display: inline-block; background: var(--blue-50); border: 1.5px dashed var(--blue-400);
+      padding: 9px 16px; border-radius: var(--radius-input); font-size: 0.88rem; font-weight: 500;
+      cursor: pointer; color: var(--blue-700); transition: background 0.15s;
+    }
+    .file-upload-label:hover { background: var(--blue-100); }
+    .map-container {
+      position: relative; border: 1px solid var(--line); border-radius: var(--radius-input);
+      overflow: hidden; margin-top: 10px; height: 360px; background: var(--green-50);
+    }
+    .map-canvas { position: absolute; inset: 0; height: 100%; width: 100%; }
+    .map-loading {
+      position: absolute; inset: 0; z-index: 500; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px;
+      background: var(--green-50); color: var(--ink-soft); font-size: 0.88rem;
+      transition: opacity 0.3s;
+    }
+    .map-loading.is-hidden { opacity: 0; pointer-events: none; }
+    .spinner {
+      width: 26px; height: 26px; border: 3px solid var(--green-100);
+      border-top-color: var(--green-500); border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .map-controls {
+      position: absolute; bottom: 10px; left: 10px; right: 10px; z-index: 400;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      background: rgba(255,255,255,0.94); padding: 6px 12px; border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.12); font-size: 0.82rem; backdrop-filter: blur(4px);
+    }
+    .map-hint { color: var(--ink-soft); }
+    .map-hint.corner-placed { color: var(--green-600); font-weight: 600; }
+    .checkbox-group, .radio-group { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+    .option {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      border: 1px solid var(--line); border-radius: var(--radius-input); cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; user-select: none;
+    }
+    .option:hover { border-color: var(--green-400); background: var(--green-50); }
+    .option input { accent-color: var(--green-600); width: 16px; height: 16px; }
+    .option label { margin: 0; font-weight: 400; font-size: 0.92rem; color: var(--ink); cursor: pointer; }
+    .option.is-checked { border-color: var(--green-500); background: var(--green-50); box-shadow: var(--shadow-focus); }
+    .section--blue .option:hover { border-color: var(--blue-400); background: var(--blue-50); }
+    .section--blue .option input { accent-color: var(--blue-600); }
+    .section--blue .option.is-checked { border-color: var(--blue-500); background: var(--blue-50); box-shadow: var(--shadow-focus-blue); }
+    .option--quote { background: var(--blue-50); border-style: dashed; border-color: var(--blue-400); }
+    .option--quote:hover { background: var(--blue-100); border-color: var(--blue-500); }
+    .divider { border: none; border-top: 1px solid var(--line-soft); margin: 16px 0; }
+    .actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px; }
+    @media (max-width: 560px) { .actions { flex-direction: column-reverse; align-items: stretch; } }
+    .btn-primary {
+      background: var(--green-600); color: var(--white); border: none;
+      padding: 12px 28px; border-radius: var(--radius-input); font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: background 0.15s, box-shadow 0.15s, transform 0.05s;
+      box-shadow: 0 2px 6px rgba(45,106,79,0.25);
+    }
+    .btn-primary:hover { background: var(--green-700); box-shadow: 0 4px 12px rgba(45,106,79,0.32); }
+    .btn-primary:active { transform: translateY(1px); }
+    .required-hint { font-size: 0.78rem; color: var(--ink-muted); }
+    .required-hint .req-dot { color: var(--required); font-weight: 700; }
+    .footer-note { text-align: center; font-size: 0.78rem; color: rgba(255,255,255,0.85); margin-top: 28px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.2); }
+    .confirm-card {
+      display: none; background: var(--white); border: 1px solid var(--line);
+      border-radius: var(--radius-card); box-shadow: var(--shadow-pop);
+      padding: 40px 32px; text-align: center; margin-top: 20px;
+    }
+    .confirm-card.is-visible { display: block; }
+    .confirm-card .icon {
+      width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; font-weight: 700; color: var(--white);
+    }
+    .confirm-card .icon--green { background: var(--green-500); }
+    .confirm-card .icon--blue { background: var(--blue-500); }
+    .confirm-card .icon--red { background: var(--required); }
+    .confirm-card h2 { margin: 0 0 8px; font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+    .confirm-card p { margin: 0 0 20px; color: var(--ink-soft); font-size: 0.95rem; }
+    .form-is-submitted { display: none; }
   </style>
 </head>
 <body>
 
-  <!-- Progress / brand bar -->
   <div class="form-progress">
     <span class="brand-pill"><span class="dot"></span> EDGE GeoIntelligence</span>
     <span class="step-count" id="step-count">Step 1 of 5</span>
   </div>
 
   <main>
-
-    <!-- Intro card -->
     <section class="card-intro">
       <span class="tag">Project Setup</span>
       <h1>Project Setup &amp; Service Selection</h1>
       <p class="subhead">Tell us about your project and choose the services you need. We'll get back to you within 1–2 business days.</p>
     </section>
 
-    <form action="https://pbot.edgeengineers.net/edge-kuth/upload" method="POST" enctype="multipart/form-data" id="setup-form">
+    <form action="javascript:void(0)" method="POST" enctype="multipart/form-data" id="setup-form">
 
-      <!-- 1. Project details -->
       <fieldset class="section" data-step="1">
         <legend><span class="num">1.</span> Project details</legend>
         <p class="section-desc">A few basics so we know what we're working on.</p>
-
         <div class="field-group">
-          <label class="field-label" for="project_name">Project name <span class="req-dot">*</span></label>
+          <label class="field-label" for="project_name">Project name <span style="color:var(--required)">*</span></label>
           <input type="text" id="project_name" name="project_name" placeholder="e.g. Donegal REE Survey 2026" required />
         </div>
-
         <div class="field-group">
-          <label class="field-label" for="organisation">Organisation / client <span class="req-dot">*</span></label>
+          <label class="field-label" for="organisation">Organisation / client <span style="color:var(--required)">*</span></label>
           <input type="text" id="organisation" name="organisation" placeholder="Company or client name" required />
         </div>
-
         <div class="field-group">
           <label class="field-label" for="project_description">Short project description</label>
           <textarea id="project_description" name="project_description" rows="3" placeholder="2–3 lines describing the project scope, location, and objectives…"></textarea>
         </div>
       </fieldset>
 
-      <!-- 2. Area of interest -->
       <fieldset class="section" data-step="2">
         <legend><span class="num">2.</span> Area of interest</legend>
         <p class="section-desc">Draw your survey area on the map, or upload a boundary file.</p>
-
         <div class="field-group">
           <label class="field-label">Define your area</label>
           <div class="inline-actions">
@@ -211,53 +239,37 @@
           </div>
           <div class="helper">Click and drag on the satellite map to draw your survey area rectangle. The area will be calculated automatically.</div>
         </div>
-
-        <!-- Leaflet satellite map -->
         <div class="map-container" id="map-container">
-          <div class="map-loading" id="map-loading">
-            <div class="spinner"></div>
-            <span>Loading satellite map…</span>
-          </div>
+          <div class="map-loading" id="map-loading"><div class="spinner"></div><span>Loading satellite map…</span></div>
           <div class="map-canvas" id="map-canvas"></div>
           <div class="map-controls">
             <span class="map-hint" id="map-hint">Click "Select area on map" to begin</span>
             <button type="button" class="btn-small" id="btn-clear-area" disabled>Clear selection</button>
           </div>
         </div>
-
         <div class="settings-grid" style="margin-top: 14px;">
           <div class="field-group">
             <label class="field-label" for="calculated_area">Calculated area</label>
             <input type="text" id="calculated_area" name="calculated_area" readonly placeholder="km² / ha" />
             <div class="helper">Auto-filled when a rectangle is drawn on the map.</div>
           </div>
-
           <div class="field-group">
             <label class="field-label" for="country">Country / region</label>
             <input type="text" id="country" name="country" placeholder="e.g. Ireland, Connemara" list="country-list" />
             <datalist id="country-list">
-              <option value="Ireland"></option>
-              <option value="United Kingdom"></option>
-              <option value="Sweden"></option>
-              <option value="Finland"></option>
-              <option value="Canada"></option>
-              <option value="Australia"></option>
-              <option value="United States"></option>
-              <option value="Brazil"></option>
+              <option value="Ireland"><option value="United Kingdom"><option value="Sweden">
+              <option value="Finland"><option value="Canada"><option value="Australia">
+              <option value="United States"><option value="Brazil">
             </datalist>
           </div>
         </div>
-
         <input type="hidden" id="rect_sw" name="rect_sw" />
         <input type="hidden" id="rect_ne" name="rect_ne" />
-        <input type="hidden" name="form_step" value="project_setup" />
       </fieldset>
 
-      <!-- 3. Service selection -->
       <fieldset class="section section--blue" data-step="3">
         <legend><span class="num">3.</span> Service selection</legend>
         <p class="section-desc">Choose one or more services.</p>
-
         <div class="checkbox-group">
           <label class="option" for="svc_remote_ree">
             <input type="checkbox" id="svc_remote_ree" name="services[]" value="remote_ree_kuth" />
@@ -284,22 +296,17 @@
             <span>Expert Geo-Modelling Support</span>
           </label>
         </div>
-
         <p class="helper note" style="margin-top: 10px; font-style: italic;">Select at least one core service.</p>
-
         <hr class="divider" />
-
         <label class="option option--quote" for="free_quote">
           <input type="checkbox" id="free_quote" name="free_quote" value="true" />
           <span><strong>I just want a free initial quote</strong> — tick this box to skip data upload on the next page.</span>
         </label>
       </fieldset>
 
-      <!-- 4. Detector and data options -->
       <fieldset class="section" data-step="4">
         <legend><span class="num">4.</span> Detector and data options</legend>
         <p class="section-desc">What detector will be used for the survey?</p>
-
         <div class="radio-group">
           <label class="option" for="det_high">
             <input type="radio" id="det_high" name="detector_type" value="high_resolution_gamma" />
@@ -314,36 +321,30 @@
             <span>Client's own detector</span>
           </label>
         </div>
-
         <div class="field-group" style="margin-top: 14px;">
           <label class="field-label" for="detector_model">Model / name <span class="optional">(if client's own)</span></label>
           <input type="text" id="detector_model" name="detector_model" placeholder="e.g. RS-230, Exploranium GR-135" />
         </div>
       </fieldset>
 
-      <!-- 5. Contact & timing -->
       <fieldset class="section" data-step="5">
         <legend><span class="num">5.</span> Contact &amp; timing</legend>
         <p class="section-desc">How should we reach you, and when do you want to start?</p>
-
         <div class="settings-grid">
           <div class="field-group">
-            <label class="field-label" for="contact_name">Primary contact name <span class="req-dot">*</span></label>
+            <label class="field-label" for="contact_name">Primary contact name <span style="color:var(--required)">*</span></label>
             <input type="text" id="contact_name" name="contact_name" placeholder="Full name" required />
           </div>
-
           <div class="field-group">
-            <label class="field-label" for="email">Email <span class="req-dot">*</span></label>
+            <label class="field-label" for="email">Email <span style="color:var(--required)">*</span></label>
             <input type="email" id="email" name="email" placeholder="name@example.com" required />
           </div>
         </div>
-
         <div class="settings-grid">
           <div class="field-group">
             <label class="field-label" for="start_date">Preferred start date</label>
             <input type="date" id="start_date" name="start_date" />
           </div>
-
           <div class="field-group">
             <label class="field-label" for="referral">How did you hear about us?</label>
             <select id="referral" name="referral">
@@ -359,16 +360,12 @@
       </fieldset>
 
       <div class="actions">
-        <span class="required-hint"><span class="req-dot">*</span> Required fields</span>
+        <span class="required-hint"><span style="color:var(--required)">*</span> Required fields</span>
         <button type="submit" class="btn-primary">Submit &amp; continue</button>
       </div>
-
-      <div class="footer-note">
-        EDGE Geointelligence · info@edgeengineers.net
-      </div>
+      <div class="footer-note">EDGE Geointelligence · info@edgeengineers.net</div>
     </form>
 
-    <!-- Post-submit confirmation: free quote (no data upload) -->
     <div class="confirm-card" id="confirm-quote">
       <div class="icon icon--green">&#10003;</div>
       <h2>Thank you — we'll be in touch</h2>
@@ -376,7 +373,6 @@
       <a href="index.html" class="btn-primary" style="display:inline-block;text-decoration:none;">Back to portal</a>
     </div>
 
-    <!-- Post-submit confirmation: continue to data upload -->
     <div class="confirm-card" id="confirm-continue">
       <div class="icon icon--blue">&#10003;</div>
       <h2>Project details received</h2>
@@ -384,7 +380,6 @@
       <a href="data-upload.html" class="btn-primary" id="continue-btn" style="display:inline-block;text-decoration:none;">Continue to data upload &rarr;</a>
     </div>
 
-    <!-- Submission error card -->
     <div class="confirm-card" id="confirm-error" style="border-left-color:#b42318;">
       <div class="icon icon--red" style="background:#b42318;color:#fff;">!</div>
       <h2>Submission could not be delivered</h2>
@@ -393,130 +388,45 @@
     </div>
   </main>
 
-  <!-- Leaflet + leaflet-geoman (CDN — works on GitHub Pages) -->
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman-free@2.14.1/dist/leaflet-geoman.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman-free@2.16.0/dist/leaflet-geoman.js"></script>
 
-  <!--
-    Google Apps Script Web App URL
-    ─── DEPLOY gas-portal-receiver.gs at https://script.google.com → Deploy as Web App → paste URL below ───
-  -->
+  <!-- ════════════════════════════════════════════════════════════════════════
+       CONFIG: Paste your Google Apps Script Web App URL below
+       ════════════════════════════════════════════════════════════════════════ -->
   <script>
-    var GAS_URL = 'https://pbot.edgeengineers.net/edge-kuth/upload';
+    // ═══════════════════════════════════════════════════════════════════════
+    // GAS backend endpoint — deployed and live
+    // ═══════════════════════════════════════════════════════════════════════
+    var GAS_URL = 'https://script.google.com/macros/s/AKfycbyAUE4OJCz_xByhoP0ZE0-SVmNoB68c95pOEU313WW6OD3yVeUkUMN0-leSLI7F0-ohtQ/exec';
   </script>
 
   <script>
-    // ---- Progress bar: highlight current section based on scroll ----
+    // ── Progress bar ──
     const sections = document.querySelectorAll('.section');
     const stepCount = document.getElementById('step-count');
     const totalSteps = sections.length;
-
     function updateProgress() {
       let current = 1;
       const mid = window.innerHeight / 2;
-      sections.forEach((s, i) => {
-        const r = s.getBoundingClientRect();
-        if (r.top <= mid) current = i + 1;
-      });
+      sections.forEach((s, i) => { const r = s.getBoundingClientRect(); if (r.top <= mid) current = i + 1; });
       stepCount.textContent = 'Step ' + current + ' of ' + totalSteps;
     }
     window.addEventListener('scroll', updateProgress, { passive: true });
     updateProgress();
 
-    // ---- Free quote toggle — no sections disabled ----
+    // ── Free quote toggle ──
     const freeQuote = document.getElementById('free_quote');
     freeQuote.addEventListener('change', function () {
-      // No-op: intentionally keep all sections active
+      document.querySelectorAll('.section').forEach(function (section) {
+        const legend = section.querySelector('legend');
+        if (legend && !legend.textContent.includes('3. Service')) {
+          section.classList.toggle('is-disabled', freeQuote.checked);
+        }
+      });
     });
 
-    // ---- Form submission: convert to JSON+base64, POST to Google Apps Script → Drive ----
-    const setupForm = document.getElementById('setup-form');
-    const confirmQuote = document.getElementById('confirm-quote');
-    const confirmContinue = document.getElementById('confirm-continue');
-    const confirmError = document.getElementById('confirm-error');
-
-    function collectFields(formEl) {
-      const fields = {};
-      const els = formEl.querySelectorAll('input:not([type=file]), textarea, select');
-      els.forEach(function (el) {
-        if (!el.name) return;
-        if (el.type === 'checkbox') { fields[el.name] = el.checked; }
-        else if (el.type === 'radio') { if (el.checked) fields[el.name] = el.value; }
-        else { fields[el.name] = el.value; }
-      });
-      const checks = formEl.querySelectorAll('input[type=checkbox][name="services[]"]:checked');
-      fields.services = Array.from(checks).map(function (c) { return c.value; }).join(',');
-      return fields;
-    }
-
-    function fileToBase64(file) {
-      return new Promise(function (resolve, reject) {
-        const reader = new FileReader();
-        reader.onload = function () { resolve(reader.result.split(',')[1]); };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
-
-    async function buildPayload(formEl) {
-      const fields = collectFields(formEl);
-      const files = [];
-      const fileInputs = formEl.querySelectorAll('input[type=file]');
-      for (let i = 0; i < fileInputs.length; i++) {
-        const input = fileInputs[i];
-        for (let j = 0; j < input.files.length; j++) {
-          const f = input.files[j];
-          const b64 = await fileToBase64(f);
-          files.push({ name: input.name || ('file_' + i), filename: f.name, mimeType: f.type || 'application/octet-stream', size: f.size, data: b64 });
-        }
-      }
-      return { fields: fields, files: files };
-    }
-
-    setupForm.addEventListener('submit', async function (e) {
-      e.preventDefault();
-
-      if (!GAS_URL || GAS_URL.indexOf('YOUR_DEPLOYMENT_ID') !== -1) {
-        confirmError.querySelector('#error-detail').textContent = 'Form receiver not configured. Please set GAS_URL in the page source.';
-        confirmError.classList.add('is-visible');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
-
-      var submitBtn = setupForm.querySelector('button[type="submit"]');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting…';
-
-      try {
-        const payload = await buildPayload(setupForm);
-        const resp = await fetch(GAS_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify(payload),
-        });
-        const result = await resp.json();
-
-        if (result.ok) {
-          setupForm.classList.add('form-is-submitted');
-          if (freeQuote.checked) {
-            confirmQuote.classList.add('is-visible');
-          } else {
-            confirmContinue.classList.add('is-visible');
-            sessionStorage.setItem('portal_step', 'data_upload');
-          }
-        } else {
-          confirmError.querySelector('#error-detail').textContent = (result.error || 'Unknown error') + ' — please try again.';
-          confirmError.classList.add('is-visible');
-        }
-      } catch (err) {
-        console.error('Submit error:', err);
-        confirmError.querySelector('#error-detail').textContent = 'Network error: ' + err.message;
-        confirmError.classList.add('is-visible');
-      }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    // ---- Checkbox / radio "is-checked" highlight ----
+    // ── Checkbox / radio highlight ──
     function syncCheckedState() {
       document.querySelectorAll('.option').forEach(function (opt) {
         const input = opt.querySelector('input[type="checkbox"], input[type="radio"]');
@@ -526,7 +436,7 @@
     document.addEventListener('change', syncCheckedState);
     syncCheckedState();
 
-    // ---- Leaflet satellite rectangle selector (free, no API key) ----
+    // ── Leaflet map ──
     (function () {
       const mapLoading = document.getElementById('map-loading');
       const mapHint = document.getElementById('map-hint');
@@ -535,77 +445,43 @@
       const areaInput = document.getElementById('calculated_area');
       const rectSwInput = document.getElementById('rect_sw');
       const rectNeInput = document.getElementById('rect_ne');
-
-      let map;
-      let drawnRectangle = null;
-      let drawingActive = false;
+      let map, drawnRectangle = null, drawingActive = false;
 
       function calculateAreaM2(sw, ne) {
         var R = 6371000;
         var dLat = (ne.lat - sw.lat) * Math.PI / 180;
         var dLng = (ne.lng - sw.lng) * Math.PI / 180;
         var latAvg = ((sw.lat + ne.lat) / 2) * Math.PI / 180;
-        var width = Math.cos(latAvg) * dLng * R;
-        var height = dLat * R;
-        return Math.abs(width * height);
+        return Math.abs(Math.cos(latAvg) * dLng * R * dLat * R);
       }
-
       function updateAreaDisplay(bounds) {
-        var sw = bounds.getSouthWest();
-        var ne = bounds.getNorthEast();
-        var areaM2 = calculateAreaM2(sw, ne);
-        var areaKm2 = areaM2 / 1e6;
-        var areaHa = areaM2 / 1e4;
-
-        if (areaKm2 >= 1) {
-          areaInput.value = areaKm2.toFixed(2) + ' km²';
-        } else if (areaHa >= 0.1) {
-          areaInput.value = areaHa.toFixed(2) + ' ha';
-        } else {
-          areaInput.value = Math.round(areaM2) + ' m²';
-        }
-
+        var sw = bounds.getSouthWest(), ne = bounds.getNorthEast();
+        var areaM2 = calculateAreaM2(sw, ne), areaKm2 = areaM2 / 1e6, areaHa = areaM2 / 1e4;
+        if (areaKm2 >= 1) areaInput.value = areaKm2.toFixed(2) + ' km²';
+        else if (areaHa >= 0.1) areaInput.value = areaHa.toFixed(2) + ' ha';
+        else areaInput.value = Math.round(areaM2) + ' m²';
         rectSwInput.value = sw.lat.toFixed(6) + ',' + sw.lng.toFixed(6);
         rectNeInput.value = ne.lat.toFixed(6) + ',' + ne.lng.toFixed(6);
       }
-
       function clearSelection() {
         if (drawnRectangle) { map.removeLayer(drawnRectangle); drawnRectangle = null; }
-        areaInput.value = '';
-        rectSwInput.value = '';
-        rectNeInput.value = '';
+        areaInput.value = ''; rectSwInput.value = ''; rectNeInput.value = '';
         mapHint.textContent = 'Click "Select area on map" to begin';
         mapHint.classList.remove('corner-placed');
-        btnClear.disabled = true;
-        btnDraw.textContent = 'Select area on map';
+        btnClear.disabled = true; btnDraw.textContent = 'Select area on map';
         drawingActive = false;
       }
-
       function initMap() {
         try {
           map = L.map('map-canvas', { center: [53.5, -8.0], zoom: 7, zoomControl: true });
-
-          L.tileLayer(
-            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-            { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
-          ).addTo(map);
-
-          L.tileLayer(
-            'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-            { maxZoom: 19, opacity: 0.7 }
-          ).addTo(map);
-
+          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri', maxZoom: 19 }).addTo(map);
+          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, opacity: 0.7 }).addTo(map);
           map.pm.addControls({
-            drawRectangle: true, drawMarker: false, drawCircle: false,
-            drawPolygon: false, drawPolyline: false, drawCircleMarker: false,
-            drawText: false, editMode: true, dragMode: true,
-            cutPolygon: false, removalMode: true, position: 'topleft'
+            drawRectangle: true, drawMarker: false, drawCircle: false, drawPolygon: false,
+            drawPolyline: false, drawCircleMarker: false, drawText: false,
+            editMode: true, dragMode: true, cutPolygon: false, removalMode: true, position: 'topleft'
           });
-
-          map.pm.setPathOptions({
-            color: '#2d6a4f', weight: 2, fillColor: '#40916c', fillOpacity: 0.25
-          });
-
+          map.pm.setPathOptions({ color: '#2d6a4f', weight: 2, fillColor: '#40916c', fillOpacity: 0.25 });
           map.on('pm:create', function (e) {
             if (drawnRectangle) map.removeLayer(drawnRectangle);
             drawnRectangle = e.layer;
@@ -613,18 +489,11 @@
             updateAreaDisplay(drawnRectangle.getBounds());
             mapHint.textContent = 'Area selected — drag corners to adjust';
             mapHint.classList.add('corner-placed');
-            btnClear.disabled = false;
-            btnDraw.textContent = 'Draw new area';
+            btnClear.disabled = false; btnDraw.textContent = 'Draw new area';
             drawingActive = false;
           });
-
-          map.on('pm:edit', function (e) {
-            if (e.layer === drawnRectangle) updateAreaDisplay(drawnRectangle.getBounds());
-          });
-          map.on('pm:dragend', function (e) {
-            if (e.layer === drawnRectangle) updateAreaDisplay(drawnRectangle.getBounds());
-          });
-
+          map.on('pm:edit', function (e) { if (e.layer === drawnRectangle) updateAreaDisplay(drawnRectangle.getBounds()); });
+          map.on('pm:dragend', function (e) { if (e.layer === drawnRectangle) updateAreaDisplay(drawnRectangle.getBounds()); });
           mapLoading.classList.add('is-hidden');
           setTimeout(function () { mapLoading.style.display = 'none'; }, 300);
         } catch (e) {
@@ -632,28 +501,98 @@
           mapLoading.innerHTML = '<span style="color:#c00">Failed to load map.<br>' + e.message + '</span>';
         }
       }
-
       btnDraw.addEventListener('click', function () {
         if (drawingActive) return;
-        clearSelection();
-        drawingActive = true;
+        clearSelection(); drawingActive = true;
         map.pm.enableDraw('Rectangle');
         mapHint.textContent = 'Click and drag on the map to draw';
         mapHint.classList.remove('corner-placed');
         this.textContent = 'Drawing… click & drag on map';
       });
-
-      btnClear.addEventListener('click', function () {
-        clearSelection();
-        if (map.pm) map.pm.disableDraw('Rectangle');
-      });
-
-      if (typeof L !== 'undefined' && L.map) {
-        initMap();
-      } else {
-        mapLoading.innerHTML = '<span style="color:#c00">Leaflet library failed to load.<br>Check that lib/leaflet/leaflet.js exists.</span>';
-      }
+      btnClear.addEventListener('click', function () { clearSelection(); if (map.pm) map.pm.disableDraw('Rectangle'); });
+      if (typeof L !== 'undefined' && L.map) { initMap(); }
+      else { mapLoading.innerHTML = '<span style="color:#c00">Failed to load Leaflet from CDN.<br>Check your internet connection.</span>'; }
     })();
+
+    // ── Form submit: JSON+base64 → Google Apps Script ──
+    var setupForm = document.getElementById('setup-form');
+    var confirmQuote = document.getElementById('confirm-quote');
+    var confirmContinue = document.getElementById('confirm-continue');
+    var confirmError = document.getElementById('confirm-error');
+
+    function fileToBase64(file) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function () { resolve(reader.result.split(',')[1]); };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    function collectFields(formEl) {
+      var fields = {};
+      var els = formEl.querySelectorAll('input:not([type=file]), textarea, select');
+      els.forEach(function (el) {
+        if (!el.name) return;
+        if (el.type === 'checkbox') { fields[el.name] = el.checked; }
+        else if (el.type === 'radio') { if (el.checked) fields[el.name] = el.value; }
+        else { fields[el.name] = el.value; }
+      });
+      var checks = formEl.querySelectorAll('input[type=checkbox][name="services[]"]:checked');
+      fields.services = Array.from(checks).map(function (c) { return c.value; }).join(',');
+      return fields;
+    }
+    async function buildPayload(formEl) {
+      var fields = collectFields(formEl);
+      var files = [];
+      var fileInputs = formEl.querySelectorAll('input[type=file]');
+      for (var i = 0; i < fileInputs.length; i++) {
+        var input = fileInputs[i];
+        for (var j = 0; j < input.files.length; j++) {
+          var f = input.files[j];
+          var b64 = await fileToBase64(f);
+          files.push({ name: input.name || ('file_' + i), filename: f.name, mimeType: f.type || 'application/octet-stream', size: f.size, data: b64 });
+        }
+      }
+      return { form_type: 'project_setup', fields: fields, files: files };
+    }
+
+    setupForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (!GAS_URL || GAS_URL.indexOf('YOUR_DEPLOYMENT_ID') !== -1) {
+        confirmError.querySelector('#error-detail').textContent = 'Form receiver not configured. Please set GAS_URL in the page source to your Google Apps Script deployment URL.';
+        confirmError.classList.add('is-visible');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      var submitBtn = setupForm.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting…';
+      try {
+        var payload = await buildPayload(setupForm);
+        var resp = await fetch(GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(payload),
+        });
+        var result = await resp.json();
+        if (result.ok) {
+          setupForm.classList.add('form-is-submitted');
+          if (freeQuote.checked) { confirmQuote.classList.add('is-visible'); }
+          else {
+            confirmContinue.classList.add('is-visible');
+            sessionStorage.setItem('portal_step', 'data_upload');
+          }
+        } else {
+          confirmError.querySelector('#error-detail').textContent = (result.error || 'Unknown error') + ' — please try again or email info@edgeengineers.net.';
+          confirmError.classList.add('is-visible');
+        }
+      } catch (err) {
+        console.error('Submit error:', err);
+        confirmError.querySelector('#error-detail').textContent = 'Network error: ' + err.message + '. Please check your connection and try again.';
+        confirmError.classList.add('is-visible');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   </script>
 </body>
 </html>
