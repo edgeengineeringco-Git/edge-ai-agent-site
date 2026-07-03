@@ -33,8 +33,8 @@ var CONFIG = {
 
   // Telegram notifications (leave empty to disable)
   // Get these from @BotFather (bot token) and @userinfobot (chat ID)
-  TELEGRAM_BOT_TOKEN: '',
-  TELEGRAM_CHAT_ID: '',
+  TELEGRAM_BOT_TOKEN: '8681308032:AAFskamDnf1XmeJ9NPUmgoxgV1-6_aIzHOA',
+  TELEGRAM_CHAT_ID: '466297056',
 };
 
 // ═══════════════════════════════════════════════════════════════════════════

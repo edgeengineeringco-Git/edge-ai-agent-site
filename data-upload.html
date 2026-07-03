@@ -470,8 +470,6 @@
     <div class="thank-you" id="thank-you">
       <h2>&#10003; Thank you for your submission</h2>
       <p>Your data has been uploaded successfully. We'll review everything and get back to you shortly.</p>
-      <p style="margin-bottom:8px;"><span id="thank-files">0</span> file(s) saved to your Drive folder.</p>
-      <a id="thank-link" href="#" target="_blank" class="drive-btn">View Drive folder &rarr;</a>
     </div>
 
     <div class="footer-note">
@@ -586,9 +584,6 @@
           intros.forEach(function(el) { el.style.display = 'none'; });
           this.style.display = 'none';
 
-          document.getElementById('thank-files').textContent = result.fileCount || 0;
-          var tlink = document.getElementById('thank-link');
-          tlink.href = result.folderUrl || '#';
           document.getElementById('thank-you').classList.add('is-visible');
 
           // Notify Telegram (fire-and-forget)
