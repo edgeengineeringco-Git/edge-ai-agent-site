@@ -205,6 +205,20 @@
       margin-top: 16px;
     }
     .error-banner.is-visible { display: block; }
+    .thank-you {
+      display: none; background: var(--white); border: 1px solid var(--line);
+      border-radius: var(--radius-card); box-shadow: var(--shadow-pop);
+      padding: 40px 32px; text-align: center; margin-top: 16px;
+    }
+    .thank-you.is-visible { display: block; }
+    .thank-you h2 { margin: 0 0 10px; color: var(--green-700); font-size: 1.4rem; }
+    .thank-you p { margin: 0 0 20px; color: var(--ink-soft); font-size: 0.95rem; }
+    .thank-you .drive-btn {
+      display: inline-block; background: var(--green-600); color: var(--white);
+      padding: 12px 28px; border-radius: 8px; text-decoration: none;
+      font-weight: 600; font-size: 0.95rem; box-shadow: 0 2px 6px rgba(45,106,79,0.25);
+    }
+    .thank-you .drive-btn:hover { background: var(--green-700); }
   </style>
 </head>
 <body>
@@ -452,6 +466,14 @@
       </div>
     </form>
 
+    <!-- Thank you card (shown after successful upload) -->
+    <div class="thank-you" id="thank-you">
+      <h2>&#10003; Thank you for your submission</h2>
+      <p>Your data has been uploaded successfully. We'll review everything and get back to you shortly.</p>
+      <p style="margin-bottom:8px;"><span id="thank-files">0</span> file(s) saved to your Drive folder.</p>
+      <a id="thank-link" href="#" target="_blank" class="drive-btn">View Drive folder &rarr;</a>
+    </div>
+
     <div class="footer-note">
       EDGE Geointelligence · info@edgeengineers.net
     </div>
@@ -559,12 +581,15 @@
         var result = await resp.json();
 
         if (result.ok) {
-          document.getElementById('success-files').textContent = result.fileCount || 0;
-          var link = document.getElementById('success-link');
-          link.href = result.folderUrl || '#';
-          link.textContent = result.folderUrl ? 'View Drive folder →' : 'Upload successful';
-          document.getElementById('success-banner').classList.add('is-visible');
+          // Hide step header and form, show thank-you
+          var intros = document.querySelectorAll('.card-intro');
+          intros.forEach(function(el) { el.style.display = 'none'; });
           this.style.display = 'none';
+
+          document.getElementById('thank-files').textContent = result.fileCount || 0;
+          var tlink = document.getElementById('thank-link');
+          tlink.href = result.folderUrl || '#';
+          document.getElementById('thank-you').classList.add('is-visible');
         } else {
           document.getElementById('error-message').textContent = (result.error || 'Unknown error') + ' — please try again or email info@edgeengineers.net.';
           document.getElementById('error-banner').classList.add('is-visible');
