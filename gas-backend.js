@@ -30,6 +30,11 @@ var CONFIG = {
 
   // Email for alerts (leave empty to disable)
   NOTIFY_EMAIL: '',
+
+  // Telegram notifications (leave empty to disable)
+  // Get these from @BotFather (bot token) and @userinfobot (chat ID)
+  TELEGRAM_BOT_TOKEN: '',
+  TELEGRAM_CHAT_ID: '',
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -139,6 +144,9 @@ function processSubmission(data) {
   } catch (mailErr) {
     Logger.log('Email notification failed: ' + mailErr);
   }
+
+  // ── Telegram notification ──
+  sendTelegram(projectName, formType, fields, uploadedFiles.length, subFolder.getUrl());
 
   return {
     ok: true,
@@ -337,4 +345,65 @@ function escapeHtml(s) {
 function rowToHtml(label, val) {
   return '<tr><td style="padding:4px 12px 4px 0;font-weight:600;color:#666">' + escapeHtml(label) + '</td>' +
     '<td style="padding:4px 0">' + escapeHtml(String(val)) + '</td></tr>';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Telegram Notification
+// ═══════════════════════════════════════════════════════════════════════════
+
+function sendTelegram(projectName, formType, fields, fileCount, folderUrl) {
+  if (!CONFIG.TELEGRAM_BOT_TOKEN || !CONFIG.TELEGRAM_CHAT_ID) {
+    Logger.log('Telegram not configured — skipping');
+    return;
+  }
+
+  var message = '📋 *New EDGE Portal Submission*\n\n' +
+    '*Project:* ' + escapeMarkdown(projectName) + '\n' +
+    '*Form:* ' + escapeMarkdown(formType) + '\n' +
+    '*Contact:* ' + escapeMarkdown(fields.contact_name || '—') + '\n' +
+    '*Email:* ' + escapeMarkdown(fields.email || '—') + '\n' +
+    '*Organisation:* ' + escapeMarkdown(fields.organisation || '—') + '\n' +
+    '*Files:* ' + fileCount + '\n\n' +
+    '[Open Drive Folder](' + folderUrl + ')';
+
+  try {
+    var url = 'https://api.telegram.org/bot' + CONFIG.TELEGRAM_BOT_TOKEN + '/sendMessage';
+    var payload = {
+      chat_id: CONFIG.TELEGRAM_CHAT_ID,
+      text: message,
+      parse_mode: 'Markdown',
+      disable_web_page_preview: true
+    };
+    var options = {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(payload)
+    };
+    var response = UrlFetchApp.fetch(url, options);
+    Logger.log('Telegram response: ' + response.getContentText());
+  } catch (err) {
+    Logger.log('Telegram notification failed: ' + err);
+  }
+}
+
+function escapeMarkdown(text) {
+  return String(text || '')
+    .replace(/_/g, '\\_')
+    .replace(/\*/g, '\\*')
+    .replace(/\[/g, '\\[')
+    .replace(/\]/g, '\\]')
+    .replace(/\(/g, '\\(')
+    .replace(/\)/g, '\\)')
+    .replace(/~/g, '\\~')
+    .replace(/`/g, '\\`')
+    .replace(/>/g, '\\>')
+    .replace(/#/g, '\\#')
+    .replace(/\+/g, '\\+')
+    .replace(/-/g, '\\-')
+    .replace(/=/g, '\\=')
+    .replace(/\|/g, '\\|')
+    .replace(/\{/g, '\\{')
+    .replace(/\}/g, '\\}')
+    .replace(/\./g, '\\.')
+    .replace(/!/g, '\\!');
 }
