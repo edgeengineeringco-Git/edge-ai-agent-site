@@ -63,6 +63,7 @@
     .card-body .badge { display: inline-block; margin-top: 10px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; background: var(--green-50); color: var(--green-700); }
     .card-arrow { flex-shrink: 0; font-size: 1.3rem; color: var(--ink-muted); align-self: center; transition: transform 0.2s; }
     .portal-card:hover .card-arrow { transform: translateX(4px); }
+    .section-label{font-size:0.78rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin:8px 4px 12px;}
     .site-footer { text-align: center; margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 0.8rem; color: var(--ink-muted); }
     @media (max-width: 480px) {
       .portal-card { flex-direction: column; gap: 12px; padding: 22px; }
@@ -86,6 +87,19 @@
           <h2>Project Setup &amp; Service Selection</h2>
           <p>Tell us about your project — area of interest, services needed, detector type, and contact information.</p>
           <span class="badge">Start here</span>
+        </div>
+        <div class="card-arrow">→</div>
+      </a>
+    </div>
+
+    <div class="section-label">Interactive Showcases</div>
+    <div class="card-grid">
+      <a href="geolibre.html" class="portal-card">
+        <div class="card-icon" style="background:var(--blue-500)">🌍</div>
+        <div class="card-body">
+          <h2>Planetary Atlas — Moon, Mars &amp; Beyond</h2>
+          <p>Explore interactive 3D globes of the Moon, Mars and other worlds — built on open-source MapLibre GL with real NASA, USGS &amp; OpenPlanetaryMap imagery. No sign-in required.</p>
+          <span class="badge" style="background:var(--blue-50);color:var(--blue-700)">Open now</span>
         </div>
         <div class="card-arrow">→</div>
       </a>

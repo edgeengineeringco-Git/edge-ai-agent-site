@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="description" content="GeoLibre Planetary Atlas — interactive, open-source MapLibre globes of the Moon, Mars and more. No backend, no API keys." />
+<meta name="theme-color" content="#05070d" />
+<title>GeoLibre · Planetary Atlas</title>
+
+<!-- MapLibre GL JS (open source) — the same engine GeoLibre uses for Earth -->
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" />
+<script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+
+<style>
+  :root{
+    --bg:#05070d; --panel:rgba(15,20,31,.78); --panel-solid:#0f141f;
+    --line:rgba(255,255,255,.08); --accent:#2f8f85; --accent2:#5ad1c5;
+    --text:#e7ecf3; --muted:#8b97a8; --warn:#f0a040;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  button{font-family:inherit;cursor:pointer}
+
+  #map{position:absolute;inset:0;background:#05070d}
+  #map canvas{outline:none}
+
+  /* ---------- top bar ---------- */
+  .topbar{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:10px;
+    padding:10px 14px;flex-wrap:wrap;background:linear-gradient(180deg,rgba(5,7,13,.92),rgba(5,7,13,.45) 70%,transparent);
+    pointer-events:none}
+  .topbar > *{pointer-events:auto}
+  .brand{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0}
+  .logo{width:34px;height:34px;border-radius:9px;background:radial-gradient(circle at 32% 30%,#7bd3c6,#2f8f85 55%,#0c2b28);
+    box-shadow:0 0 0 1px rgba(255,255,255,.10),0 6px 18px rgba(0,0,0,.45);flex:none;position:relative;overflow:hidden}
+  .logo:after{content:"";position:absolute;inset:0;border-radius:9px;
+    background:radial-gradient(80% 60% at 70% 80%,rgba(0,0,0,.35),transparent)}
+  .brand h1{font-size:15px;font-weight:700;margin:0;letter-spacing:.2px;white-space:nowrap}
+  .brand h1 b{color:var(--accent2)}
+  .brand .sub{font-size:11px;color:var(--muted);font-weight:500}
+
+  .seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px;backdrop-filter:blur(10px)}
+  .seg button{border:0;background:transparent;color:var(--muted);font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:7px;white-space:nowrap;transition:.15s}
+  .seg button:hover{color:var(--text)}
+  .seg button.on{background:linear-gradient(180deg,#346b62,#2f8f85);color:#fff;box-shadow:0 2px 10px rgba(47,143,133,.35)}
+  .seg.compact button{padding:7px 10px}
+
+  select,input{font-family:inherit}
+  .select-wrap{position:relative}
+  select.field,.field{appearance:none;background:var(--panel);border:1px solid var(--line);color:var(--text);
+    border-radius:10px;padding:8px 30px 8px 12px;font-size:12.5px;font-weight:500;backdrop-filter:blur(10px);max-width:170px;cursor:pointer}
+  .select-wrap:after{content:"▾";position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:11px}
+  .iconbtn{width:38px;height:38px;border-radius:10px;background:var(--panel);border:1px solid var(--line);color:var(--text);
+    display:inline-flex;align-items:center;justify-content:center;font-size:16px;backdrop-filter:blur(10px);transition:.15s}
+  .iconbtn:hover{border-color:var(--accent);color:var(--accent2)}
+  .iconbtn.on{background:linear-gradient(180deg,#346b62,#2f8f85);border-color:#3a9488;color:#fff}
+
+  /* ---------- sidebar ---------- */
+  .sidebar{position:absolute;top:74px;left:14px;bottom:46px;z-index:15;width:288px;max-width:80vw;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(14px);
+    display:flex;flex-direction:column;overflow:hidden;transition:transform .28s cubic-bezier(.2,.7,.2,1)}
+  .sidebar.collapsed{transform:translateX(-330px)}
+  .side-head{padding:13px 15px 10px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .side-head h2{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0;font-weight:600}
+  .side-head .pill{margin-left:auto;font-size:11px;color:var(--accent2);background:rgba(90,209,197,.10);border:1px solid rgba(90,209,197,.22);padding:2px 8px;border-radius:20px}
+  .side-body{overflow-y:auto;flex:1;padding:8px 8px 14px}
+  .side-body::-webkit-scrollbar{width:8px}.side-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:8px}
+
+  .group-label{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:10px 10px 4px;font-weight:600}
+  .loc{display:flex;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:.13s}
+  .loc:hover{background:rgba(255,255,255,.05);border-color:var(--line)}
+  .loc .dot{width:9px;height:9px;border-radius:50%;margin-top:5px;flex:none;box-shadow:0 0 0 3px rgba(255,255,255,.06)}
+  .loc .nm{font-size:13px;font-weight:600;line-height:1.25}
+  .loc .ds{font-size:11px;color:var(--muted);line-height:1.35;margin-top:1px}
+  .loc .cr{font-size:10px;color:#5e6878;font-family:'JetBrains Mono',monospace;margin-top:2px}
+
+  .flyto{padding:12px 14px;border-top:1px solid var(--line)}
+  .flyto label{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+  .flyto .row{display:flex;gap:6px}
+  .flyto input{flex:1;min-width:0}
+  .flyto input.field{padding:8px 10px;max-width:none;appearance:none}
+  .flyto button{border:0;border-radius:9px;background:linear-gradient(180deg,#346b62,#2f8f85);color:#fff;font-weight:600;font-size:12px;padding:0 14px}
+
+  /* ---------- status bar ---------- */
+  .status{position:absolute;left:0;right:0;bottom:0;z-index:15;display:flex;align-items:center;gap:14px;
+    padding:8px 16px;background:linear-gradient(0deg,rgba(5,7,13,.92),transparent);font-family:'JetBrains Mono',monospace;font-size:11px;flex-wrap:wrap}
+  .status .s-item{color:var(--muted)}.status .s-item b{color:var(--text);font-weight:500}
+  .status .spacer{flex:1}
+  .status .attr{color:#6c7686;font-size:10px}
+  .status .attr a{color:#8f99a8}
+
+  /* ---------- loader / errors ---------- */
+  #loader{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--bg);transition:opacity .4s}
+  .spin{width:42px;height:42px;border-radius:50%;border:3px solid rgba(255,255,255,.12);border-top-color:var(--accent2);animation:rot 1s linear infinite}
+  @keyframes rot{to{transform:rotate(360deg)}}
+  #loader .ltxt{color:var(--muted);font-size:13px}
+  #loader.hide{opacity:0;pointer-events:none}
+
+  /* attribution styling */
+  .maplibregl-ctrl-attrib{background:rgba(5,7,13,.7)!important;color:#8b97a8!important;font-size:10px!important;border-radius:6px 0 0 0}
+  .maplibregl-ctrl-attrib a{color:#9fb0c4!important}
+  .maplibregl-ctrl-group{background:var(--panel-solid)!important;border:1px solid var(--line)!important}
+  .maplibregl-ctrl-group button{background:var(--panel-solid)!important;color:var(--text)!important}
+  .maplibregl-ctrl-group button:hover{background:#171e2c!important}
+  .maplibregl-ctrl-attrib-button{background-color:transparent!important}
+  .maplibregl-popup-content{background:var(--panel-solid)!important;color:var(--text)!important;border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:12.5px;box-shadow:0 12px 40px rgba(0,0,0,.55)}
+  .maplibregl-popup-tip{border-top-color:var(--panel-solid)!important;border-bottom-color:var(--panel-solid)!important}
+  .pop-title{font-weight:700;margin-bottom:3px}
+  .pop-sub{color:var(--muted);font-size:11px;line-height:1.4}
+  .pop-coord{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#7c8696;margin-top:6px}
+
+  /* ---------- responsive ---------- */
+  @media(max-width:760px){
+    .topbar{padding:8px 10px;gap:7px}
+    .brand .sub{display:none}
+    .sidebar{top:64px;left:8px;right:8px;width:auto;bottom:50px;max-width:none}
+    .sidebar.collapsed{transform:translateX(-120%)}
+    .field{max-width:120px;font-size:11px}
+    .status{padding:6px 10px;font-size:10px}
+    .brand h1{font-size:13px}
+  }
+  .hamb{display:none}
+  @media(max-width:760px){.hamb{display:inline-flex}}
+  .fab{display:none}
+  @media(max-width:760px){.fab{display:inline-flex;position:absolute;bottom:56px;left:10px;z-index:16}}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<!-- loading overlay -->
+<div id="loader"><div class="spin"></div><div class="ltxt">Building the planetary globe…</div></div>
+
+<!-- top control bar -->
+<div class="topbar">
+  <div class="brand">
+    <div class="logo"></div>
+    <div>
+      <h1><b>GeoLibre</b> · Planetary Atlas</h1>
+      <div class="sub">MapLibre GL · OpenPlanetaryMap · NASA · USGS</div>
+    </div>
+  </div>
+
+  <button class="hamb iconbtn" id="hamb" title="Locations">☰</button>
+
+  <div class="seg" id="planetSeg">
+    <button data-planet="earth">Earth</button>
+    <button data-planet="moon" class="on">Moon</button>
+    <button data-planet="mars">Mars</button>
+  </div>
+
+  <div class="select-wrap">
+    <select id="basemapSel" class="field" title="Basemap style"></select>
+  </div>
+
+  <div class="seg compact">
+    <button id="projBtn" class="on" title="Toggle projection">🌐 Globe</button>
+    <button id="gridBtn" title="Toggle graticule">▦ Grid</button>
+    <button id="spinBtn" title="Auto-rotate">⟳ Spin</button>
+  </div>
+
+  <button class="iconbtn" id="aboutBtn" title="About" style="font-size:17px">ⓘ</button>
+</div>
+
+<!-- sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="side-head">
+    <h2>Notable Locations</h2>
+    <span class="pill" id="bodyPill">Moon</span>
+  </div>
+  <div class="side-body" id="locList"></div>
+  <div class="flyto">
+    <label>Fly to coordinates (lon, lat)</label>
+    <div class="row">
+      <input id="flyLon" class="field" placeholder="23.47" inputmode="decimal" />
+      <input id="flyLat" class="field" placeholder="0.67" inputmode="decimal" />
+      <button id="flyGo">Go</button>
+    </div>
+  </div>
+</aside>
+
+<!-- floating open button on mobile when sidebar hidden -->
+<button class="fab iconbtn" id="hamb2" title="Open locations">☰</button>
+
+<!-- status bar -->
+<div class="status">
+  <span class="s-item">Body <b id="sBody">Moon</b></span>
+  <span class="s-item">Cursor <b id="sCoord">—</b></span>
+  <span class="s-item">Zoom <b id="sZoom">0</b></span>
+  <span class="s-item" id="sProj">Globe</span>
+  <span class="spacer"></span>
+  <span class="attr" id="sAttr"></span>
+</div>
+
+<script>
+"use strict";
+/* =========================================================================
+   GeoLibre Planetary Atlas — single-file MapLibre GL JS app.
+   Tile sources verified 2026-07-30 (see agents/geolibre-portal/SYSTEM.md).
+   All tiles are public/open; no API keys anywhere.
+   ========================================================================= */
+
+const CARTO = "https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named";
+const GLB   = "https://tiles.geolibre.app/opm";   // GeoLibre OpenPlanetary mirror (tms)
+const WMS   = "https://tiles.geolibre.app/wms";   // GeoLibre USGS-reprojected mirror (xyz)
+
+const OPM_ATTR = '<a href="https://www.openplanetary.org/opm" target="_blank">OpenPlanetaryMap</a>';
+
+// --- planet catalogue -------------------------------------------------------
+const PLANETS = {
+  earth: {
+    name:"Earth", radius:6378137, center:[0,0], zoom:1, maxZoom:19,
+    basemaps:[
+      { id:"osm",   name:"OpenStreetMap", tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], scheme:"xyz", maxZoom:19, attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors' },
+      { id:"dark",  name:"CARTO Dark",    tiles:["https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"], scheme:"xyz", maxZoom:19, attribution:'© <a href="https://carto.com/" target="_blank">CARTO</a> · © OSM' },
+      { id:"light", name:"CARTO Positron",tiles:["https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"], scheme:"xyz", maxZoom:19, attribution:'© <a href="https://carto.com/" target="_blank">CARTO</a> · © OSM' }
+    ],
+    landmarks:[
+      { name:"London",      sub:"United Kingdom",         coord:[-0.12,51.51] },
+      { name:"New York",    sub:"United States",          coord:[-74.01,40.71] },
+      { name:"Tokyo",       sub:"Japan",                  coord:[139.69,35.69] },
+      { name:"Sydney",      sub:"Australia",              coord:[151.21,-33.87] },
+      { name:"Cairo",       sub:"Egypt",                  coord:[31.24,30.04] },
+      { name:"Dublin",      sub:"Ireland — EDGE HQ",      coord:[-6.27,53.35] },
+    ]
+  },
+
+  moon: {
+    name:"Moon", radius:1737400, center:[0,0], zoom:0, maxZoom:6,
+    basemaps:[
+      { id:"moon-basemap-v0-1", name:"OpenPlanetary Basemap", tiles:[`${CARTO}/opm-moon-basemap-v0-1/all/{z}/{x}/{y}.png`], scheme:"xyz", maxZoom:6, attribution:OPM_ATTR },
+      { id:"moon-hillshaded-albedo", name:"LOLA Hillshaded Albedo", tiles:[`${GLB}/moon-hillshaded-albedo/{z}/{x}/{y}.png`], scheme:"tms", maxZoom:6, attribution:"NASA / LOLA / USGS" }
+    ],
+    landmarks:[
+      { name:"Apollo 11",            sub:"Sea of Tranquility · first crewed landing (1969)", coord:[23.47,0.67] },
+      { name:"Apollo 17",            sub:"Taurus–Littrow Valley · last Apollo landing (1972)", coord:[30.76,20.19] },
+      { name:"Mare Imbrium",         sub:"Imbrium basin mare · ~1145 km", coord:[-15.0,33.0] },
+      { name:"Tycho Crater",        sub:"85 km bright-rayed crater", coord:[-11.36,-43.31] },
+      { name:"Copernicus Crater",   sub:"93 km rayed crater", coord:[-20.08,9.62] },
+      { name:"Aristarchus Plateau",  sub:"Volcanic complex · bright crater", coord:[-47.42,23.73] },
+      { name:"Mare Orientale",       sub:"930 km multi-ring impact basin", coord:[-95.88,-20.93] },
+      { name:"Von Kármán Crater",    sub:"South Pole–Aitken · Chang'e 4 (2019, far side)", coord:[177.60,-45.45] },
+      { name:"Shackleton Crater",   sub:"South Pole · Artemis base candidate", coord:[0.00,-89.90] }
+    ]
+  },
+
+  mars: {
+    name:"Mars", radius:3396190, center:[0,0], zoom:0, maxZoom:9,
+    basemaps:[
+      { id:"mars-basemap-v0-2", name:"OpenPlanetary Basemap", tiles:[`${CARTO}/opm-mars-basemap-v0-2/all/{z}/{x}/{y}.png`], scheme:"xyz", maxZoom:6, attribution:OPM_ATTR },
+      { id:"mars-mola-color-noshade", name:"MOLA Noshade", tiles:[`${GLB}/mars-mola-color-noshade/{z}/{x}/{y}.png`], scheme:"tms", maxZoom:6, attribution:"NASA / MOLA" },
+      { id:"mars-mola-color", name:"MOLA Shaded Colour", tiles:[`${GLB}/mars-mola-color/{z}/{x}/{y}.png`], scheme:"tms", maxZoom:6, attribution:"NASA / MOLA" },
+      { id:"mars-mola-gray", name:"MOLA Grayscale", tiles:[`${GLB}/mars-mola-gray/{z}/{x}/{y}.png`], scheme:"tms", maxZoom:9, attribution:"NASA / MOLA" },
+      { id:"mars-hillshade", name:"MOLA Hillshade", tiles:[`${GLB}/mars-hillshade/{z}/{x}/{y}.png`], scheme:"tms", maxZoom:6, attribution:"NASA / MOLA" },
+      { id:"mars-viking-mdim21", name:"Viking MDIM 2.1", tiles:[`${GLB}/mars-viking-mdim21/{z}/{x}/{y}.png`], scheme:"tms", maxZoom:7, attribution:"NASA / Viking / USGS" }
+    ],
+    landmarks:[
+      { name:"Olympus Mons",        sub:"Tallest volcano in the Solar System · 21.9 km", coord:[-133.92,18.65] },
+      { name:"Valles Marineris",    sub:"Great canyon system · ~4000 km", coord:[-59.10,-13.90] },
+      { name:"Gale Crater",         sub:"Curiosity rover (2012–)", coord:[137.40,-5.40] },
+      { name:"Jezero Crater",       sub:"Perseverance rover (2021–)", coord:[77.45,18.45] },
+      { name:"Gusev Crater",        sub:"Spirit rover (2004–2010)", coord:[175.45,-14.57] },
+      { name:"Meridiani Planum",    sub:"Opportunity rover (2004–2018)", coord:[-5.50,-1.95] },
+      { name:"Hellas Planitia",     sub:"Giant impact basin · ~2300 km", coord:[66.00,-42.40] },
+      { name:"Planum Boreum",       sub:"North polar layered deposits", coord:[0.00,85.00] }
+    ]
+  },
+
+  // Bonus worlds — explore freely (no landmark pins; radii shown in info)
+  mercury:{ name:"Mercury", radius:2439400, center:[0,0], zoom:0, maxZoom:7,
+    basemaps:[
+      { id:"mercury-messenger-color", name:"MESSENGER Colour", tiles:[`${WMS}/mercury-messenger-color/{z}/{x}/{y}.png`], scheme:"xyz", maxZoom:7, attribution:"NASA / JHU APL / CIW" },
+      { id:"mercury-messenger", name:"MESSENGER Mono", tiles:[`${WMS}/mercury-messenger/{z}/{x}/{y}.png`], scheme:"xyz", maxZoom:7, attribution:"NASA / JHU APL" }
+    ], landmarks:[] },
+  venus:{ name:"Venus", radius:6051800, center:[0,0], zoom:0, maxZoom:6,
+    basemaps:[
+      { id:"venus-magellan-color", name:"Magellan Colour", tiles:[`${WMS}/venus-magellan-color/{z}/{x}/{y}.png`], scheme:"xyz", maxZoom:6, attribution:"NASA / JPL" },
+      { id:"venus-magellan", name:"Magellan Mono", tiles:[`${WMS}/venus-magellan/{z}/{x}/{y}.png`], scheme:"xyz", maxZoom:6, attribution:"NASA / JPL" }
+    ], landmarks:[] },
+  io:{ name:"Io", radius:1821600, center:[0,0], zoom:0, maxZoom:6,
+    basemaps:[{ id:"io-galileo-color", name:"Galileo Colour", tiles:[`${WMS}/io-galileo-color/{z}/{x}/{y}.png`], scheme:"xyz", maxZoom:6, attribution:"NASA / JPL" }], landmarks:[] },
+  europa:{ name:"Europa", radius:1560800, center:[0,0], zoom:0, maxZoom:6,
+    basemaps:[{ id:"europa-galileo-voyager", name:"Galileo / Voyager", tiles:[`${WMS}/europa-galileo-voyager/{z}/{x}/{y}.png`], scheme:"xyz", maxZoom:6, attribution:"NASA / JPL" }], landmarks:[] },
+  ganymede:{ name:"Ganymede", radius:2631200, center:[0,0], zoom:0, maxZoom:6,
+    basemaps:[{ id:"ganymede-galileo-voyager", name:"Galileo / Voyager", tiles:[`${WMS}/ganymede-galileo-voyager/{z}/{x}/{y}.png`], scheme:"xyz", maxZoom:6, attribution:"NASA / JPL" }], landmarks:[] },
+  callisto:{ name:"Callisto", radius:2410300, center:[0,0], zoom:0, maxZoom:6,
+    basemaps:[{ id:"callisto-galileo-voyager", name:"Galileo / Voyager", tiles:[`${WMS}/callisto-galileo-voyager/{z}/{x}/{y}.png`], scheme:"xyz", maxZoom:6, attribution:"NASA / JPL" }], landmarks:[] },
+  titan:{ name:"Titan", radius:2574730, center:[0,0], zoom:0, maxZoom:6,
+    basemaps:[{ id:"titan-cassini", name:"Cassini", tiles:[`${WMS}/titan-cassini/{z}/{x}/{y}.png`], scheme:"xyz", maxZoom:6, attribution:"NASA / JPL" }], landmarks:[] }
+};
+
+const PLANET_ORDER = ["earth","moon","mars","mercury","venus","io","europa","ganymede","callisto","titan"];
+const ACCENT = { earth:"#5b9ef0", moon:"#c8ccd6", mars:"#e0794b", mercury:"#b0a89c", venus:"#d9c08a",
+                 io:"#e6d27a", europa:"#d8c5b0", ganymede:"#c2a888", callisto:"#7c7368", titan:"#caa64a" };
+
+let map, currentPlanet="moon", currentBasemap, globe=true, gridOn=false, spinning=false, spinRAF;
+const clickMarker = new maplibregl.Marker({color:"#5ad1c5"});
+
+// --- starfield background (drawn to a canvas, set as container bg) -------
+function makeStars(){
+  const c=document.createElement("canvas"); c.width=1280;c.height=720;const x=c.getContext("2d");
+  x.fillStyle="#05070d"; x.fillRect(0,0,c.width,c.height);
+  for(let i=0;i<520;i++){
+    const r=Math.random(); const px=Math.random()*c.width, py=Math.random()*c.height;
+    const a=Math.random()*0.7+0.15;
+    x.globalAlpha = a;
+    x.fillStyle = r>0.92 ? "#a9c4ff" : r>0.85 ? "#ffe7c4" : "#ffffff";
+    const rad = r>0.97?1.7:(Math.random()*1.1+0.4);
+    x.beginPath(); x.arc(px,py,rad,0,Math.PI*2); x.fill();
+  }
+  x.globalAlpha=1;
+  return c.toDataURL();
+}
+document.getElementById("map").style.background = `#05070d url(${makeStars()}) center/cover no-repeat fixed`;
+
+// --- graticule GeoJSON ------------------------------------------------------
+function graticule(stepLon=30,stepLat=30){
+  const feats=[];
+  for(let lon=-180;lon<=180;lon+=stepLon){
+    const c=[];for(let lat=-80;lat<=80;lat+=2)c.push([lon,lat]);
+    feats.push({type:"Feature",geometry:{type:"LineString",coordinates:c},properties:{prime:lon===0,label:`${lon}°`}});
+  }
+  for(let lat=-80;lat<=80;lat+=stepLat){
+    const c=[];for(let lon=-180;lon<=180;lon+=2)c.push([lon,lat]);
+    feats.push({type:"Feature",geometry:{type:"LineString",coordinates:c},properties:{prime:lat===0,label:`${lat}°`}});
+  }
+  return {type:"FeatureCollection",features:feats};
+}
+
+// --- style builder ----------------------------------------------------------
+function buildStyle(){
+  const p = PLANETS[currentPlanet];
+  const bm = currentBasemap || p.basemaps[0];
+  return {
+    version:8,
+    name:`GeoLibre · ${p.name}`,
+    projection:{ type: globe ? "globe" : "mercator" },
+    glyphs:"https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+    sources:{
+      "planets":{ type:"raster", tiles:bm.tiles, tileSize:256, scheme:bm.scheme||"xyz",
+                  maxzoom:bm.maxZoom, attribution:bm.attribution },
+      "graticule":{ type:"geojson", data:graticule() },
+      "landmarks":{ type:"geojson", data:{type:"FeatureCollection",features:landmarkFeatures(p)} }
+    },
+    layers:[
+      { id:"background", type:"background", paint:{ "background-color":"rgba(2,5,12,0)" } },
+      { id:"planet-raster", type:"raster", source:"planets",
+        paint:{ "raster-opacity":1 } },
+      { id:"graticule", type:"line", source:"graticule",
+        layout:{ visibility: gridOn?"visible":"none" },
+        paint:{ "line-color":"rgba(120,200,220,.28)", "line-width":["case",["get","prime"],1.4,0.6] } },
+      { id:"lm-dots", type:"circle", source:"landmarks",
+        paint:{ "circle-radius":["interpolate",["linear"],["zoom"],0,4,3,6,6,9],
+                "circle-color":["get","accent"],
+                "circle-stroke-color":"#ffffff","circle-stroke-width":1.4,
+                "circle-opacity":0.95,
+                "circle-blur":0.2 } },
+      { id:"lm-labels", type:"symbol", source:"landmarks",
+        minzoom:1.5,
+        layout:{ "text-field":["get","name"], "text-size":["interpolate",["linear"],["zoom"],0,9,4,12,6,14],
+                 "text-anchor":"bottom", "text-offset":[0,-0.7], "text-allow-overlap":false,
+                 "text-font":["Noto Sans Regular"] },
+        paint:{ "text-color":"#f3f6fb","text-halo-color":"rgba(0,0,0,.85)","text-halo-width":2.2,"text-opacity":0.95 } }
+    ]
+  };
+}
+
+function landmarkFeatures(p){
+  const col = ACCENT[currentPlanet]||"#5ad1c5";
+  return (p.landmarks||[]).map(lm=>({
+    type:"Feature", geometry:{type:"Point",coordinates:lm.coord},
+    properties:{ name:lm.name, sub:lm.sub, accent:col }
+  }));
+}
+
+// --- basemap / planet switching --------------------------------------------
+function setBasemapOptions(){
+  const sel=document.getElementById("basemapSel"); sel.innerHTML="";
+  PLANETS[currentPlanet].basemaps.forEach(bm=>{
+    const o=document.createElement("option"); o.value=bm.id; o.textContent=bm.name; sel.appendChild(o);
+  });
+  const p=PLANETS[currentPlanet];
+  sel.value = (currentBasemap && p.basemaps.find(b=>b.id===currentBasemap.id)) ? currentBasemap.id : p.basemaps[0].id;
+}
+function applyBasemap(id){
+  const p=PLANETS[currentPlanet]; currentBasemap = p.basemaps.find(b=>b.id===id)||p.basemaps[0];
+  // Surgically swap the raster source so the scheme (xyz/tms) is honoured —
+  // setTiles() alone keeps the old scheme and would flip TMS tiles vertically.
+  if(map.getLayer("planet-raster")) map.removeLayer("planet-raster");
+  if(map.getSource("planets")) map.removeSource("planets");
+  map.addSource("planets",{ type:"raster", tiles:currentBasemap.tiles, tileSize:256,
+    scheme:currentBasemap.scheme||"xyz", maxzoom:currentBasemap.maxZoom, attribution:currentBasemap.attribution });
+  map.addLayer({ id:"planet-raster", type:"raster", source:"planets" }, "graticule");
+  updateBasemapUI();
+}
+function updateBasemapUI(){
+  document.getElementById("sAttr").innerHTML = currentBasemap.attribution;
+  const sel=document.getElementById("basemapSel"); if(sel) sel.value=currentBasemap.id;
+}
+function switchPlanet(id){
+  currentPlanet=id; const p=PLANETS[id];
+  currentBasemap = (currentBasemap && p.basemaps.find(x=>x.id===currentBasemap.id)) || p.basemaps[0];
+  map.setMaxZoom(p.maxZoom);
+  setBasemapOptions();            // repopulate basemap dropdown for this body
+  map.setStyle(buildStyle());     // rebuild style (projection + sources + layers)
+  // buildStyle() already embeds the chosen basemap source, so no post-load swap needed.
+  // Run DOM/view updates synchronously — they don't depend on tile load completing.
+  updateBasemapUI();
+  easeBody(p);
+  updateSidebar();
+  document.getElementById("bodyPill").textContent=p.name;
+  document.getElementById("sBody").textContent=p.name;
+  if(spinning) startSpin(); else stopSpin();
+}
+function easeBody(p){
+  const z = Math.min(p.zoom, p.maxZoom);
+  map.easeTo({ center:p.center, zoom:z, pitch:0, bearing:0, duration:900 });
+}
+function setupInteractionLayers(){
+  map.on("click","lm-dots", e=>{
+    const f=e.features[0]; const c=f.geometry.coordinates;
+    flyToLandmark(c, f.properties.name, f.properties.sub);
+  });
+  map.on("mouseenter","lm-dots",()=>map.getCanvas().style.cursor="pointer");
+  map.on("mouseleave","lm-dots",()=>map.getCanvas().style.cursor="");
+}
+function flyToLandmark(coord, name, sub){
+  const p=PLANETS[currentPlanet];
+  const z=Math.min(currentPlanet==="earth"?6:4, p.maxZoom);
+  map.flyTo({center:coord, zoom:z, speed:1.1, curve:1.5, essential:true});
+  clickMarker.setLngLat(coord).addTo(map);
+  const popup=new maplibregl.Popup({closeButton:false,offset:24})
+    .setLngLat(coord)
+    .setHTML(`<div class="pop-title">${name}</div><div class="pop-sub">${sub||""}</div><div class="pop-coord">${fmt(coord[0])}, ${fmt(coord[1])}</div>`)
+    .addTo(map);
+  popup.on("close",()=>clickMarker.remove());
+}
+
+// --- empty-click coordinate popup ------------------------------------------
+function setupEmptyClick(){
+  map.on("click", e=>{
+    const f = map.queryRenderedFeatures(e.point,{layers:["lm-dots"]});
+    if(f && f.length) return; // landmark handled above
+    const [lon,lat]=e.lngLat.toArray().slice(0,2);
+    new maplibregl.Popup({closeButton:false,offset:14})
+      .setLngLat(e.lngLat)
+      .setHTML(`<div class="pop-title">Coordinate</div><div class="pop-coord">${fmt(lon)}, ${fmt(lat)}</div>`)
+      .addTo(map);
+  });
+}
+
+// --- auto-rotate -----------------------------------------------------------
+function startSpin(){
+  if(spinRAF) cancelAnimationFrame(spinRAF);
+  let last=performance.now();
+  const step=(t)=>{
+    if(!spinning) return;
+    const dt=(t-last)/1000; last=t;
+    if(!map.isMoving() && !map.isEasing()){
+      map.setBearing(map.getBearing()+dt*6); // ~6°/sec
+    }
+    spinRAF=requestAnimationFrame(step);
+  };
+  spinRAF=requestAnimationFrame(step);
+}
+function stopSpin(){ spinning=false; if(spinRAF) cancelAnimationFrame(spinRAF); spinRAF=null; }
+
+// --- helpers ---------------------------------------------------------------
+function fmt(v){ return (v>=0?"+":"")+v.toFixed(2)+"°"; }
+function fmtLonLat(ll){
+  if(!ll) return "—";
+  const [lon,lat]=ll;
+  return `${fmt(lon)}, ${fmt(lat)}`;
+}
+
+// --- sidebar ---------------------------------------------------------------
+function updateSidebar(){
+  const p=PLANETS[currentPlanet]; const list=document.getElementById("locList"); list.innerHTML="";
+  if(!(p.landmarks&&p.landmarks.length)){
+    const empty=document.createElement("div"); empty.className="group-label";
+    empty.textContent="Free-exploration body — pan & rotate to discover features. Use Fly-to for coordinates.";
+    empty.style.textTransform="none"; empty.style.lineHeight="1.5"; empty.style.fontWeight="500";
+    list.appendChild(empty);
+    // poles + equator quick fly
+    [{name:"North Pole",sub:"90°N",coord:[0,85]},{name:"Equator · 0°",sub:"Prime meridian crossing",coord:[0,0]},{name:"South Pole",sub:"90°S",coord:[0,-85]}].forEach(it=>{
+      list.appendChild(locCard(it,ACCENT[currentPlanet]));
+    });
+    return;
+  }
+  const group=document.createElement("div"); group.className="group-label"; group.textContent="Featured sites";
+  list.appendChild(group);
+  p.landmarks.forEach(lm=>list.appendChild(locCard(lm,ACCENT[currentPlanet])));
+}
+function locCard(lm,col){
+  const d=document.createElement("div"); d.className="loc";
+  d.innerHTML=`<span class="dot" style="background:${col}"></span>
+    <div><div class="nm">${lm.name}</div><div class="ds">${lm.sub||""}</div>
+    <div class="cr">${fmt(lm.coord[0])}, ${fmt(lm.coord[1])}</div></div>`;
+  d.onclick=()=>flyToLandmark(lm.coord,lm.name,lm.sub);
+  return d;
+}
+
+// --- map status ------------------------------------------------------------
+function setupStatus(){
+  map.on("mousemove",e=>{ document.getElementById("sCoord").textContent=fmtLonLat([e.lngLat.lng,e.lngLat.lat]); });
+  map.on("move",()=>{ document.getElementById("sZoom").textContent=map.getZoom().toFixed(1); });
+  map.on("projectiontransition",()=>{});
+}
+
+// --- init ------------------------------------------------------------------
+function init(){
+  if(typeof maplibregl==="undefined"){
+    document.getElementById("loader").innerHTML='<div style="text-align:center;max-width:420px;padding:20px"><div style="font-size:40px">🌍</div><h2 style="color:#e7ecf3;margin:8px 0">MapLibre failed to load</h2><p style="color:#8b97a8;font-size:13px">The CDN (unpkg) was unreachable. Open this file on a network with internet access, or self-host <code>maplibre-gl.js</code> alongside it and update the &lt;script&gt; tag.</p></div>';
+    return;
+  }
+  currentBasemap = PLANETS[currentPlanet].basemaps[0];
+  map = new maplibregl.Map({
+    container:"map",
+    style: buildStyle(),
+    center: PLANETS[currentPlanet].center,
+    zoom: PLANETS[currentPlanet].zoom,
+    maxZoom: PLANETS[currentPlanet].maxZoom,
+    minZoom: 0,
+    renderWorldCopies:false,        // one planet, not repeated
+    antialias:true,
+    attributionControl:true
+  });
+  map.addControl(new maplibregl.NavigationControl({visualizePitch:true}), "top-right");
+  map.addControl(new maplibregl.FullscreenControl(), "top-right");
+  map.addControl(new maplibregl.ScaleControl({unit:"metric"}), "bottom-left");
+
+  map.on("load",()=>{
+    setupInteractionLayers();
+    setupEmptyClick();
+    setupStatus();
+    setBasemapOptions();
+    updateBasemapUI();
+    updateSidebar();
+    document.getElementById("sBody").textContent=PLANETS[currentPlanet].name;
+    document.getElementById("bodyPill").textContent=PLANETS[currentPlanet].name;
+    document.getElementById("sZoom").textContent=map.getZoom().toFixed(1);
+    document.getElementById("loader").classList.add("hide");
+  });
+  map.on("error",e=>{ if(e && e.error && /Source.*not found|404/i.test(e.error.message||"")) console.warn(e.error.message); });
+
+  wireUI();
+}
+
+// --- UI wiring -------------------------------------------------------------
+function wireUI(){
+  document.querySelectorAll("#planetSeg button").forEach(b=>{
+    b.onclick=()=>{
+      document.querySelectorAll("#planetSeg button").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on");
+      switchPlanet(b.dataset.planet);
+    };
+  });
+  // bonus worlds via long-press? -> add a "More" select appended to the bar
+  const planetSeg=document.getElementById("planetSeg");
+  const more=document.createElement("div"); more.className="select-wrap";
+  const sel=document.createElement("select"); sel.className="field"; sel.title="More worlds";
+  const opt=document.createElement("option"); opt.value=""; opt.textContent="More worlds ▾"; sel.appendChild(opt);
+  PLANET_ORDER.filter(id=>!["earth","moon","mars"].includes(id)).forEach(id=>{
+    const o=document.createElement("option"); o.value=id; o.textContent=PLANETS[id].name; sel.appendChild(o);
+  });
+  sel.onchange=()=>{
+    if(!sel.value) return;
+    document.querySelectorAll("#planetSeg button").forEach(x=>x.classList.remove("on"));
+    switchPlanet(sel.value); sel.value="";
+  };
+  more.appendChild(sel); planetSeg.parentNode.insertBefore(more, planetSeg.nextSibling);
+
+  document.getElementById("basemapSel").onchange=e=>applyBasemap(e.target.value);
+  document.getElementById("projBtn").onclick=()=>{
+    globe=!globe;
+    map.setProjection({ type: globe?"globe":"mercator" });
+    document.getElementById("projBtn").textContent = globe?"🌐 Globe":"🗺 Mercator";
+    document.getElementById("sProj").textContent = globe?"Globe":"Mercator";
+    document.getElementById("projBtn").classList.toggle("on",globe);
+  };
+  document.getElementById("gridBtn").onclick=()=>{
+    gridOn=!gridOn;
+    map.setLayoutProperty("graticule","visibility",gridOn?"visible":"none");
+    document.getElementById("gridBtn").classList.toggle("on",gridOn);
+  };
+  document.getElementById("spinBtn").onclick=()=>{
+    spinning=!spinning;
+    document.getElementById("spinBtn").classList.toggle("on",spinning);
+    if(spinning) startSpin(); else stopSpin();
+  };
+  document.addEventListener("pointerdown",()=>{ if(spinning && map && !map.isMoving()){ /*keep spin*/ } }, {capture:true});
+  document.getElementById("aboutBtn").onclick=showAbout;
+
+  // sidebar toggle
+  const sb=document.getElementById("sidebar");
+  document.getElementById("hamb").onclick=()=>sb.classList.toggle("collapsed");
+  document.getElementById("hamb2").onclick=()=>sb.classList.toggle("collapsed");
+
+  // fly-to
+  const go=document.getElementById("flyGo");
+  const doFly=()=>{
+    const lon=parseFloat(document.getElementById("flyLon").value);
+    const lat=parseFloat(document.getElementById("flyLat").value);
+    if(isFinite(lon)&&isFinite(lat)){
+      const p=PLANETS[currentPlanet];
+      const z=Math.min(currentPlanet==="earth"?7:5, p.maxZoom);
+      map.flyTo({center:[lon,lat],zoom:z,speed:1.1,curve:1.5,essential:true});
+    }
+  };
+  go.onclick=doFly;
+  document.getElementById("flyLon").addEventListener("keydown",e=>{if(e.key==="Enter")doFly();});
+  document.getElementById("flyLat").addEventListener("keydown",e=>{if(e.key==="Enter")doFly();});
+
+  // keyboard: 1/2/3 quick switch, g grid, space spin
+  window.addEventListener("keydown",e=>{
+    if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT") return;
+    if(e.key==="1"){ switchPlanet("earth"); markPlanet("earth"); }
+    if(e.key==="2"){ switchPlanet("moon"); markPlanet("moon"); }
+    if(e.key==="3"){ switchPlanet("mars"); markPlanet("mars"); }
+    if(e.key.toLowerCase()==="g") document.getElementById("gridBtn").click();
+    if(e.key===" "){ e.preventDefault(); document.getElementById("spinBtn").click(); }
+  });
+}
+function markPlanet(id){
+  document.querySelectorAll("#planetSeg button").forEach(x=>x.classList.toggle("on",x.dataset.planet===id));
+}
+
+function showAbout(){
+  const p=PLANETS[currentPlanet];
+  const popup=new maplibregl.Popup({closeButton:true,closeOnClick:true,maxWidth:"330px"})
+    .setLngLat(map.getCenter())
+    .setHTML(`
+      <div class="pop-title">🌍 GeoLibre · Planetary Atlas</div>
+      <div class="pop-sub">Interactive globes of the Moon, Mars & beyond — built with open-source
+      <a href="https://maplibre.org/" target="_blank">MapLibre GL JS</a>, the same engine
+      <a href="https://github.com/opengeos/GeoLibre" target="_blank">GeoLibre</a> uses for Earth.</div>
+      <div class="pop-coord">Body: ${p.name} · radius ${p.radius.toLocaleString()} m<br>
+      Tiles: OpenPlanetaryMap / NASA / USGS · ${currentBasemap.name}<br>
+      Try: keys 1·2·3 switch worlds · G grid · Space spin · click any marker</div>
+      <div class="pop-coord">Live: https://&lt;your-host&gt;/geolibre/</div>`)
+    .addTo(map);
+}
+
+// boot
+window.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
