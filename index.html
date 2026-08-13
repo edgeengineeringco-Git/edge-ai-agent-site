@@ -20,7 +20,7 @@ a{text-decoration:none;color:inherit}img,video{max-width:100%;display:block}
 .nav.scrolled{background:rgba(6,10,9,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 0}
 .nav .container{display:flex;align-items:center;justify-content:space-between}
 .nav__logo{display:flex;align-items:center;gap:14px;font-weight:700;font-size:1.1rem}
-.nav__logo img{height:52px;width:auto;background:rgba(255,255,255,.95);border-radius:10px;padding:6px}
+.nav__logo img{height:52px;width:auto;background:rgba(255,255,255,1);border-radius:12px;padding:8px;border:2px solid rgba(255,255,255,.3)}
 .nav__links{display:flex;align-items:center;gap:32px}
 .nav__links a{font-size:.82rem;font-weight:500;color:var(--gray1);transition:color .2s}
 .nav__links a:hover{color:var(--white)}
@@ -156,7 +156,7 @@ a{text-decoration:none;color:inherit}img,video{max-width:100%;display:block}
 .logos-strip__item{display:flex;flex-direction:column;align-items:center;gap:12px}
 .logos-strip__item img{height:80px;width:auto;opacity:.95;filter:brightness(1.15);transition:all .3s}
 .logos-strip__item img:hover{opacity:1;filter:brightness(1.3);transform:scale(1.05)}
-.logos-strip__badge{display:flex;align-items:center;gap:12px;padding:16px 28px;background:rgba(0,51,160,.25);border:1px solid rgba(0,94,184,.4);border-radius:12px;font-size:.82rem;font-weight:700;color:#4da6ff;text-transform:uppercase;letter-spacing:1px;backdrop-filter:blur(8px);box-shadow:0 4px 20px rgba(0,51,160,.2)}
+.logos-strip__badge{display:flex;align-items:center;gap:12px;padding:10px 16px;background:transparent;border:none;border-radius:0;font-size:.82rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;backdrop-filter:none;box-shadow:none}
 .logos-strip__badge svg{width:24px;height:24px}
 .r{opacity:0;transform:translateY(40px);transition:all .8s cubic-bezier(.16,1,.3,1)}.r.v{opacity:1;transform:translateY(0)}
 .d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}
@@ -441,13 +441,13 @@ a{text-decoration:none;color:inherit}img,video{max-width:100%;display:block}
 <div class="container">
 <div class="logos-strip__inner">
 <div class="logos-strip__item">
-<img src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=512,fit=crop/YZ9EKjBV5gi5rGoz/logo-1_prev_ui-A0xwBnMzKBT5knaQ.png" alt="EDGE Logo" style="height:96px">
+<img src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=512,fit=crop/YZ9EKjBV5gi5rGoz/logo-1_prev_ui-A0xwBnMzKBT5knaQ.png" alt="EDGE Logo" style="height:96px;background:rgba(255,255,255,1);border-radius:14px;padding:10px;border:2px solid rgba(255,255,255,.3)">
 </div>
 <div class="logos-strip__item">
-<img src="https://maynoothworks.ie/wp-content/uploads/2021/09/MU-MW-logo.svg" alt="MaynoothWorks" style="height:64px;filter:brightness(1.3)">
+<img src="https://maynoothworks.ie/wp-content/uploads/2021/09/MU-MW-logo.svg" alt="MaynoothWorks" style="height:48px;filter:brightness(1.3)">
 </div>
 <div class="logos-strip__badge">
-<img src="ESA_S2C_Logo_RGB_Ireland_DeepSpace1.jpg" alt="ESA BIC Ireland" style="height:56px;width:auto;border-radius:6px">
+<img src="ESA_S2C_Logo_RGB_Ireland_DeepSpace1.jpg" alt="ESA BIC Ireland" style="height:56px;width:auto">
 </div>
 </div>
 </div>
@@ -457,7 +457,7 @@ a{text-decoration:none;color:inherit}img,video{max-width:100%;display:block}
 <div class="container">
 <div class="footer__grid">
 <div class="footer__brand">
-<div class="nav__logo"><img src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=256,fit=crop/YZ9EKjBV5gi5rGoz/logo-1_prev_ui-A0xwBnMzKBT5knaQ.png" alt="EDGE" style="height:44px;background:rgba(255,255,255,.95);border-radius:10px;padding:4px" onerror="this.style.display='none'"></div>
+<div class="nav__logo"><img src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=256,fit=crop/YZ9EKjBV5gi5rGoz/logo-1_prev_ui-A0xwBnMzKBT5knaQ.png" alt="EDGE" style="height:44px;background:rgba(255,255,255,1);border-radius:12px;padding:6px;border:2px solid rgba(255,255,255,.3)" onerror="this.style.display='none'"></div>
 <p>Earthwise Dynamics Geo Environs (EDGE) Ltd. — AI-driven geoengineering, terrestrial and space mineral prospecting, and advanced drone surveys.</p>
 <div class="footer__social">
 <a href="https://www.linkedin.com/company/earthwise-dynamics-geo-environs-edge-ltd/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"/></svg></a>
