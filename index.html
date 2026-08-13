@@ -3,275 +3,213 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EDGE | Earthwise Dynamics Geo Environs</title>
-<meta name="description" content="EDGE delivers geospatial modelling, Earth observation analysis, UAV surveys, and AI-driven solutions for geoengineering and environmental challenges. ESA incubatee, Maynooth, Ireland.">
-<link rel="icon" type="image/png" href="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=128,fit=crop/YZ9EKjBV5gi5rGoz/logo-1_prev_ui-A0xwBnMzKBT5knaQ.png">
+<title>EDGE — Geointelligence for a Sustainable Future</title>
+<meta name="description" content="EDGE delivers geospatial modelling, Earth observation, UAV surveys, and AI-driven geoengineering solutions. European Space Agency incubatee, Ireland.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden}
 :root{
---black:#040507;--dark:#080a10;--card:#0e1018;--card2:#14161f;--glass:rgba(14,16,24,.7);
---green:#34d399;--green-bright:#6ee7b7;--green-dim:rgba(52,211,153,.08);--green-glow:rgba(52,211,153,.15);
---teal:#2dd4bf;--blue:#60a5fa;--gold:#fbbf24;--amber:#f59e0b;
---white:#f0fdf4;--gray1:#cbd5e1;--gray2:#94a3b8;--gray3:#64748b;--gray4:#334155;--gray5:#1e293b;
---border:rgba(148,163,184,.06);--border-hover:rgba(52,211,153,.18);
---gradient:linear-gradient(135deg,#34d399 0%,#2dd4bf 50%,#60a5fa 100%);
---gradient-warm:linear-gradient(135deg,#fbbf24 0%,#f59e0b 50%,#34d399 100%);
---text-grad:linear-gradient(135deg,#6ee7b7 0%,#5eead4 50%,#93c5fd 100%);
---font-body:'DM Sans',system-ui,-apple-system,sans-serif;
---font-display:'Instrument Serif',Georgia,'Times New Roman',serif;
+--bg:#000;--bg2:#0a0a0a;--bg3:#111;--bg4:#171717;
+--green:#00e5a0;--green2:#00c98c;--green-bg:rgba(0,229,160,.06);--green-border:rgba(0,229,160,.12);
+--white:#fff;--gray1:#a1a1aa;--gray2:#71717a;--gray3:#3f3f46;--gray4:#27272a;
+--border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.1);
 }
-body{font-family:var(--font-body);background:var(--black);color:var(--white);line-height:1.6;overflow-x:hidden}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--white);line-height:1.6;overflow-x:hidden}
 a{text-decoration:none;color:inherit}
 img{max-width:100%;display:block}
-.container{max-width:1380px;margin:0 auto;padding:0 clamp(20px,5vw,64px)}
-
-/* ====== CURSOR ====== */
-.cursor{position:fixed;width:600px;height:600px;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(52,211,153,.04) 0%,transparent 70%);transition:opacity .4s;opacity:0;will-change:transform}
-body:hover .cursor{opacity:1}
-
-/* ====== BG LAYERS ====== */
-.bg{position:fixed;inset:0;z-index:-10;overflow:hidden}
-.bg__orb{position:absolute;border-radius:50%;filter:blur(180px);will-change:transform}
-.bg__orb--1{width:900px;height:900px;background:rgba(52,211,153,.07);top:-30%;left:-10%;animation:float1 30s ease-in-out infinite alternate}
-.bg__orb--2{width:700px;height:700px;background:rgba(96,165,250,.05);bottom:-20%;right:-10%;animation:float1 25s ease-in-out infinite alternate-reverse}
-.bg__orb--3{width:500px;height:500px;background:rgba(45,212,191,.04);top:50%;left:50%;animation:float1 20s ease-in-out infinite alternate;animation-delay:-10s}
-@keyframes float1{0%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-20px) scale(1.03)}66%{transform:translate(-20px,40px) scale(.97)}100%{transform:translate(15px,15px) scale(1.01)}}
-.bg__dots{position:absolute;inset:0;background-image:radial-gradient(rgba(52,211,153,.04) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse 70% 50% at 50% 30%,#000,transparent)}
-canvas#p{position:fixed;inset:0;z-index:-5;pointer-events:none}
+.container{max-width:1200px;margin:0 auto;padding:0 clamp(24px,5vw,48px)}
 
 /* ====== NAV ====== */
-.nav{position:fixed;top:0;left:0;width:100%;z-index:100;padding:0 clamp(20px,5vw,64px);transition:all .5s cubic-bezier(.16,1,.3,1)}
-.nav--scrolled{background:rgba(4,5,7,.82);backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);border-bottom:1px solid var(--border)}
-.nav__inner{max-width:1380px;margin:0 auto;height:80px;display:flex;align-items:center;justify-content:space-between}
-.nav__logo{display:flex;align-items:center;gap:14px}
-.nav__logo img{height:48px;width:auto;object-fit:contain;filter:brightness(1.1)}
-.nav__logo span{font-family:var(--font-display);font-size:1.5rem;letter-spacing:-.5px;color:var(--white)}
-.nav__logo span em{font-style:italic;color:var(--green)}
-.nav__links{display:flex;align-items:center;gap:36px}
-.nav__links a{font-size:.88rem;font-weight:500;color:var(--gray2);position:relative;padding:4px 0;transition:color .3s}
-.nav__links a::after{content:'';position:absolute;bottom:0;left:0;width:0;height:1.5px;background:var(--gradient);transition:width .3s ease}
+.nav{position:fixed;top:0;left:0;width:100%;z-index:100;transition:all .4s ease;padding:20px 0}
+.nav.scrolled{background:rgba(0,0,0,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:12px 0}
+.nav .container{display:flex;align-items:center;justify-content:space-between}
+.nav__logo{font-size:1.1rem;font-weight:700;letter-spacing:-.5px;display:flex;align-items:center;gap:10px}
+.nav__logo-icon{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;color:#000;letter-spacing:-.5px}
+.nav__links{display:flex;align-items:center;gap:32px}
+.nav__links a{font-size:.82rem;font-weight:500;color:var(--gray1);transition:color .2s;letter-spacing:.2px}
 .nav__links a:hover{color:var(--white)}
-.nav__links a:hover::after,.nav__links a.active::after{width:100%}
-.nav__cta{padding:10px 28px!important;background:var(--gradient);color:var(--black)!important;font-weight:700!important;border-radius:60px;font-size:.82rem!important;letter-spacing:.5px;box-shadow:0 0 24px rgba(52,211,153,.2)}
-.nav__cta::after{display:none!important}
-.nav__cta:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(52,211,153,.35)}
-.nav__toggle{display:none;flex-direction:column;gap:5px;cursor:pointer;z-index:101;padding:8px}
-.nav__toggle span{width:22px;height:2px;background:var(--white);transition:all .3s;border-radius:2px}
+.nav__btn{padding:8px 20px;background:var(--white);color:#000!important;font-weight:600!important;border-radius:6px;font-size:.8rem!important;transition:all .2s}
+.nav__btn:hover{background:var(--green);transform:translateY(-1px)}
+.nav__toggle{display:none;cursor:pointer;flex-direction:column;gap:5px;padding:8px}
+.nav__toggle span{width:20px;height:2px;background:var(--white);transition:all .3s}
 .nav__toggle.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
 .nav__toggle.active span:nth-child(2){opacity:0}
 .nav__toggle.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
 
 /* ====== HERO ====== */
-.hero{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden}
-.hero__bg{position:absolute;inset:0;z-index:0}
-.hero__bg img{width:100%;height:100%;object-fit:cover;opacity:.35;filter:saturate(.8) brightness(.7)}
-.hero__bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,5,7,.3) 0%,rgba(4,5,7,.6) 35%,var(--black) 100%)}
-.hero__noise{position:absolute;inset:0;opacity:.03;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:128px;z-index:1}
-.hero__content{position:relative;z-index:2;max-width:860px;margin:0 auto;text-align:center;padding:120px 24px 80px}
-.hero__pill{display:inline-flex;align-items:center;gap:10px;padding:10px 24px;border:1px solid rgba(251,191,36,.2);border-radius:60px;background:rgba(251,191,36,.05);font-size:.78rem;font-weight:600;color:var(--gold);letter-spacing:.8px;text-transform:uppercase;margin-bottom:40px;opacity:0;animation:fadeUp .8s ease .2s forwards}
-.hero__pill svg{width:16px;height:16px;fill:var(--gold)}
-@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
-.hero h1{font-family:var(--font-display);font-size:clamp(3rem,7.5vw,6rem);font-weight:400;line-height:1;letter-spacing:-3px;margin-bottom:32px}
-.hero h1 .line{display:block;opacity:0;transform:translateY(50px);animation:fadeUp .9s cubic-bezier(.16,1,.3,1) forwards}
-.hero h1 .line:nth-child(1){animation-delay:.3s}.hero h1 .line:nth-child(2){animation-delay:.5s}.hero h1 .line:nth-child(3){animation-delay:.7s}
-.hero h1 em{font-style:italic;background:var(--text-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.hero__sub{font-size:clamp(1.05rem,1.8vw,1.35rem);color:var(--gray2);max-width:580px;margin:0 auto 48px;opacity:0;animation:fadeUp .9s cubic-bezier(.16,1,.3,1) .9s forwards;line-height:1.75}
-.hero__typed{color:var(--green);font-weight:600}
-.hero__cursor{display:inline-block;width:2px;height:1.1em;background:var(--teal);margin-left:2px;animation:blink 1s step-end infinite;vertical-align:text-bottom}
-@keyframes blink{50%{opacity:0}}
-.hero__btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;opacity:0;animation:fadeUp .9s cubic-bezier(.16,1,.3,1) 1.1s forwards}
+.hero{min-height:100vh;display:flex;align-items:center;padding:160px 0 120px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:0;right:0;width:60%;height:100%;background:radial-gradient(ellipse at 70% 30%,rgba(0,229,160,.08) 0%,transparent 60%);pointer-events:none}
+.hero__grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.hero__label{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:6px;font-size:.72rem;font-weight:600;color:var(--green);letter-spacing:1px;text-transform:uppercase;margin-bottom:32px}
+.hero__label-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{font-size:clamp(2.8rem,5.5vw,4.5rem);font-weight:700;line-height:1.05;letter-spacing:-2.5px;margin-bottom:28px}
+.hero h1 span{color:var(--gray1)}
+.hero__sub{font-size:1.1rem;color:var(--gray1);line-height:1.8;margin-bottom:40px;max-width:480px}
+.hero__btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;font-family:inherit;font-weight:600;font-size:.85rem;border-radius:8px;border:none;cursor:pointer;transition:all .25s ease;letter-spacing:.2px}
+.btn--primary{background:var(--green);color:#000}
+.btn--primary:hover{background:var(--green2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,229,160,.25)}
+.btn--secondary{background:transparent;color:var(--white);border:1px solid var(--border2)}
+.btn--secondary:hover{border-color:var(--gray1);transform:translateY(-2px)}
+.hero__visual{position:relative;aspect-ratio:1;border-radius:20px;overflow:hidden;background:var(--bg3)}
+.hero__visual img{width:100%;height:100%;object-fit:cover;opacity:.8}
+.hero__visual::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.3),transparent)}
+.hero__stat-float{position:absolute;bottom:20px;left:20px;background:rgba(0,0,0,.7);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:12px;padding:16px 24px;display:flex;gap:24px}
+.hero__stat-float div{text-align:center}
+.hero__stat-float strong{display:block;font-size:1.4rem;font-weight:700;color:var(--green)}
+.hero__stat-float span{font-size:.65rem;color:var(--gray2);text-transform:uppercase;letter-spacing:1px;font-weight:600}
 
-/* ====== BUTTONS ====== */
-.btn{display:inline-flex;align-items:center;gap:10px;padding:16px 40px;font-family:var(--font-body);font-weight:600;font-size:.9rem;border-radius:60px;border:none;cursor:pointer;transition:all .35s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden;letter-spacing:.3px}
-.btn--fill{background:var(--gradient);color:var(--black);box-shadow:0 0 40px rgba(52,211,153,.18)}
-.btn--fill::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);transition:left .6s}
-.btn--fill:hover::after{left:100%}
-.btn--fill:hover{transform:translateY(-3px);box-shadow:0 16px 56px rgba(52,211,153,.3)}
-.btn--ghost{background:transparent;color:var(--white);border:1.5px solid var(--border-hover)}
-.btn--ghost:hover{background:var(--green-dim);border-color:var(--green);transform:translateY(-3px)}
-.hero__scroll{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--gray3);font-size:.65rem;letter-spacing:3px;text-transform:uppercase;animation:bob 3s ease-in-out infinite}
-@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(10px)}}
-.hero__scroll svg{width:16px;height:16px;stroke:var(--gray3);fill:none;stroke-width:2}
+/* ====== LOGOS ====== */
+.logos{padding:80px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.logos__label{text-align:center;font-size:.7rem;font-weight:600;color:var(--gray2);text-transform:uppercase;letter-spacing:2px;margin-bottom:36px}
+.logos__strip{display:flex;justify-content:center;align-items:center;gap:56px;flex-wrap:wrap}
+.logos__item{font-size:1rem;font-weight:600;color:var(--gray2);letter-spacing:-.3px;opacity:.5;transition:opacity .3s}
+.logos__item:hover{opacity:1}
 
 /* ====== SECTIONS ====== */
-.sec{padding:clamp(80px,12vw,140px) 0;position:relative}
-.sec--alt{background:var(--dark)}
-.sec__head{text-align:center;margin-bottom:72px}
-.sec__tag{display:inline-flex;align-items:center;gap:8px;padding:8px 20px;font-size:.7rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--green);background:var(--green-dim);border:1px solid var(--green-glow);border-radius:60px;margin-bottom:20px}
-.sec__title{font-family:var(--font-display);font-size:clamp(2.2rem,5.5vw,4rem);font-weight:400;letter-spacing:-1.5px;line-height:1.1;margin-bottom:20px}
-.sec__title em{font-style:italic;background:var(--text-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.sec__desc{color:var(--gray2);font-size:1.05rem;max-width:560px;margin:0 auto;line-height:1.8}
+.sec{padding:120px 0}
+.sec--alt{background:var(--bg2)}
+.sec__label{font-size:.7rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
+.sec__title{font-size:clamp(2rem,4vw,3.2rem);font-weight:700;letter-spacing:-1.5px;line-height:1.1;margin-bottom:20px}
+.sec__desc{color:var(--gray1);font-size:1.05rem;max-width:560px;line-height:1.8}
 
-/* ====== STATS ====== */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:28px;overflow:hidden;max-width:960px;margin:-60px auto 0;position:relative;z-index:10;box-shadow:0 24px 80px rgba(0,0,0,.4)}
-.stats__item{background:var(--card);padding:48px 28px;text-align:center}
-.stats__num{font-family:var(--font-display);font-size:clamp(2.4rem,4vw,3.5rem);font-weight:400;background:var(--text-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
-.stats__label{font-size:.72rem;color:var(--gray3);text-transform:uppercase;letter-spacing:2px;margin-top:10px;font-weight:600}
-
-/* ====== BENTO SERVICES ====== */
-.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
-.b-card{background:var(--card);border:1px solid var(--border);border-radius:28px;overflow:hidden;position:relative;transition:all .5s cubic-bezier(.16,1,.3,1)}
-.b-card:hover{border-color:var(--border-hover);transform:translateY(-8px);box-shadow:0 32px 80px rgba(52,211,153,.08)}
-.b-card--1{grid-column:span 7;min-height:420px}
-.b-card--2{grid-column:span 5;min-height:420px}
-.b-card--3{grid-column:span 4;min-height:400px}
-.b-card--4{grid-column:span 4;min-height:400px}
-.b-card--5{grid-column:span 4;min-height:400px}
-.b-card--6{grid-column:span 6;min-height:360px}
-.b-card--7{grid-column:span 6;min-height:360px}
-.b-card__bg{position:absolute;inset:0;z-index:0}
-.b-card__bg img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.16,1,.3,1),opacity .5s;opacity:.45}
-.b-card:hover .b-card__bg img{transform:scale(1.05);opacity:.6}
-.b-card__bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,16,24,.2) 0%,rgba(14,16,24,.92) 100%)}
-.b-card__content{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;justify-content:flex-end;padding:clamp(28px,3vw,40px)}
-.b-card__icon{width:56px;height:56px;display:flex;align-items:center;justify-content:center;background:rgba(52,211,153,.1);border:1px solid var(--green-glow);border-radius:16px;margin-bottom:20px;backdrop-filter:blur(12px)}
-.b-card__icon svg{width:28px;height:28px;stroke:var(--green);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.b-card h3{font-size:clamp(1.1rem,2vw,1.35rem);font-weight:600;margin-bottom:10px;letter-spacing:-.3px;line-height:1.3}
-.b-card p{font-size:.88rem;color:var(--gray2);line-height:1.7;max-width:480px}
-.b-card__arrow{display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-size:.72rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1.5px;transition:gap .3s}
-.b-card:hover .b-card__arrow{gap:10px}
+/* ====== SERVICES ====== */
+.services{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-top:64px}
+.service{background:var(--bg);padding:48px 36px;transition:background .3s;position:relative}
+.service:hover{background:var(--bg2)}
+.service__icon{width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--green-bg);border:1px solid var(--green-border);border-radius:12px;margin-bottom:24px}
+.service__icon svg{width:24px;height:24px;stroke:var(--green);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.service h3{font-size:1.05rem;font-weight:600;margin-bottom:12px;letter-spacing:-.3px}
+.service p{font-size:.88rem;color:var(--gray2);line-height:1.7}
 
 /* ====== ABOUT ====== */
-.about{display:grid;grid-template-columns:1fr 1fr;gap:clamp(48px,8vw,100px);align-items:center}
-.about__img{position:relative;border-radius:28px;overflow:hidden;aspect-ratio:4/3}
+.about__grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;margin-top:64px}
+.about__img{border-radius:16px;overflow:hidden;aspect-ratio:4/3;background:var(--bg3);position:relative}
 .about__img img{width:100%;height:100%;object-fit:cover}
-.about__img::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(52,211,153,.08),transparent 60%)}
-.about__float{position:absolute;bottom:-20px;right:-20px;background:rgba(14,16,24,.85);backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:24px;padding:28px 36px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.about__float-num{font-family:var(--font-display);font-size:3rem;background:var(--text-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
-.about__float-label{font-size:.65rem;color:var(--gray3);text-transform:uppercase;letter-spacing:2px;font-weight:700;margin-top:4px}
-.about__text h2{font-family:var(--font-display);font-size:clamp(2rem,4vw,3rem);font-weight:400;letter-spacing:-1px;margin-bottom:28px;line-height:1.15}
-.about__text h2 em{font-style:italic;background:var(--text-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.about__text>p{color:var(--gray2);font-size:1.02rem;line-height:1.8;margin-bottom:16px}
-.about__list{margin-top:32px;display:flex;flex-direction:column;gap:16px}
-.about__li{display:flex;align-items:flex-start;gap:14px;font-size:.95rem;font-weight:500;line-height:1.5}
-.about__li svg{width:22px;height:22px;flex-shrink:0;stroke:var(--green);fill:none;stroke-width:2.5;margin-top:1px}
-.about__li span{color:var(--gray1)}
+.about__content h3{font-size:1.6rem;font-weight:700;letter-spacing:-.8px;margin-bottom:20px;line-height:1.2}
+.about__content p{color:var(--gray1);margin-bottom:16px;line-height:1.8}
+.about__features{margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.about__feat{display:flex;align-items:flex-start;gap:12px;padding:16px;background:var(--bg2);border:1px solid var(--border);border-radius:12px}
+.about__feat svg{width:20px;height:20px;stroke:var(--green);fill:none;stroke-width:2;flex-shrink:0;margin-top:2px}
+.about__feat span{font-size:.85rem;font-weight:500;line-height:1.5}
 
 /* ====== PROJECTS ====== */
-.proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-.proj{background:var(--card);border:1px solid var(--border);border-radius:28px;overflow:hidden;transition:all .5s cubic-bezier(.16,1,.3,1)}
-.proj:hover{border-color:var(--border-hover);transform:translateY(-8px);box-shadow:0 32px 80px rgba(52,211,153,.08)}
-.proj__img{height:260px;overflow:hidden;position:relative}
-.proj__img img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.16,1,.3,1)}
-.proj:hover .proj__img img{transform:scale(1.06)}
-.proj__img::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,var(--card) 100%)}
-.proj__tag{position:absolute;top:16px;left:16px;z-index:2;padding:6px 16px;background:rgba(14,16,24,.75);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:60px;font-size:.68rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1.5px}
-.proj__body{padding:32px}
-.proj__body h3{font-size:1.08rem;font-weight:600;margin-bottom:12px;line-height:1.5;letter-spacing:-.2px}
-.proj__body p{font-size:.88rem;color:var(--gray2);line-height:1.75;margin-bottom:20px}
-.proj__funder{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.12);border-radius:60px;font-size:.72rem;color:var(--gold);font-weight:600}
+.projects__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:64px}
+.project{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all .3s ease}
+.project:hover{border-color:var(--border2);transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.project__img{height:200px;overflow:hidden;position:relative;background:var(--bg3)}
+.project__img img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.project:hover .project__img img{transform:scale(1.05)}
+.project__tag{position:absolute;top:12px;left:12px;padding:4px 12px;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:6px;font-size:.65rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px}
+.project__body{padding:28px}
+.project__body h3{font-size:1rem;font-weight:600;margin-bottom:10px;line-height:1.45;letter-spacing:-.2px}
+.project__body p{font-size:.85rem;color:var(--gray2);line-height:1.7;margin-bottom:16px}
+.project__funder{font-size:.72rem;color:var(--gray2);display:flex;align-items:center;gap:6px}
+.project__funder span{color:var(--green)}
 
-/* ====== PARTNERS ====== */
-.partners{display:flex;flex-wrap:wrap;justify-content:center;gap:40px 64px;padding:40px 0}
-.partner{font-family:var(--font-display);font-size:1.2rem;color:var(--gray3);transition:color .4s;letter-spacing:-.3px;cursor:default}
-.partner:hover{color:var(--white)}
+/* ====== METRICS ====== */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:64px}
+.metric{padding:36px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;text-align:center}
+.metric__num{font-size:2.8rem;font-weight:700;color:var(--green);letter-spacing:-2px;line-height:1}
+.metric__label{font-size:.75rem;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-top:8px}
 
 /* ====== CONTACT ====== */
-.contact-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:32px}
-.contact-card{background:var(--card);border:1px solid var(--border);border-radius:28px;padding:clamp(32px,5vw,52px)}
-.contact-card h3{font-size:1.4rem;font-weight:600;margin-bottom:8px}
-.contact-card>p{color:var(--gray2);font-size:.92rem;margin-bottom:36px}
-.c-item{display:flex;gap:16px;margin-bottom:32px}
-.c-item__icon{width:52px;height:52px;display:flex;align-items:center;justify-content:center;background:var(--green-dim);border:1px solid var(--green-glow);border-radius:16px;flex-shrink:0}
-.c-item__icon svg{width:22px;height:22px;stroke:var(--green);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.c-item__label{font-size:.68rem;color:var(--gray3);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px}
-.c-item__val{color:var(--white);font-weight:500;font-size:.95rem;line-height:1.6}
-.c-item__val a{color:var(--green);border-bottom:1px solid transparent;transition:border-color .3s}
-.c-item__val a:hover{border-color:var(--green)}
-.f-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.fg{margin-bottom:20px}
-.fg label{display:block;font-size:.72rem;font-weight:700;color:var(--gray3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px}
-.fg input,.fg select,.fg textarea{width:100%;padding:14px 18px;background:var(--dark);border:1.5px solid var(--border);border-radius:14px;color:var(--white);font-family:var(--font-body);font-size:.92rem;transition:all .3s;appearance:none}
-.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 4px var(--green-dim)}
-.fg input::placeholder,.fg textarea::placeholder{color:var(--gray4)}
-.fg textarea{resize:vertical;min-height:130px}
+.contact__grid{display:grid;grid-template-columns:1fr 1.2fr;gap:32px;margin-top:64px}
+.contact__info{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:48px}
+.contact__info h3{font-size:1.3rem;font-weight:700;margin-bottom:8px}
+.contact__info>p{color:var(--gray2);font-size:.9rem;margin-bottom:36px}
+.c-item{display:flex;gap:16px;margin-bottom:28px}
+.c-item__icon{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;flex-shrink:0}
+.c-item__icon svg{width:20px;height:20px;stroke:var(--green);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.c-item__label{font-size:.65rem;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px}
+.c-item__val{font-size:.9rem;font-weight:500;line-height:1.6}
+.c-item__val a{color:var(--green)}
+.contact__form{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:48px}
+.contact__form h3{font-size:1.3rem;font-weight:700;margin-bottom:8px}
+.contact__form>p{color:var(--gray2);font-size:.9rem;margin-bottom:32px}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:.72rem;font-weight:600;color:var(--gray2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.fg input,.fg select,.fg textarea{width:100%;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:inherit;font-size:.88rem;transition:border-color .2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--green)}
+.fg input::placeholder,.fg textarea::placeholder{color:var(--gray3)}
+.fg textarea{resize:vertical;min-height:110px}
 .f-submit{width:100%;justify-content:center;margin-top:8px}
-.f-note{font-size:.75rem;color:var(--gray3);text-align:center;margin-top:16px}
+.f-note{font-size:.72rem;color:var(--gray3);text-align:center;margin-top:12px}
 
 /* ====== CTA ====== */
-.cta{background:linear-gradient(135deg,var(--card) 0%,var(--card2) 100%);border:1px solid var(--border-hover);border-radius:36px;padding:clamp(56px,10vw,100px);text-align:center;position:relative;overflow:hidden}
-.cta::before{content:'';position:absolute;top:-50%;left:-20%;width:140%;height:200%;background:radial-gradient(circle at 30% 30%,rgba(52,211,153,.03) 0%,transparent 60%);animation:ctaPulse 12s ease-in-out infinite}
-@keyframes ctaPulse{0%,100%{transform:translate(0,0)}50%{transform:translate(5%,3%)}}
-.cta h2{font-family:var(--font-display);font-size:clamp(2.2rem,5.5vw,3.8rem);font-weight:400;letter-spacing:-1.5px;margin-bottom:20px;position:relative;line-height:1.1}
-.cta h2 em{font-style:italic;background:var(--text-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.cta p{color:var(--gray2);font-size:1.1rem;max-width:520px;margin:0 auto 40px;position:relative;line-height:1.75}
-.cta .btn{position:relative}
+.cta{text-align:center;padding:120px 0;position:relative}
+.cta::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(0,229,160,.06) 0%,transparent 60%);pointer-events:none}
+.cta h2{font-size:clamp(2.5rem,5vw,4rem);font-weight:700;letter-spacing:-2px;margin-bottom:20px;line-height:1.1}
+.cta p{color:var(--gray1);font-size:1.1rem;max-width:480px;margin:0 auto 40px;line-height:1.75}
 
 /* ====== FOOTER ====== */
-.footer{border-top:1px solid var(--border);padding:72px 0 36px;margin-top:48px}
-.footer__grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:56px;margin-bottom:56px}
-.footer__brand p{color:var(--gray2);font-size:.88rem;margin-top:24px;max-width:420px;line-height:1.8}
-.footer__social{display:flex;gap:10px;margin-top:24px}
-.footer__social a{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--border);border-radius:14px;color:var(--gray2);transition:all .3s}
-.footer__social a:hover{background:var(--green-dim);border-color:var(--border-hover);color:var(--green);transform:translateY(-3px)}
-.footer__social a svg{width:18px;height:18px;fill:currentColor}
-.footer__pill{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.12);border-radius:60px;font-size:.72rem;color:var(--gold);margin-top:20px;font-weight:600}
-.footer__col h4{font-size:.72rem;text-transform:uppercase;letter-spacing:2.5px;color:var(--gray3);margin-bottom:24px;font-weight:700}
-.footer__col li{margin-bottom:14px}
-.footer__col li a{color:var(--gray2);font-size:.9rem;transition:color .3s}
+.footer{border-top:1px solid var(--border);padding:64px 0 32px}
+.footer__grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
+.footer__brand p{color:var(--gray2);font-size:.85rem;margin-top:16px;max-width:340px;line-height:1.7}
+.footer__social{display:flex;gap:8px;margin-top:16px}
+.footer__social a{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--gray2);transition:all .2s}
+.footer__social a:hover{border-color:var(--green-border);color:var(--green)}
+.footer__social a svg{width:16px;height:16px;fill:currentColor}
+.footer__col h4{font-size:.7rem;text-transform:uppercase;letter-spacing:2px;color:var(--gray2);margin-bottom:20px;font-weight:700}
+.footer__col li{margin-bottom:12px}
+.footer__col li a{color:var(--gray2);font-size:.85rem;transition:color .2s}
 .footer__col li a:hover{color:var(--green)}
-.footer__bot{border-top:1px solid var(--border);padding-top:32px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
-.footer__bot p{color:var(--gray3);font-size:.8rem}
+.footer__bot{border-top:1px solid var(--border);padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.footer__bot p{color:var(--gray3);font-size:.78rem}
 
-/* ====== REVEALS ====== */
-.r{opacity:0;transform:translateY(60px);transition:all 1s cubic-bezier(.16,1,.3,1)}
+/* ====== REVEAL ====== */
+.r{opacity:0;transform:translateY(40px);transition:all .8s cubic-bezier(.16,1,.3,1)}
 .r.v{opacity:1;transform:translateY(0)}
-.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}.d5{transition-delay:.5s}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}
 
 /* ====== RESPONSIVE ====== */
-@media(max-width:1100px){
-.bento{grid-template-columns:1fr 1fr}
-.b-card--1,.b-card--6,.b-card--7{grid-column:span 2}
-.b-card--2,.b-card--3,.b-card--4,.b-card--5{grid-column:span 1}
-.proj-grid{grid-template-columns:1fr 1fr}
+@media(max-width:1024px){
+.services{grid-template-columns:1fr 1fr}
+.projects__grid{grid-template-columns:1fr 1fr}
+.hero__grid{gap:48px}
 }
 @media(max-width:768px){
-.nav__links{position:fixed;top:0;right:-100%;width:320px;height:100vh;background:var(--card);backdrop-filter:blur(32px);flex-direction:column;justify-content:center;padding:48px;gap:32px;transition:right .4s cubic-bezier(.16,1,.3,1);border-left:1px solid var(--border);z-index:100}
+.nav__links{position:fixed;top:0;right:-100%;width:280px;height:100vh;background:var(--bg2);flex-direction:column;justify-content:center;padding:40px;gap:24px;transition:right .3s ease;border-left:1px solid var(--border)}
 .nav__links.active{right:0}
-.nav__links a{font-size:1.15rem}
 .nav__toggle{display:flex}
-.about{grid-template-columns:1fr;gap:48px}
-.about__float{position:relative;bottom:auto;right:auto;margin-top:24px;display:inline-block}
-.contact-grid{grid-template-columns:1fr}
+.hero__grid{grid-template-columns:1fr;gap:48px}
+.hero{padding:120px 0 80px}
+.about__grid{grid-template-columns:1fr;gap:40px}
+.about__features{grid-template-columns:1fr}
+.services{grid-template-columns:1fr}
+.projects__grid{grid-template-columns:1fr}
+.metrics{grid-template-columns:1fr 1fr}
+.contact__grid{grid-template-columns:1fr}
 .f-row{grid-template-columns:1fr}
-.stats{grid-template-columns:1fr 1fr}
-.bento{grid-template-columns:1fr}
-.b-card--1,.b-card--2,.b-card--3,.b-card--4,.b-card--5,.b-card--6,.b-card--7{grid-column:span 1;min-height:320px}
-.proj-grid{grid-template-columns:1fr}
-.footer__grid{grid-template-columns:1fr;gap:40px}
+.footer__grid{grid-template-columns:1fr 1fr;gap:32px}
 .footer__bot{flex-direction:column;text-align:center}
-.cursor{display:none}
 }
 @media(max-width:480px){
-.stats{grid-template-columns:1fr}
-.hero__btns{flex-direction:column;width:100%}
+.metrics{grid-template-columns:1fr}
+.hero__btns{flex-direction:column}
 .hero__btns .btn{width:100%;justify-content:center}
+.footer__grid{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
 
-<div class="cursor" id="cursor"></div>
-<div class="bg"><div class="bg__orb bg__orb--1"></div><div class="bg__orb bg__orb--2"></div><div class="bg__orb bg__orb--3"></div><div class="bg__dots"></div></div>
-<canvas id="p"></canvas>
-
 <!-- NAV -->
 <nav class="nav" id="nav">
-<div class="nav__inner">
-<a href="#hero" class="nav__logo">
-<img src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=256,fit=crop/YZ9EKjBV5gi5rGoz/logo-1_prev_ui-A0xwBnMzKBT5knaQ.png" alt="EDGE Logo">
-</a>
+<div class="container">
+<a href="#hero" class="nav__logo"><div class="nav__logo-icon">E</div>EDGE</a>
 <ul class="nav__links" id="navLinks">
-<li><a href="#hero" class="active">Home</a></li>
+<li><a href="#hero">Home</a></li>
 <li><a href="#about">About</a></li>
 <li><a href="#services">Services</a></li>
 <li><a href="#projects">Projects</a></li>
 <li><a href="#contact">Contact</a></li>
-<li><a href="#contact" class="nav__cta">Start a Project →</a></li>
+<li><a href="#contact" class="nav__btn">Get in Touch</a></li>
 </ul>
 <div class="nav__toggle" id="navToggle"><span></span><span></span><span></span></div>
 </div>
@@ -279,118 +217,40 @@ canvas#p{position:fixed;inset:0;z-index:-5;pointer-events:none}
 
 <!-- HERO -->
 <section class="hero" id="hero">
-<div class="hero__bg">
-<img src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1920,fit=crop/YZ9EKjBV5gi5rGoz/front-m7VoJwB28ZFLB9VQ.png" alt="EDGE — Earth observation" loading="eager">
-</div>
-<div class="hero__noise"></div>
+<div class="container">
+<div class="hero__grid">
 <div class="hero__content">
-<div class="hero__pill">
-<svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-European Space Agency Incubatee
-</div>
-<h1>
-<span class="line">Innovating at the</span>
-<span class="line"><em>Intersection of Earth</em></span>
-<span class="line">and Space</span>
-</h1>
-<p class="hero__sub">
-EDGE delivers advanced <span class="hero__typed" id="typed"></span><span class="hero__cursor"></span>
-</p>
+<div class="hero__label"><div class="hero__label-dot"></div>European Space Agency Incubatee</div>
+<h1>Geointelligence<br><span>for a sustainable</span><br>future</h1>
+<p class="hero__sub">EDGE delivers advanced geospatial modelling, Earth observation, UAV surveys, and AI-driven solutions for geoengineering, environmental, and energy challenges.</p>
 <div class="hero__btns">
-<a href="#services" class="btn btn--fill">Explore Our Services →</a>
-<a href="#contact" class="btn btn--ghost">Start a Project</a>
+<a href="#services" class="btn btn--primary">Our Capabilities →</a>
+<a href="#contact" class="btn btn--secondary">Start a Conversation</a>
 </div>
 </div>
-<div class="hero__scroll">
-<span>Scroll</span>
-<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+<div class="hero__visual">
+<img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=85" alt="Earth from space — data visualization">
+<div class="hero__stat-float">
+<div><strong>6+</strong><span>Services</span></div>
+<div><strong>200+</strong><span>Variables</span></div>
+<div><strong>60M+</strong><span>Data Points</span></div>
 </div>
-</section>
-
-<!-- STATS -->
-<section class="sec" style="padding-top:100px">
-<div class="container">
-<div class="stats r">
-<div class="stats__item"><div class="stats__num" data-count="6" data-sfx="+">0</div><div class="stats__label">Core Services</div></div>
-<div class="stats__item"><div class="stats__num" data-count="3" data-sfx="+">0</div><div class="stats__label">Funded Projects</div></div>
-<div class="stats__item"><div class="stats__num" data-count="200" data-sfx="+">0</div><div class="stats__label">Geospatial Variables</div></div>
-<div class="stats__item"><div class="stats__num" data-count="60" data-sfx="M+">0</div><div class="stats__label">Data Points</div></div>
+</div>
 </div>
 </div>
 </section>
 
-<!-- SERVICES -->
-<section class="sec sec--alt" id="services">
+<!-- LOGOS -->
+<section class="logos">
 <div class="container">
-<div class="sec__head r">
-<div class="sec__tag">What We Do</div>
-<h2 class="sec__title">Our <em>Capabilities</em></h2>
-<p class="sec__desc">From critical mineral exploration to climate resilience — cutting-edge technology for complex geoengineering challenges.</p>
-</div>
-<div class="bento">
-<div class="b-card b-card--1 r d1">
-<div class="b-card__bg"><img src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=800,h=600,fit=crop/YZ9EKjBV5gi5rGoz/1.-renewable-energy-resourcing-_1.1.-site-selection-and-feasibility-studies-for-wind-geothermal-solar-and-hydropower-projects_1.2.-resource-assessment-potential-mapping-and-environmental-impact-analys-1-dWxyOLLg98C6Lxxp.jpg" alt="Renewable energy resourcing"></div>
-<div class="b-card__content">
-<div class="b-card__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M12 2v2M12 14v8M4 22h16M8 22l4-8 4 8"/></svg></div>
-<h3>Renewable Energy & Critical Mineral Resourcing</h3>
-<p>Site selection, feasibility studies, resource assessment, and environmental impact analysis for wind, geothermal, solar, and hydropower projects. Advanced exploration of rare earth elements and critical minerals.</p>
-<div class="b-card__arrow">Learn More →</div>
-</div>
-</div>
-<div class="b-card b-card--2 r d2">
-<div class="b-card__bg"><img src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=800,h=600,fit=crop/YZ9EKjBV5gi5rGoz/geotechnical-and-environmental-investigations-__geotechnical-reports_environmental-reports_slope-stability_tunneling-solutions_foundation-assessment_environmental-impact_sustainable-development-1-YbNvJgXy0nC5ExpX.jpg" alt="Geotechnical investigations"></div>
-<div class="b-card__content">
-<div class="b-card__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
-<h3>Earth Observation</h3>
-<p>Geotechnical & environmental investigations, slope stability, tunneling solutions, foundation assessment, and sustainable development analysis.</p>
-<div class="b-card__arrow">Learn More →</div>
-</div>
-</div>
-<div class="b-card b-card--3 r d3">
-<div class="b-card__bg"><img src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=800,h=600,fit=crop/YZ9EKjBV5gi5rGoz/1-YNqy2boxQMHowj4M.jpg" alt="UAV survey"></div>
-<div class="b-card__content">
-<div class="b-card__icon"><svg viewBox="0 0 24 24"><path d="M12 2v6M12 22v-6M2 12h6M22 12h-6"/><rect x="8" y="8" width="8" height="8" rx="2"/></svg></div>
-<h3>Specialised UAV Surveys</h3>
-<p>Drone-mounted gamma-ray spectrometry, pXRF, and hyperspectral imaging for high-resolution site characterisation.</p>
-<div class="b-card__arrow">Learn More →</div>
-</div>
-</div>
-<div class="b-card b-card--4 r d4">
-<div class="b-card__bg"><img src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=800,h=600,fit=crop/YZ9EKjBV5gi5rGoz/geospatial-modeling-and-mapping_geospatial-modeling-high-resolution-mapping_natural-hazard-mapping_gis-analysis_environmental-monitoring_urban-planning_custom-3d-models_engineering_infrastructure_land-manageme-A0xwjZj0yVhpZvkN.jpg" alt="Geospatial modelling"></div>
-<div class="b-card__content">
-<div class="b-card__icon"><svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0H5a2 2 0 0 1-2-2v-4m6 6h10a2 2 0 0 0 2-2v-4M3 9h18M3 15h18"/></svg></div>
-<h3>Geospatial Modelling & Mapping</h3>
-<p>High-resolution mapping, GIS analysis, environmental monitoring, urban planning, custom 3D models, and infrastructure land management.</p>
-<div class="b-card__arrow">Learn More →</div>
-</div>
-</div>
-<div class="b-card b-card--5 r d5">
-<div class="b-card__bg"><img src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=800,h=600,fit=crop/YZ9EKjBV5gi5rGoz/2-m6LwbOOjy6HveWl9.jpg" alt="Climate change"></div>
-<div class="b-card__content">
-<div class="b-card__icon"><svg viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96c1.4 9.3-3.6 12.8-8.2 13.4"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg></div>
-<h3>Climate Change & Carbon Reduction</h3>
-<p>Monitoring climate impacts and developing data-driven carbon reduction strategies for sustainable communities.</p>
-<div class="b-card__arrow">Learn More →</div>
-</div>
-</div>
-<div class="b-card b-card--6 r d1">
-<div class="b-card__bg"><img src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=800,h=600,fit=crop/YZ9EKjBV5gi5rGoz/software-development-for-geosciences-and-environmental-solutions__customized-software-tools-for-geospatial-data-analysis-and-visualization_automation-solutions-for-geotechnical-and-environmental-data-processin-YBgrbWQB0OuN9Kw1.jpg" alt="Software development"></div>
-<div class="b-card__content">
-<div class="b-card__icon"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="14" y1="4" x2="10" y2="20"/></svg></div>
-<h3>Software Development & Automation</h3>
-<p>Custom geoscience software, AI-driven automation tools, and web platforms for geospatial data analysis and visualization.</p>
-<div class="b-card__arrow">Learn More →</div>
-</div>
-</div>
-<div class="b-card b-card--7 r d2">
-<div class="b-card__bg"><img src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=800,h=600,fit=crop/YZ9EKjBV5gi5rGoz/educational-commitment__workshops-training-and-resources-that-empower-communities-in-sustainable-living-environmental-stewardship-and-renewable-energy-awareness.-1-YD06wb35rRspOJen.jpg" alt="Educational commitment"></div>
-<div class="b-card__content">
-<div class="b-card__icon"><svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
-<h3>Educational Commitment</h3>
-<p>Workshops, training, and resources that empower communities in sustainable living, environmental stewardship, and renewable energy awareness.</p>
-<div class="b-card__arrow">Learn More →</div>
-</div>
-</div>
+<div class="logos__label">Trusted by leading research institutions</div>
+<div class="logos__strip">
+<span class="logos__item">Trinity College Dublin</span>
+<span class="logos__item">University College Dublin</span>
+<span class="logos__item">DIAS</span>
+<span class="logos__item">European Space Agency</span>
+<span class="logos__item">Enterprise Ireland</span>
+<span class="logos__item">Geological Survey Ireland</span>
 </div>
 </div>
 </section>
@@ -398,78 +258,114 @@ EDGE delivers advanced <span class="hero__typed" id="typed"></span><span class="
 <!-- ABOUT -->
 <section class="sec" id="about">
 <div class="container">
-<div class="about">
+<div class="sec__label">About EDGE</div>
+<div class="sec__title">A research-focused team<br>at the forefront of<br>geoengineering</div>
+<div class="sec__desc">Earthwise Dynamics Geo Environs (EDGE) is an Irish SME delivering advanced solutions in geotechnical engineering, environmental assessment, and geospatial analysis.</div>
+<div class="about__grid">
 <div class="about__img r">
-<img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=900&q=85" alt="Earth from space — data visualisation">
-<div class="about__float">
-<div class="about__float-num">ESA</div>
-<div class="about__float-label">Incubatee 2024</div>
+<img src="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=800&q=85" alt="Satellite Earth observation">
+</div>
+<div class="about__content r d2">
+<h3>Bridging Earth and space through technology</h3>
+<p>Based at Maynooth University, we collaborate with leading institutions including Trinity College Dublin, UCD, and DIAS. As an ESA incubatee, we develop smart critical mineral detection tools for terrestrial and space applications.</p>
+<p>Our team integrates AI, big data processing, and advanced geospatial methods to deliver precise, impactful results for clients across Europe.</p>
+<div class="about__features">
+<div class="about__feat"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>European Space Agency incubatee</span></div>
+<div class="about__feat"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>Environmental labs across Europe</span></div>
+<div class="about__feat"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>State-of-the-art sensors & drones</span></div>
+<div class="about__feat"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>Funded by IRC, GSI, EOSC, EI</span></div>
 </div>
 </div>
-<div class="about__text r d2">
-<div class="sec__tag">Who We Are</div>
-<h2>A Research Team at the <em>Forefront</em> of Geoengineering</h2>
-<p>Earthwise Dynamics Geo Environs (EDGE) is an Irish SME delivering advanced solutions in geotechnical engineering, environmental assessment, and geospatial analysis. Based at Maynooth University, we collaborate with leading institutions across Ireland and Europe.</p>
-<p>As an ESA incubatee, we develop smart critical mineral detection tools for terrestrial and space applications, alongside technologies for mapping, monitoring, and geoscience software.</p>
-<div class="about__list">
-<div class="about__li"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>European Space Agency incubatee — bridging Earth and space</span></div>
-<div class="about__li"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>Access to environmental laboratories across Europe</span></div>
-<div class="about__li"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>State-of-the-art sensors, drones, and analytical tools</span></div>
-<div class="about__li"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>Funded by IRC, GSI, EOSC, and Enterprise Ireland</span></div>
 </div>
+</div>
+</section>
+
+<!-- SERVICES -->
+<section class="sec sec--alt" id="services">
+<div class="container">
+<div class="sec__label">What We Do</div>
+<div class="sec__title">Capabilities built for<br>complex challenges</div>
+<div class="sec__desc">From critical mineral exploration to climate resilience — we deploy cutting-edge technology to solve the hardest problems in geoengineering and environmental science.</div>
+<div class="services r">
+<div class="service">
+<div class="service__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M12 2v2M12 14v8M4 22h16M8 22l4-8 4 8"/></svg></div>
+<h3>Renewable Energy & Critical Minerals</h3>
+<p>Site selection, feasibility studies, resource assessment, and environmental impact analysis for wind, geothermal, solar, and hydropower projects. Advanced exploration of rare earth elements.</p>
+</div>
+<div class="service">
+<div class="service__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+<h3>Earth Observation</h3>
+<p>Satellite remote sensing and analytics for environmental monitoring, land-use classification, and resource mapping across Europe.</p>
+</div>
+<div class="service">
+<div class="service__icon"><svg viewBox="0 0 24 24"><path d="M12 2v6M12 22v-6M2 12h6M22 12h-6"/><rect x="8" y="8" width="8" height="8" rx="2"/></svg></div>
+<h3>Specialised UAV Surveys</h3>
+<p>Drone-mounted gamma-ray spectrometry, pXRF, and hyperspectral imaging for high-resolution site characterisation and mineral targeting.</p>
+</div>
+<div class="service">
+<div class="service__icon"><svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0H5a2 2 0 0 1-2-2v-4m6 6h10a2 2 0 0 0 2-2v-4M3 9h18M3 15h18"/></svg></div>
+<h3>Geospatial Modelling & Mapping</h3>
+<p>GIS-based spatial analysis, multi-hazard susceptibility mapping, and geodatabase platforms for informed decision-making.</p>
+</div>
+<div class="service">
+<div class="service__icon"><svg viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96c1.4 9.3-3.6 12.8-8.2 13.4"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg></div>
+<h3>Climate Change & Carbon Reduction</h3>
+<p>Monitoring climate impacts and developing data-driven carbon reduction strategies for resilient, sustainable communities.</p>
+</div>
+<div class="service">
+<div class="service__icon"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="14" y1="4" x2="10" y2="20"/></svg></div>
+<h3>Software & Automation</h3>
+<p>Custom geoscience software, AI-driven automation tools, and web platforms for geospatial data analysis and visualization.</p>
 </div>
 </div>
 </div>
 </section>
 
 <!-- PROJECTS -->
-<section class="sec sec--alt" id="projects">
+<section class="sec" id="projects">
 <div class="container">
-<div class="sec__head r">
-<div class="sec__tag">Recent Work</div>
-<h2 class="sec__title">Funded <em>Research Projects</em></h2>
-<p class="sec__desc">Our work is recognised and funded by leading research institutions across Ireland and Europe.</p>
-</div>
-<div class="proj-grid">
-<div class="proj r d1">
-<div class="proj__img"><span class="proj__tag">Radiometric</span><img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=700&q=80" alt="Radiation research"></div>
-<div class="proj__body">
-<h3>Gamma Radiation & Radon/Thoron Emission in Irish Building Materials</h3>
-<p>Quantifying radiation exposure from naturally occurring radioactive materials in construction across Ireland — residential and commercial buildings.</p>
-<span class="proj__funder">🏛️ IRC & Geological Survey Ireland · Sept 2024</span>
+<div class="sec__label">Research</div>
+<div class="sec__title">Funded projects advancing<br>geoscience</div>
+<div class="sec__desc">Our work is recognised and funded by leading research institutions across Ireland and Europe.</div>
+<div class="projects__grid">
+<div class="project r">
+<div class="project__img"><span class="project__tag">Radiometric</span><img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=600&q=80" alt="Radiation research lab"></div>
+<div class="project__body">
+<h3>Gamma Radiation & Radon/Thoron in Irish Building Materials</h3>
+<p>Quantifying radiation exposure from naturally occurring radioactive materials in construction across Ireland.</p>
+<div class="project__funder"><span>●</span> IRC & Geological Survey Ireland · Sept 2024</div>
 </div>
 </div>
-<div class="proj r d2">
-<div class="proj__img"><span class="proj__tag">GIS / Epidemiology</span><img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=700&q=80" alt="Data analysis"></div>
-<div class="proj__body">
-<h3>GIS & Spatiotemporal Analysis of SARS-CoV-2 Using Multiple Datasets</h3>
-<p>Geospatial model predicting contagion and lethality rates using 40+ parameters — atmospheric pollutants, meteorological variables, sociodemographic factors, and lockdown phases.</p>
-<span class="proj__funder">🏛️ European Open Science Cloud · May 2024</span>
+<div class="project r d1">
+<div class="project__img"><span class="project__tag">GIS / Epidemiology</span><img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80" alt="Data visualization"></div>
+<div class="project__body">
+<h3>GIS & Spatiotemporal Analysis of SARS-CoV-2</h3>
+<p>Geospatial model predicting contagion rates using 40+ parameters — atmospheric, meteorological, and sociodemographic data.</p>
+<div class="project__funder"><span>●</span> European Open Science Cloud · May 2024</div>
 </div>
 </div>
-<div class="proj r d3">
-<div class="proj__img"><span class="proj__tag">Multi-Hazard Platform</span><img src="https://images.unsplash.com/photo-1569163139599-0f451ec186c0?w=700&q=80" alt="Terrain analysis"></div>
-<div class="proj__body">
-<h3>Web-Based Geodatabase for Natural Hazard Assessment & Multi-Hazard Mapping</h3>
-<p>Platform integrating 200+ geospatial variables with 60M+ data points for modelling landslide, flood, erosion, radon, and climate susceptibility at 500m resolution.</p>
-<span class="proj__funder">🏛️ Enterprise Ireland · Jan 2024</span>
+<div class="project r d2">
+<div class="project__img"><span class="project__tag">Multi-Hazard</span><img src="https://images.unsplash.com/photo-1569163139599-0f451ec186c0?w=600&q=80" alt="Terrain analysis"></div>
+<div class="project__body">
+<h3>Web-Based Geodatabase for Natural Hazard Assessment</h3>
+<p>Platform integrating 200+ geospatial variables with 60M+ data points for multi-hazard susceptibility mapping at 500m resolution.</p>
+<div class="project__funder"><span>●</span> Enterprise Ireland · Jan 2024</div>
 </div>
 </div>
 </div>
 </div>
 </section>
 
-<!-- PARTNERS -->
-<section class="sec" style="padding:56px 0">
+<!-- METRICS -->
+<section class="sec sec--alt">
 <div class="container">
-<p class="r" style="text-align:center;color:var(--gray3);font-size:.68rem;letter-spacing:3px;text-transform:uppercase;margin-bottom:40px;font-weight:700">Collaborating with Leading Institutions</p>
-<div class="partners r">
-<span class="partner">Trinity College Dublin</span>
-<span class="partner">University College Dublin</span>
-<span class="partner">DIAS</span>
-<span class="partner">European Space Agency</span>
-<span class="partner">Enterprise Ireland</span>
-<span class="partner">Geological Survey Ireland</span>
+<div class="sec__label">Impact</div>
+<div class="sec__title">Numbers that matter</div>
+<div class="metrics r">
+<div class="metric"><div class="metric__num" data-count="6">0</div><div class="metric__label">Core Services</div></div>
+<div class="metric"><div class="metric__num" data-count="3">0</div><div class="metric__label">Funded Projects</div></div>
+<div class="metric"><div class="metric__num" data-count="200">0</div><div class="metric__label">Geospatial Variables</div></div>
+<div class="metric"><div class="metric__num" data-count="60">0</div><div class="metric__label">Data Points (M)</div></div>
 </div>
 </div>
 </section>
@@ -477,14 +373,12 @@ EDGE delivers advanced <span class="hero__typed" id="typed"></span><span class="
 <!-- CONTACT -->
 <section class="sec" id="contact">
 <div class="container">
-<div class="sec__head r">
-<div class="sec__tag">Get in Touch</div>
-<h2 class="sec__title">Let's Start a <em>Conversation</em></h2>
-<p class="sec__desc">Whether you need geospatial analysis, environmental assessment, or custom geoengineering software — our team is ready.</p>
-</div>
-<div class="contact-grid">
-<div class="contact-card r">
-<h3>Contact Information</h3>
+<div class="sec__label">Contact</div>
+<div class="sec__title">Let's work together</div>
+<div class="sec__desc">Whether you need geospatial analysis, environmental assessment, or custom geoengineering software — our team is ready.</div>
+<div class="contact__grid">
+<div class="contact__info r">
+<h3>EDGE — Earthwise Dynamics Geo Environs</h3>
 <p>Reach out to discuss how we can support your project needs.</p>
 <div class="c-item">
 <div class="c-item__icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
@@ -492,29 +386,27 @@ EDGE delivers advanced <span class="hero__typed" id="typed"></span><span class="
 </div>
 <div class="c-item">
 <div class="c-item__icon"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-<div><div class="c-item__label">Headquarters</div><div class="c-item__val">Unit 216, Second Floor<br>Eolas Building, MaynoothWorks<br>Maynooth University<br>Co. Kildare, W23 A3HY, Ireland</div></div>
+<div><div class="c-item__label">Location</div><div class="c-item__val">Unit 216, Eolas Building<br>Maynooth University<br>Co. Kildare, W23 A3HY, Ireland</div></div>
 </div>
 <div class="c-item">
 <div class="c-item__icon"><svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div>
 <div><div class="c-item__label">LinkedIn</div><div class="c-item__val"><a href="https://www.linkedin.com/company/earthwise-dynamics-geo-environs-edge-ltd/" target="_blank" rel="noopener">EDGE on LinkedIn</a></div></div>
 </div>
-<div class="footer__pill" style="margin-top:12px">🚀 European Space Agency Incubatee</div>
 </div>
-<div class="contact-card r d2">
-<h3>Send Us a Message</h3>
-<p>Fill out the form and we'll get back to you promptly.</p>
+<div class="contact__form r d2">
+<h3>Send a message</h3>
+<p>We aim to respond within 2 business days.</p>
 <form id="contactForm">
 <div class="f-row">
-<div class="fg"><label>First Name *</label><input type="text" placeholder="Your first name" required></div>
-<div class="fg"><label>Last Name</label><input type="text" placeholder="Your last name"></div>
+<div class="fg"><label>First Name *</label><input type="text" placeholder="First name" required></div>
+<div class="fg"><label>Last Name</label><input type="text" placeholder="Last name"></div>
 </div>
 <div class="f-row">
-<div class="fg"><label>Email *</label><input type="email" placeholder="you@example.com" required></div>
-<div class="fg"><label>Subject</label><select style="color:var(--gray3)"><option value="">Select topic</option><option>General Enquiry</option><option>Project Collaboration</option><option>Service Enquiry</option><option>Careers</option><option>Research Partnership</option></select></div>
+<div class="fg"><label>Email *</label><input type="email" placeholder="you@company.com" required></div>
+<div class="fg"><label>Subject</label><select style="color:var(--gray2)"><option value="">Select</option><option>General Enquiry</option><option>Project Collaboration</option><option>Service Enquiry</option><option>Careers</option><option>Research Partnership</option></select></div>
 </div>
-<div class="fg"><label>Message *</label><textarea placeholder="Tell us about your project or enquiry..." required></textarea></div>
-<button type="submit" class="btn btn--fill f-submit">Send Message →</button>
-<p class="f-note">We aim to respond within 2 business days.</p>
+<div class="fg"><label>Message *</label><textarea placeholder="Tell us about your project..." required></textarea></div>
+<button type="submit" class="btn btn--primary f-submit">Send Message</button>
 </form>
 </div>
 </div>
@@ -522,51 +414,47 @@ EDGE delivers advanced <span class="hero__typed" id="typed"></span><span class="
 </section>
 
 <!-- CTA -->
-<section class="sec"><div class="container"><div class="cta r">
-<h2>Ready to Build Something <em>Extraordinary?</em></h2>
+<section class="cta">
+<div class="container">
+<h2>Ready to build<br>something extraordinary?</h2>
 <p>Whether you need geospatial analysis, environmental assessment, or custom geoengineering software — our team is ready.</p>
-<a href="#contact" class="btn btn--fill">Start a Project with Us →</a>
-</div></div></section>
+<a href="#contact" class="btn btn--primary">Start a Project →</a>
+</div>
+</section>
 
 <!-- FOOTER -->
 <footer class="footer">
 <div class="container">
 <div class="footer__grid">
 <div class="footer__brand">
-<a href="#hero" class="nav__logo"><img src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=256,fit=crop/YZ9EKjBV5gi5rGoz/logo-1_prev_ui-A0xwBnMzKBT5knaQ.png" alt="EDGE Logo"></a>
+<div class="nav__logo"><div class="nav__logo-icon">E</div>EDGE</div>
 <p>Earthwise Dynamics Geo Environs (EDGE) Ltd. — Innovative solutions in renewable energy, geotechnical engineering, geospatial modelling, and environmental sustainability.</p>
 <div class="footer__social">
 <a href="https://www.linkedin.com/company/earthwise-dynamics-geo-environs-edge-ltd/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"/></svg></a>
-<a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg></a>
-<a href="#" aria-label="Twitter/X"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
 </div>
-<div class="footer__pill">🚀 European Space Agency Incubatee</div>
 </div>
-<div class="footer__col"><h4>Navigate</h4><ul>
-<li><a href="#hero">Home</a></li><li><a href="#about">About</a></li><li><a href="#services">Services</a></li><li><a href="#projects">Projects</a></li><li><a href="#contact">Contact</a></li>
+<div class="footer__col"><h4>Company</h4><ul>
+<li><a href="#about">About</a></li><li><a href="#services">Services</a></li><li><a href="#projects">Projects</a></li><li><a href="#contact">Contact</a></li>
 </ul></div>
-<div class="footer__col"><h4>Get in Touch</h4><ul>
-<li><a href="mailto:info@edgeengineers.net">info@edgeengineers.net</a></li>
-<li>Unit 216, Second Floor<br>Eolas Building, MaynoothWorks<br>Maynooth University<br>Co. Kildare, W23 A3HY, Ireland</li>
+<div class="footer__col"><h4>Services</h4><ul>
+<li><a href="#services">Renewable Energy</a></li><li><a href="#services">Earth Observation</a></li><li><a href="#services">UAV Surveys</a></li><li><a href="#services">Geospatial Modelling</a></li>
+</ul></div>
+<div class="footer__col"><h4>Connect</h4><ul>
+<li><a href="mailto:info@edgeengineers.net">Email Us</a></li><li><a href="https://www.linkedin.com/company/earthwise-dynamics-geo-environs-edge-ltd/" target="_blank" rel="noopener">LinkedIn</a></li>
 </ul></div>
 </div>
 <div class="footer__bot">
-<p>&copy; 2024 Earthwise Dynamics Geo Environs (EDGE) Ltd. All rights reserved.</p>
-<p>Designed for a sustainable future 🌍</p>
+<p>&copy; 2024 EDGE Ltd. All rights reserved.</p>
+<p>Maynooth, Ireland</p>
 </div>
 </div>
 </footer>
 
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
-// Cursor glow
-const c=document.getElementById('cursor');let cx=0,cy=0,tx=0,ty=0;
-if(c&&window.matchMedia('(pointer:fine)').matches){document.addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY});
-(function loop(){cx+=(tx-cx)*.08;cy+=(ty-cy)*.08;c.style.left=cx+'px';c.style.top=cy+'px';requestAnimationFrame(loop)})();
-
-// Nav
+// Nav scroll
 const nav=document.getElementById('nav');let ticking=false;
-window.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(()=>{nav.classList.toggle('nav--scrolled',window.scrollY>80);ticking=false});ticking=true}});
+window.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(()=>{nav.classList.toggle('scrolled',window.scrollY>80);ticking=false});ticking=true}});
 
 // Mobile menu
 const tog=document.getElementById('navToggle'),nl=document.getElementById('navLinks');
@@ -574,44 +462,19 @@ if(tog){tog.addEventListener('click',()=>{tog.classList.toggle('active');nl.clas
 nl.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{tog.classList.remove('active');nl.classList.remove('active')}))}
 
 // Reveal
-const ro=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('v');ro.unobserve(x.target)}})},{threshold:.1,rootMargin:'0px 0px -60px 0px'});
+const ro=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('v');ro.unobserve(x.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
 document.querySelectorAll('.r').forEach(el=>ro.observe(el));
 
 // Counters
 document.querySelectorAll('[data-count]').forEach(el=>{
 const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){
-const t=parseInt(el.dataset.count),s=el.dataset.sfx||'',dur=2400,st=performance.now();
-const anim=n=>{const p=Math.min((n-st)/dur,1),ease=1-Math.pow(1-p,4),v=Math.floor(ease*t);el.textContent=v+s;if(p<1)requestAnimationFrame(anim);else el.textContent=t+s};
+const t=parseInt(el.dataset.count),dur=2000,st=performance.now();
+const anim=n=>{const p=Math.min((n-st)/dur,1),v=Math.floor((1-Math.pow(1-p,4))*t);el.textContent=v;el.textContent=v;el.textContent=t;el.textContent=v;if(p<1)requestAnimationFrame(anim);else el.textContent=t};
 requestAnimationFrame(anim);obs.unobserve(el)}})},{threshold:.6});obs.observe(el)});
-
-// Typing
-const typed=document.getElementById('typed');
-if(typed){const phrases=["geospatial modelling.","Earth observation analysis.","UAV survey technology.","critical mineral detection.","climate monitoring solutions.","AI-driven geoengineering."];
-let pi=0,ci=0,del=false;
-const type=()=>{const w=del?40:del===false&&ci===phrases[pi].length?2400:80;
-if(del){typed.textContent=phrases[pi].substring(0,--ci);if(ci===0){del=false;pi=(pi+1)%phrases.length}}
-else{typed.textContent=phrases[pi].substring(0,++ci);if(ci===phrases[pi].length)del=true}
-setTimeout(type,w)};setTimeout(type,2000)}
-
-// Particles
-const canvas=document.getElementById('p');
-if(canvas){const ctx=canvas.getContext('2d');let pts=[];
-const sz=()=>{canvas.width=innerWidth;canvas.height=innerHeight};sz();addEventListener('resize',sz);
-class P{constructor(){this.reset();this.y=Math.random()*canvas.height}
-reset(){this.x=Math.random()*canvas.width;this.y=canvas.height+5;this.s=Math.random()*.8+.3;this.vy=Math.random()*.4+.1;this.vx=(Math.random()-.5)*.15;this.o=Math.random()*.2+.05;this.c=['#34d399','#2dd4bf','#60a5fa'][~~(Math.random()*3)]}
-update(){this.y-=this.vy;this.x+=this.vx;if(this.y<-5)this.reset()}
-draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.s,0,Math.PI*2);ctx.fillStyle=this.c;ctx.globalAlpha=this.o;ctx.fill();ctx.globalAlpha=1}}
-const init=()=>{pts=[];const n=Math.min(60,~~(canvas.width/25));for(let i=0;i<n;i++)pts.push(new P)};init();addEventListener('resize',init);
-!function loop(){ctx.clearRect(0,0,canvas.width,canvas.height);pts.forEach(p=>{p.update();p.draw()});requestAnimationFrame(loop)}()}
 
 // Form
 const form=document.getElementById('contactForm');
-if(form)form.addEventListener('submit',e=>{e.preventDefault();const b=form.querySelector('button');if(b){const t=b.innerHTML;b.innerHTML='✓ Message Sent!';b.style.background='linear-gradient(135deg,#34d399,#16a34a)';setTimeout(()=>{b.innerHTML=t;b.style.background='';form.reset()},3500)}});
-
-// Active nav
-const secs=document.querySelectorAll('section[id]');
-const nObs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.nav__links a:not(.nav__cta)').forEach(a=>{a.classList.toggle('active',a.getAttribute('href')==='#'+x.target.id)})}})},{threshold:.35});
-secs.forEach(s=>nObs.observe(s));
+if(form)form.addEventListener('submit',e=>{e.preventDefault();const b=form.querySelector('button');if(b){const t=b.innerHTML;b.textContent='✓ Sent';b.style.background='var(--green)';setTimeout(()=>{b.innerHTML=t;b.style.background='';form.reset()},3000)}});
 });
 </script>
 </body>
