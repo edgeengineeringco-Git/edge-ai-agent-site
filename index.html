@@ -11,21 +11,11 @@
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden}
-:root{
---bg:#060a09;--bg2:#0b1210;--bg3:#101916;--bg4:#152018;
---green1:#064e3b;--green2:#10b981;--green3:#6ee7b7;
---gold:#d4a853;--gold2:#f0d78c;--gold-bg:rgba(212,168,83,.08);--gold-border:rgba(212,168,83,.15);
---white:#f0fdf4;--gray1:#a7b8b0;--gray2:#6b7f75;--gray3:#3a4d44;
---border:rgba(167,184,176,.08);--border2:rgba(167,184,176,.14);
---green-bg:rgba(16,185,129,.06);--green-border:rgba(16,185,129,.14);
-}
+:root{--bg:#060a09;--bg2:#0b1210;--bg3:#101916;--green1:#064e3b;--green2:#10b981;--green3:#6ee7b7;--gold:#d4a853;--gold2:#f0d78c;--gold-bg:rgba(212,168,83,.08);--gold-border:rgba(212,168,83,.15);--white:#f0fdf4;--gray1:#a7b8b0;--gray2:#6b7f75;--gray3:#3a4d44;--border:rgba(167,184,176,.08);--border2:rgba(167,184,176,.14);--green-bg:rgba(16,185,129,.06);--green-border:rgba(16,185,129,.14)}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--white);line-height:1.6;overflow-x:hidden}
-a{text-decoration:none;color:inherit}
-img,video{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}img,video{max-width:100%;display:block}
 .container{max-width:1200px;margin:0 auto;padding:0 clamp(24px,5vw,48px)}
 #stars{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
-
-/* NAV */
 .nav{position:fixed;top:0;left:0;width:100%;z-index:100;transition:all .4s ease;padding:16px 0}
 .nav.scrolled{background:rgba(6,10,9,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 0}
 .nav .container{display:flex;align-items:center;justify-content:space-between}
@@ -41,8 +31,6 @@ img,video{max-width:100%;display:block}
 .nav__toggle.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
 .nav__toggle.active span:nth-child(2){opacity:0}
 .nav__toggle.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
-
-/* HERO */
 .hero{position:relative;min-height:100vh;display:flex;align-items:center;padding:160px 0 100px;overflow:hidden}
 .hero__video{position:absolute;inset:0;z-index:1}
 .hero__video video{width:100%;height:100%;object-fit:cover;opacity:.22}
@@ -57,16 +45,10 @@ img,video{max-width:100%;display:block}
 .hero__sub{font-size:1.05rem;color:var(--gray1);line-height:1.8;margin-bottom:36px;max-width:460px}
 .hero__btns{display:flex;gap:12px;flex-wrap:wrap}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;font-family:inherit;font-weight:600;font-size:.85rem;border-radius:8px;border:none;cursor:pointer;transition:all .25s ease;position:relative;z-index:2}
-.btn--gold{background:var(--gold);color:#000}
-.btn--gold:hover{background:var(--gold2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(212,168,83,.25)}
-.btn--green{background:var(--green2);color:#000}
-.btn--green:hover{background:var(--green3);transform:translateY(-2px);box-shadow:0 8px 32px rgba(16,185,129,.25)}
-.btn--ghost{background:transparent;color:var(--white);border:1px solid var(--border2)}
-.btn--ghost:hover{border-color:var(--gray1);transform:translateY(-2px)}
-.btn--astro{background:linear-gradient(135deg,var(--green2),var(--green1));color:var(--white);font-weight:700;letter-spacing:.3px}
-.btn--astro:hover{box-shadow:0 8px 32px rgba(16,185,129,.35);transform:translateY(-2px)}
-
-/* HERO VIDEO PANELS — larger */
+.btn--gold{background:var(--gold);color:#000}.btn--gold:hover{background:var(--gold2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(212,168,83,.25)}
+.btn--green{background:var(--green2);color:#000}.btn--green:hover{background:var(--green3);transform:translateY(-2px);box-shadow:0 8px 32px rgba(16,185,129,.25)}
+.btn--ghost{background:transparent;color:var(--white);border:1px solid var(--border2)}.btn--ghost:hover{border-color:var(--gray1);transform:translateY(-2px)}
+.btn--astro{background:linear-gradient(135deg,var(--green2),var(--green1));color:var(--white);font-weight:700}.btn--astro:hover{box-shadow:0 8px 32px rgba(16,185,129,.35);transform:translateY(-2px)}
 .hero__panels{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .hero__panel{border-radius:16px;overflow:hidden;aspect-ratio:4/5;border:1px solid var(--border);position:relative;background:var(--bg3);max-height:520px}
 .hero__panel video{width:100%;height:100%;object-fit:cover;opacity:.8}
@@ -74,38 +56,24 @@ img,video{max-width:100%;display:block}
 .hero__panel-label{position:absolute;bottom:14px;left:16px;z-index:2}
 .hero__panel-label h4{font-size:.95rem;font-weight:700;margin-bottom:4px}
 .hero__panel-label p{font-size:.72rem;color:var(--gray2);max-width:200px;line-height:1.4}
-
-/* ESA + PARTNERS BADGE */
 .partners{position:relative;z-index:2;padding:56px 0;border-bottom:1px solid var(--border)}
 .partners__inner{display:flex;align-items:center;justify-content:center;gap:48px;flex-wrap:wrap}
-.partner{display:flex;align-items:center;gap:10px}
-.partner img{height:44px;width:auto;opacity:.85;filter:brightness(1.1)}
+.partner img{height:40px;width:auto;filter:brightness(1.2) invert(.1)}
 .partner__badge{display:flex;align-items:center;gap:8px;padding:8px 18px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;font-size:.72rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px}
 .partner__badge svg{width:18px;height:18px;fill:var(--gold)}
-.partner__text{display:flex;flex-direction:column;gap:2px}
-.partner__text strong{font-size:.82rem;font-weight:700;color:var(--white)}
-.partner__text span{font-size:.65rem;color:var(--gray2);text-transform:uppercase;letter-spacing:.5px}
-
-/* SECTIONS */
 .sec{position:relative;z-index:2;padding:120px 0}
 .sec--alt{background:rgba(11,18,16,.6);backdrop-filter:blur(4px)}
 .sec__label{font-size:.7rem;font-weight:700;color:var(--green2);text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
 .sec__label--gold{color:var(--gold)}
 .sec__title{font-size:clamp(2rem,4vw,3.2rem);font-weight:700;letter-spacing:-1.5px;line-height:1.1;margin-bottom:20px}
 .sec__desc{color:var(--gray1);font-size:1.05rem;max-width:560px;line-height:1.8}
-
-/* SERVICES */
 .services{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-top:64px}
-.service{background:rgba(6,10,9,.85);padding:48px 36px;transition:background .3s}
-.service:hover{background:rgba(16,25,22,.9)}
+.service{background:rgba(6,10,9,.85);padding:48px 36px;transition:background .3s}.service:hover{background:rgba(16,25,22,.9)}
 .service__icon{width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--green-bg);border:1px solid var(--green-border);border-radius:12px;margin-bottom:24px}
 .service__icon svg{width:24px;height:24px;stroke:var(--green2);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.service__icon--gold{background:var(--gold-bg);border-color:var(--gold-border)}
-.service__icon--gold svg{stroke:var(--gold)}
+.service__icon--gold{background:var(--gold-bg);border-color:var(--gold-border)}.service__icon--gold svg{stroke:var(--gold)}
 .service h3{font-size:1.05rem;font-weight:600;margin-bottom:12px}
 .service p{font-size:.88rem;color:var(--gray2);line-height:1.7}
-
-/* SHOWCASE */
 .showcase{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-top:64px}
 .showcase__item{border-radius:14px;overflow:hidden;aspect-ratio:9/14;border:1px solid var(--border);position:relative;background:var(--bg3);max-height:420px}
 .showcase__item video{width:100%;height:100%;object-fit:cover;opacity:.75}
@@ -113,8 +81,6 @@ img,video{max-width:100%;display:block}
 .showcase__label{position:absolute;bottom:16px;left:16px;z-index:2}
 .showcase__label h4{font-size:.9rem;font-weight:600;margin-bottom:4px}
 .showcase__label p{font-size:.72rem;color:var(--gray2)}
-
-/* ABOUT */
 .about__grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;margin-top:64px}
 .about__visual{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:4/3;background:var(--bg3)}
 .about__visual video{width:100%;height:100%;object-fit:cover;opacity:.7}
@@ -124,8 +90,6 @@ img,video{max-width:100%;display:block}
 .about__checks{margin-top:28px;display:flex;flex-direction:column;gap:14px}
 .about__check{display:flex;align-items:flex-start;gap:12px;font-size:.9rem;font-weight:500}
 .about__check svg{width:20px;height:20px;stroke:var(--green2);fill:none;stroke-width:2.5;flex-shrink:0;margin-top:1px}
-
-/* PROJECTS */
 .proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:64px}
 .proj{background:rgba(11,18,16,.8);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all .3s}
 .proj:hover{border-color:var(--border2);transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,.5)}
@@ -138,14 +102,15 @@ img,video{max-width:100%;display:block}
 .proj__body p{font-size:.85rem;color:var(--gray2);line-height:1.7;margin-bottom:16px}
 .proj__funder{font-size:.72rem;color:var(--gray2);display:flex;align-items:center;gap:6px}
 .proj__funder span{color:var(--gold)}
-
-/* METRICS */
-.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:64px}
-.metric{padding:36px;background:rgba(16,25,22,.6);backdrop-filter:blur(4px);border:1px solid var(--border);border-radius:16px;text-align:center}
-.metric__num{font-size:2.8rem;font-weight:700;color:var(--green3);letter-spacing:-2px;line-height:1}
-.metric__label{font-size:.75rem;color:var(--gray2);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-top:8px}
-
-/* CONTACT */
+/* IMPACT CARDS */
+.impact{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:64px}
+.impact__card{padding:32px 24px;background:rgba(16,25,22,.5);border:1px solid var(--border);border-radius:16px;position:relative;overflow:hidden}
+.impact__card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green2),var(--green1));opacity:.6}
+.impact__card--gold::before{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.impact__card--highlight{background:rgba(16,185,129,.06);border-color:rgba(16,185,129,.15)}
+.impact__num{font-size:2.8rem;font-weight:700;color:var(--green3);letter-spacing:-2px;line-height:1;margin-bottom:8px}
+.impact__title{font-size:.95rem;font-weight:700;margin-bottom:6px;line-height:1.3}
+.impact__detail{font-size:.72rem;color:var(--gray2);line-height:1.5}
 .contact__grid{display:grid;grid-template-columns:1fr 1.2fr;gap:32px;margin-top:64px}
 .contact__info{background:rgba(11,18,16,.8);border:1px solid var(--border);border-radius:16px;padding:48px}
 .contact__info h3{font-size:1.3rem;font-weight:700;margin-bottom:8px}
@@ -167,13 +132,9 @@ img,video{max-width:100%;display:block}
 .fg input::placeholder,.fg textarea::placeholder{color:var(--gray3)}
 .fg textarea{resize:vertical;min-height:110px}
 .f-submit{width:100%;justify-content:center;margin-top:8px}
-
-/* CTA */
 .cta{position:relative;z-index:2;text-align:center;padding:120px 0}
 .cta h2{font-size:clamp(2.5rem,5vw,4rem);font-weight:700;letter-spacing:-2px;margin-bottom:20px;line-height:1.1}
 .cta p{color:var(--gray1);font-size:1.1rem;max-width:480px;margin:0 auto 40px;line-height:1.75}
-
-/* FOOTER */
 .footer{position:relative;z-index:2;border-top:1px solid var(--border);padding:64px 0 32px}
 .footer__grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
 .footer__brand p{color:var(--gray2);font-size:.85rem;margin-top:16px;max-width:340px;line-height:1.7}
@@ -187,35 +148,14 @@ img,video{max-width:100%;display:block}
 .footer__col li a:hover{color:var(--green2)}
 .footer__bot{border-top:1px solid var(--border);padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .footer__bot p{color:var(--gray3);font-size:.78rem}
-
-.r{opacity:0;transform:translateY(40px);transition:all .8s cubic-bezier(.16,1,.3,1)}
-.r.v{opacity:1;transform:translateY(0)}
+.r{opacity:0;transform:translateY(40px);transition:all .8s cubic-bezier(.16,1,.3,1)}.r.v{opacity:1;transform:translateY(0)}
 .d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}
-
-@media(max-width:1024px){.services{grid-template-columns:1fr 1fr}.proj-grid{grid-template-columns:1fr 1fr}.hero__grid{gap:48px}.showcase{grid-template-columns:1fr 1fr}}
-@media(max-width:768px){
-.nav__links{position:fixed;top:0;right:-100%;width:280px;height:100vh;background:var(--bg2);flex-direction:column;justify-content:center;padding:40px;gap:24px;transition:right .3s ease;border-left:1px solid var(--border)}
-.nav__links.active{right:0}
-.nav__toggle{display:flex}
-.hero__grid{grid-template-columns:1fr;gap:48px}
-.hero{padding:120px 0 80px}
-.hero__panels{grid-template-columns:1fr 1fr;max-height:300px}
-.about__grid{grid-template-columns:1fr;gap:40px}
-.services{grid-template-columns:1fr}
-.proj-grid{grid-template-columns:1fr}
-.metrics{grid-template-columns:1fr 1fr}
-.contact__grid{grid-template-columns:1fr}
-.f-row{grid-template-columns:1fr}
-.footer__grid{grid-template-columns:1fr 1fr;gap:32px}
-.footer__bot{flex-direction:column;text-align:center}
-.showcase{grid-template-columns:1fr}
-.partners__inner{gap:24px}
-}
-@media(max-width:480px){.metrics{grid-template-columns:1fr}.hero__btns{flex-direction:column}.hero__btns .btn{width:100%;justify-content:center}.footer__grid{grid-template-columns:1fr}}
+@media(max-width:1024px){.services{grid-template-columns:1fr 1fr}.proj-grid{grid-template-columns:1fr 1fr}.hero__grid{gap:48px}.showcase{grid-template-columns:1fr 1fr}.impact{grid-template-columns:1fr 1fr}}
+@media(max-width:768px){.nav__links{position:fixed;top:0;right:-100%;width:280px;height:100vh;background:var(--bg2);flex-direction:column;justify-content:center;padding:40px;gap:24px;transition:right .3s ease;border-left:1px solid var(--border)}.nav__links.active{right:0}.nav__toggle{display:flex}.hero__grid{grid-template-columns:1fr;gap:48px}.hero{padding:120px 0 80px}.hero__panels{grid-template-columns:1fr 1fr;max-height:300px}.about__grid{grid-template-columns:1fr;gap:40px}.services{grid-template-columns:1fr}.proj-grid{grid-template-columns:1fr}.impact{grid-template-columns:1fr 1fr}.contact__grid{grid-template-columns:1fr}.f-row{grid-template-columns:1fr}.footer__grid{grid-template-columns:1fr 1fr;gap:32px}.footer__bot{flex-direction:column;text-align:center}.showcase{grid-template-columns:1fr}}
+@media(max-width:480px){.impact{grid-template-columns:1fr}.hero__btns{flex-direction:column}.hero__btns .btn{width:100%;justify-content:center}.footer__grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
 <canvas id="stars"></canvas>
 
 <nav class="nav" id="nav">
@@ -236,7 +176,6 @@ img,video{max-width:100%;display:block}
 </div>
 </nav>
 
-<!-- HERO -->
 <section class="hero" id="hero">
 <div class="hero__video">
 <video autoplay muted loop playsinline poster="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&q=80">
@@ -251,20 +190,20 @@ img,video{max-width:100%;display:block}
 <p class="hero__sub">AI-driven geoengineering, terrestrial and extraterrestrial mineral prospecting, and advanced drone surveys for Earth and space missions.</p>
 <div class="hero__btns">
 <a href="#services" class="btn btn--gold">Our Capabilities →</a>
-<a href="https://edgeengineeringco-git.github.io/edge-ai-agent-site/geolibre.html" target="_blank" class="btn btn--astro">🚀 AstroTerra Intelligence Platform</a>
+<a href="astarterra.html" class="btn btn--astro">🚀 AstroTerra Intelligence Platform</a>
 <a href="#contact" class="btn btn--ghost">Start a Conversation</a>
 </div>
 </div>
 <div class="hero__panels">
 <div class="hero__panel">
 <video autoplay muted loop playsinline poster="https://images.unsplash.com/photo-1506947411487-a56738267384?w=600&q=80">
-<source src="https://videos.pexels.com/video-files/3195394/3195394-hd_1920_1080_25fps.mp4" type="video/mp4">
+<source src="https://videos.pexels.com/video-files/3195394/3195394-uhd_2560_1440_25fps.mp4" type="video/mp4">
 </video>
 <div class="hero__panel-label"><h4>UAV Surveys</h4><p>Advanced & customised sensor payloads — gamma-ray, pXRF, hyperspectral</p></div>
 </div>
 <div class="hero__panel">
 <video autoplay muted loop playsinline poster="https://images.unsplash.com/photo-1614728263952-84ea256f9679?w=600&q=80">
-<source src="https://videos.pexels.com/video-files/3571264/3571264-uhd_2560_1440_30fps.mp4" type="video/mp4">
+<source src="https://videos.pexels.com/video-files/1851190/1851190-hd_1920_1080_25fps.mp4" type="video/mp4">
 </video>
 <div class="hero__panel-label"><h4>Space Missions</h4><p>Lunar & Martian critical mineral prospecting</p></div>
 </div>
@@ -273,22 +212,18 @@ img,video{max-width:100%;display:block}
 </div>
 </section>
 
-<!-- PARTNERS -->
 <section class="partners">
 <div class="container">
 <div class="partners__inner">
 <div class="partner__badge"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>ESA BIC Ireland Incubatee</div>
 <div class="partner">
-<img src="https://maynoothworks.ie/wp-content/uploads/2021/09/MU-MW-logo.svg" alt="MaynoothWorks" style="height:40px;filter:brightness(1.2) invert(.1)">
+<img src="https://maynoothworks.ie/wp-content/uploads/2021/09/MU-MW-logo.svg" alt="MaynoothWorks">
 </div>
-<div class="partner__badge" style="color:var(--green3);border-color:var(--green-border);background:var(--green-bg)">
-Terrestrial & Space Mineral Prospecting
-</div>
+<div class="partner__badge" style="color:var(--green3);border-color:var(--green-border);background:var(--green-bg)">Terrestrial & Space Mineral Prospecting</div>
 </div>
 </div>
 </section>
 
-<!-- ABOUT -->
 <section class="sec" id="about">
 <div class="container">
 <div class="sec__label">About EDGE</div>
@@ -315,7 +250,6 @@ Terrestrial & Space Mineral Prospecting
 </div>
 </section>
 
-<!-- IN ACTION -->
 <section class="sec sec--alt">
 <div class="container">
 <div class="sec__label sec__label--gold">In Action</div>
@@ -323,20 +257,20 @@ Terrestrial & Space Mineral Prospecting
 <div class="sec__desc">From drone-mounted spectrometers to satellite observation — our tools operate at every scale.</div>
 <div class="showcase r">
 <div class="showcase__item">
-<video autoplay muted loop playsinline poster="https://images.unsplash.com/photo-1506947411487-a56738267384?w=400&q=80">
-<source src="https://videos.pexels.com/video-files/3195394/3195394-hd_1920_1080_25fps.mp4" type="video/mp4">
+<video autoplay muted loop playsinline>
+<source src="https://videos.pexels.com/video-files/4763824/4763824-hd_1920_1080_24fps.mp4" type="video/mp4">
 </video>
 <div class="showcase__label"><h4>UAV Surveys</h4><p>Drone-mounted sensor payloads</p></div>
 </div>
 <div class="showcase__item">
-<video autoplay muted loop playsinline poster="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400&q=80">
-<source src="https://videos.pexels.com/video-files/2611510/2611510-hd_1920_1080_30fps.mp4" type="video/mp4">
+<video autoplay muted loop playsinline>
+<source src="https://videos.pexels.com/video-files/3571264/3571264-uhd_2560_1440_30fps.mp4" type="video/mp4">
 </video>
 <div class="showcase__label"><h4>Space Missions</h4><p>Lunar & Mars prospecting</p></div>
 </div>
 <div class="showcase__item">
-<video autoplay muted loop playsinline poster="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=80">
-<source src="https://videos.pexels.com/video-files/1851190/1851190-hd_1920_1080_25fps.mp4" type="video/mp4">
+<video autoplay muted loop playsinline>
+<source src="https://videos.pexels.com/video-files/2611510/2611510-hd_1920_1080_30fps.mp4" type="video/mp4">
 </video>
 <div class="showcase__label"><h4>Earth Observation</h4><p>Satellite remote sensing</p></div>
 </div>
@@ -344,7 +278,6 @@ Terrestrial & Space Mineral Prospecting
 </div>
 </section>
 
-<!-- SERVICES -->
 <section class="sec" id="services">
 <div class="container">
 <div class="sec__label">What We Do</div>
@@ -385,7 +318,6 @@ Terrestrial & Space Mineral Prospecting
 </div>
 </section>
 
-<!-- PROJECTS -->
 <section class="sec sec--alt" id="projects">
 <div class="container">
 <div class="sec__label sec__label--gold">Research</div>
@@ -409,7 +341,7 @@ Terrestrial & Space Mineral Prospecting
 </div>
 </div>
 <div class="proj r d2">
-<div class="proj__img"><span class="proj__tag">Multi-Hazard</span><img src="https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=600&q=80" alt="Geospatial data analysis"></div>
+<div class="proj__img"><span class="proj__tag">Multi-Hazard</span><img src="https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=600&q=80" alt="Geospatial data"></div>
 <div class="proj__body">
 <h3>Web-Based Geodatabase for Natural Hazard Assessment</h3>
 <p>AI platform: 200+ variables, 60M+ data points, multi-hazard mapping at 500m resolution.</p>
@@ -420,21 +352,33 @@ Terrestrial & Space Mineral Prospecting
 </div>
 </section>
 
-<!-- METRICS -->
 <section class="sec">
 <div class="container">
 <div class="sec__label">Impact</div>
-<div class="sec__title">Numbers that matter</div>
-<div class="metrics r">
-<div class="metric"><div class="metric__num" data-count="6">0</div><div class="metric__label">Core Services</div></div>
-<div class="metric"><div class="metric__num" data-count="3">0</div><div class="metric__label">Funded Projects</div></div>
-<div class="metric"><div class="metric__num" data-count="200">0</div><div class="metric__label">Geospatial Variables</div></div>
-<div class="metric"><div class="metric__num" data-count="60">0</div><div class="metric__label">Data Points (M)</div></div>
+<div class="sec__title">What sets us apart</div>
+<div class="impact r">
+<div class="impact__card">
+<div class="impact__num" data-count="6">0</div>
+<div class="impact__title">Core Services</div>
+<div class="impact__detail">Mineral prospecting, drone surveys, AI automation, Earth observation, geoengineering, climate intelligence</div>
+</div>
+<div class="impact__card impact__card--gold">
+<div class="impact__num" data-count="4">0</div>
+<div class="impact__title">Funded Projects</div>
+<div class="impact__detail">Including ESA BIC Ireland — IRC, GSI, EOSC, Enterprise Ireland backed research</div>
+</div>
+<div class="impact__card impact__card--highlight">
+<div class="impact__title" style="font-size:1.15rem;color:var(--green3)">Advanced Automation Platform</div>
+<div class="impact__detail" style="margin-top:8px">Machine learning, extensive coding, APIs, connected to multiple AI LLMs and coding agents for autonomous geointelligence workflows</div>
+</div>
+<div class="impact__card impact__card--gold">
+<div class="impact__title" style="font-size:1.15rem;color:var(--gold)">First Geoautomation Service in Ireland</div>
+<div class="impact__detail" style="margin-top:8px">Pioneering AI-powered geointelligence — the first dedicated geoautomation platform on the island of Ireland</div>
+</div>
 </div>
 </div>
 </section>
 
-<!-- CONTACT -->
 <section class="sec sec--alt" id="contact">
 <div class="container">
 <div class="sec__label">Contact</div>
@@ -502,7 +446,7 @@ Terrestrial & Space Mineral Prospecting
 <li><a href="#services">Mineral Prospecting</a></li><li><a href="#services">Drone Surveys</a></li><li><a href="#services">AI Automation</a></li><li><a href="#services">Geoengineering</a></li>
 </ul></div>
 <div class="footer__col"><h4>Connect</h4><ul>
-<li><a href="mailto:info@edgeengineers.net">Email Us</a></li><li><a href="https://www.linkedin.com/company/earthwise-dynamics-geo-environs-edge-ltd/" target="_blank" rel="noopener">LinkedIn</a></li><li><a href="https://edgeengineeringco-git.github.io/edge-ai-agent-site/geolibre.html" target="_blank">AstroTerra Platform</a></li>
+<li><a href="mailto:info@edgeengineers.net">Email Us</a></li><li><a href="https://www.linkedin.com/company/earthwise-dynamics-geo-environs-edge-ltd/" target="_blank" rel="noopener">LinkedIn</a></li><li><a href="astarterra.html">AstroTerra Platform</a></li>
 </ul></div>
 </div>
 <div class="footer__bot">
@@ -513,39 +457,8 @@ Terrestrial & Space Mineral Prospecting
 </footer>
 
 <script>
-(function(){
-const c=document.getElementById('stars'),ctx=c.getContext('2d');
-let w,h,stars=[];
-function resize(){w=c.width=innerWidth;h=c.height=innerHeight;stars=[];
-for(let i=0;i<200;i++)stars.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.5+.3,a:Math.random(),da:Math.random()*.02-.01,s:Math.random()*.3+.05});
-}
-function draw(){
-ctx.clearRect(0,0,w,h);
-const g=ctx.createRadialGradient(w*.65,h*.35,0,w*.65,h*.35,w*.5);
-g.addColorStop(0,'rgba(16,185,129,.03)');g.addColorStop(1,'transparent');
-ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
-for(const s of stars){
-s.a+=s.da;if(s.a>.9||s.a<.1)s.da*=-1;
-s.y-=s.s;if(s.y<-2){s.y=h+2;s.x=Math.random()*w}
-ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-ctx.fillStyle=`rgba(167,184,176,${s.a})`;ctx.fill();
-if(s.r>1.2){ctx.beginPath();ctx.arc(s.x,s.y,s.r*3,0,Math.PI*2);ctx.fillStyle=`rgba(110,231,183,${s.a*.08})`;ctx.fill()}
-}
-requestAnimationFrame(draw);
-}
-resize();draw();window.addEventListener('resize',resize);
-})();
-document.addEventListener('DOMContentLoaded',()=>{
-const nav=document.getElementById('nav');let t=false;
-window.addEventListener('scroll',()=>{if(!t){requestAnimationFrame(()=>{nav.classList.toggle('scrolled',window.scrollY>80);t=false});t=true}});
-const tog=document.getElementById('navToggle'),nl=document.getElementById('navLinks');
-if(tog){tog.addEventListener('click',()=>{tog.classList.toggle('active');nl.classList.toggle('active')});
-nl.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{tog.classList.remove('active');nl.classList.remove('active')}))}
-const ro=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('v');ro.unobserve(x.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
-document.querySelectorAll('.r').forEach(el=>ro.observe(el));
-document.querySelectorAll('[data-count]').forEach(el=>{const o=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){const n=parseInt(el.dataset.count),d=2000,s=performance.now();const a=t=>{const p=Math.min((t-s)/d,1),v=Math.floor((1-Math.pow(1-p,4))*n);el.textContent=v;if(p<1)requestAnimationFrame(a);else el.textContent=n};requestAnimationFrame(a);o.unobserve(el)}})},{threshold:.6});o.observe(el)});
-const form=document.getElementById('contactForm');
-if(form)form.addEventListener('submit',e=>{e.preventDefault();const b=form.querySelector('button');if(b){const t=b.innerHTML;b.textContent='✓ Sent';b.style.background='var(--green2)';setTimeout(()=>{b.innerHTML=t;b.style.background='';form.reset()},3000)}});
+(function(){const c=document.getElementById('stars'),ctx=c.getContext('2d');let w,h,stars=[];function resize(){w=c.width=innerWidth;h=c.height=innerHeight;stars=[];for(let i=0;i<200;i++)stars.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.5+.3,a:Math.random(),da:Math.random()*.02-.01,s:Math.random()*.3+.05})}function draw(){ctx.clearRect(0,0,w,h);const g=ctx.createRadialGradient(w*.65,h*.35,0,w*.65,h*.35,w*.5);g.addColorStop(0,'rgba(16,185,129,.03)');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);for(const s of stars){s.a+=s.da;if(s.a>.9||s.a<.1)s.da*=-1;s.y-=s.s;if(s.y<-2){s.y=h+2;s.x=Math.random()*w}ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(167,184,176,${s.a})`;ctx.fill();if(s.r>1.2){ctx.beginPath();ctx.arc(s.x,s.y,s.r*3,0,Math.PI*2);ctx.fillStyle=`rgba(110,231,183,${s.a*.08})`;ctx.fill()}}requestAnimationFrame(draw)}resize();draw();window.addEventListener('resize',resize)})();
+document.addEventListener('DOMContentLoaded',()=>{const nav=document.getElementById('nav');let t=false;window.addEventListener('scroll',()=>{if(!t){requestAnimationFrame(()=>{nav.classList.toggle('scrolled',window.scrollY>80);t=false});t=true}});const tog=document.getElementById('navToggle'),nl=document.getElementById('navLinks');if(tog){tog.addEventListener('click',()=>{tog.classList.toggle('active');nl.classList.toggle('active')});nl.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{tog.classList.remove('active');nl.classList.remove('active')}))}const ro=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('v');ro.unobserve(x.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});document.querySelectorAll('.r').forEach(el=>ro.observe(el));document.querySelectorAll('[data-count]').forEach(el=>{const o=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){const n=parseInt(el.dataset.count),d=2000,s=performance.now();const a=t=>{const p=Math.min((t-s)/d,1),v=Math.floor((1-Math.pow(1-p,4))*n);el.textContent=v;if(p<1)requestAnimationFrame(a);else el.textContent=n};requestAnimationFrame(a);o.unobserve(el)}})},{threshold:.6});o.observe(el)});const form=document.getElementById('contactForm');if(form)form.addEventListener('submit',e=>{e.preventDefault();const b=form.querySelector('button');if(b){const t=b.innerHTML;b.textContent='✓ Sent';b.style.background='var(--green2)';setTimeout(()=>{b.innerHTML=t;b.style.background='';form.reset()},3000)}});
 });
 </script>
 </body>

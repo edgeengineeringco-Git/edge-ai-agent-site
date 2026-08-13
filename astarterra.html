@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AstroTerra Intelligence Platform — EDGE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+:root{--bg:#060a09;--bg2:#0b1210;--green1:#064e3b;--green2:#10b981;--green3:#6ee7b7;--gold:#d4a853;--white:#f0fdf4;--gray1:#a7b8b0;--gray2:#6b7f75;--border:rgba(167,184,176,.1)}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--white);min-height:100vh;overflow-x:hidden}
+#stars{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+.header{position:relative;z-index:2;padding:32px 0;border-bottom:1px solid var(--border)}
+.header .container{max-width:1200px;margin:0 auto;padding:0 48px;display:flex;align-items:center;justify-content:space-between}
+.header__back{font-size:.85rem;color:var(--gray1);display:flex;align-items:center;gap:8px;transition:color .2s}
+.header__back:hover{color:var(--green2)}
+.header__back svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.header__title{font-size:1.1rem;font-weight:700;letter-spacing:-.5px}
+
+.hero{position:relative;z-index:2;text-align:center;padding:100px 0 60px}
+.hero h1{font-size:clamp(2.5rem,5vw,4rem);font-weight:800;letter-spacing:-2px;margin-bottom:16px;background:linear-gradient(135deg,var(--green3),var(--green2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--gray1);font-size:1.1rem;max-width:600px;margin:0 auto;line-height:1.8}
+
+.platforms{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:0 48px 80px}
+.platforms__grid{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+
+.platform{border-radius:20px;overflow:hidden;position:relative;min-height:500px;display:flex;flex-direction:column;border:1px solid var(--border);transition:all .4s}
+.platform:hover{border-color:rgba(167,184,176,.25);transform:translateY(-4px);box-shadow:0 24px 80px rgba(0,0,0,.5)}
+
+.platform--terra{background:linear-gradient(180deg,#0a1f15 0%,#060a09 100%)}
+.platform--space{background:linear-gradient(180deg,#0a0f1f 0%,#060a09 100%)}
+
+.platform__video{height:220px;overflow:hidden;position:relative}
+.platform__video video{width:100%;height:100%;object-fit:cover;opacity:.5}
+.platform__video::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent,rgba(6,10,9,.95))}
+.platform__video-label{position:absolute;bottom:16px;left:20px;z-index:2;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--green3)}
+
+.platform__body{flex:1;padding:32px;display:flex;flex-direction:column}
+.platform__icon{width:56px;height:56px;display:flex;align-items:center;justify-content:center;border-radius:14px;margin-bottom:20px}
+.platform__icon svg{width:28px;height:28px;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.platform__icon--terra{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2)}
+.platform__icon--terra svg{stroke:var(--green2)}
+.platform__icon--space{background:rgba(212,168,83,.1);border:1px solid rgba(212,168,83,.2)}
+.platform__icon--space svg{stroke:var(--gold)}
+
+.platform h2{font-size:1.5rem;font-weight:700;letter-spacing:-1px;margin-bottom:12px}
+.platform p{color:var(--gray1);font-size:.9rem;line-height:1.8;margin-bottom:28px;flex:1}
+
+.platform__features{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+.platform__feat{display:flex;align-items:center;gap:10px;font-size:.82rem;font-weight:500}
+.platform__feat svg{width:16px;height:16px;stroke:var(--green2);fill:none;stroke-width:2.5;flex-shrink:0}
+.platform__feat--space svg{stroke:var(--gold)}
+
+.platform__links{display:flex;flex-direction:column;gap:10px}
+.platform__link{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:10px;text-decoration:none;transition:all .25s;font-size:.85rem;font-weight:600}
+.platform__link--terra{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.15);color:var(--green3)}
+.platform__link--terra:hover{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.3);transform:translateX(4px)}
+.platform__link--space{background:rgba(212,168,83,.08);border:1px solid rgba(212,168,83,.15);color:var(--gold)}
+.platform__link--space:hover{background:rgba(212,168,83,.15);border-color:rgba(212,168,83,.3);transform:translateX(4px)}
+.platform__link-icon{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0}
+.platform__link-icon svg{width:18px;height:18px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.platform__link-icon--terra{background:rgba(16,185,129,.15);stroke:var(--green2)}
+.platform__link-icon--space{background:rgba(212,168,83,.15);stroke:var(--gold)}
+.platform__link-text{display:flex;flex-direction:column;gap:2px}
+.platform__link-text small{font-size:.65rem;font-weight:400;color:var(--gray2)}
+
+.platform__coming{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.platform__coming-item{padding:12px;background:rgba(255,255,255,.03);border:1px dashed var(--border);border-radius:8px;text-align:center;font-size:.72rem;color:var(--gray2);font-weight:500}
+
+.footer{position:relative;z-index:2;text-align:center;padding:40px 0;border-top:1px solid var(--border)}
+.footer p{color:var(--gray3);font-size:.78rem}
+
+/* Animations */
+.fade-in{opacity:0;transform:translateY(30px);transition:all .8s cubic-bezier(.16,1,.3,1)}
+.fade-in.v{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.15s}.d2{transition-delay:.3s}
+
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.platform__icon{animation:float 4s ease-in-out infinite}
+.platform--space .platform__icon{animation-delay:.5s}
+
+@media(max-width:768px){
+.platforms__grid{grid-template-columns:1fr}
+.platform{min-height:auto}
+.header .container{padding:0 24px}
+.platforms{padding:0 24px 60px}
+}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+
+<div class="header">
+<div class="container">
+<a href="index.html" class="header__back"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Back to EDGE</a>
+<span class="header__title">AstroTerra Intelligence Platform</span>
+</div>
+</div>
+
+<section class="hero">
+<div style="max-width:1200px;margin:0 auto;padding:0 48px">
+<h1 class="fade-in">AstroTerra Intelligence</h1>
+<p class="fade-in d1">AI-powered geointelligence platforms for terrestrial and space mineral prospecting. Advanced automation, machine learning, and real-time analysis.</p>
+</div>
+</section>
+
+<section class="platforms">
+<div class="platforms__grid">
+
+<div class="platform platform--terra fade-in d1">
+<div class="platform__video">
+<video autoplay muted loop playsinline>
+<source src="https://videos.pexels.com/video-files/3195394/3195394-hd_1920_1080_25fps.mp4" type="video/mp4">
+</video>
+<div class="platform__video-label">Terrestrial Operations</div>
+</div>
+<div class="platform__body">
+<div class="platform__icon platform__icon--terra"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+<h2>Terrestrial Intelligence</h2>
+<p>AI-powered geospatial analysis for critical mineral prospecting, environmental monitoring, and geoengineering on Earth. Machine learning models processing gamma-ray, pXRF, and hyperspectral data.</p>
+<div class="platform__features">
+<div class="platform__feat"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>K/U/Th spectral analysis engine</div>
+<div class="platform__feat"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Automated geochemical pipelines</div>
+<div class="platform__feat"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>REE anomaly detection & classification</div>
+<div class="platform__feat"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Multi-hazard susceptibility mapping</div>
+</div>
+<div class="platform__links">
+<a href="https://edgeengineeringco-git.github.io/edge-ai-agent-site/geolibre.html" target="_blank" class="platform__link platform__link--terra">
+<div class="platform__link-icon platform__link-icon--terra"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 16 16 12"/></svg></div>
+<div class="platform__link-text">Geolibre — Geospatial Platform<small>Open platform →</small></div>
+</a>
+</div>
+<div class="platform__coming">
+<div class="platform__coming-item">REE Resource Estimator</div>
+<div class="platform__coming-item">Gamma-Ray Processor</div>
+<div class="platform__coming-item">pXRF Data Pipeline</div>
+<div class="platform__coming-item">Anomaly Classifier</div>
+</div>
+</div>
+</div>
+
+<div class="platform platform--space fade-in d2">
+<div class="platform__video">
+<video autoplay muted loop playsinline>
+<source src="https://videos.pexels.com/video-files/1851190/1851190-hd_1920_1080_25fps.mp4" type="video/mp4">
+</video>
+<div class="platform__video-label">Space Operations</div>
+</div>
+<div class="platform__body">
+<div class="platform__icon platform__icon--space"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+<h2>Space Intelligence</h2>
+<p>Extraterrestrial mineral prospecting for lunar and Martian missions. K/U/Th analysis tools for planetary gamma-ray spectrometry and critical mineral detection beyond Earth.</p>
+<div class="platform__features">
+<div class="platform__feat platform__feat--space"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Lunar K/U/Th concentration mapping</div>
+<div class="platform__feat platform__feat--space"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Martian regolith analysis</div>
+<div class="platform__feat platform__feat--space"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Planetary gamma-ray spectrometry</div>
+<div class="platform__feat platform__feat--space"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Orbital data integration</div>
+</div>
+<div class="platform__links">
+<a href="https://senanaghdam-ai.github.io/Kuth-tools/" target="_blank" class="platform__link platform__link--space">
+<div class="platform__link-icon platform__link-icon--space"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+<div class="platform__link-text">K/U/Th Tools — Planetary Analysis<small>Open platform →</small></div>
+</a>
+</div>
+<div class="platform__coming">
+<div class="platform__coming-item">Lunar REE Mapper</div>
+<div class="platform__coming-item">Mars Mineral Classifier</div>
+<div class="platform__coming-item">Orbital Survey Planner</div>
+<div class="platform__coming-item">Regolith Simulator</div>
+</div>
+</div>
+</div>
+
+</div>
+</section>
+
+<footer class="footer">
+<p>AstroTerra Intelligence Platform — EDGE Ltd. · ESA BIC Ireland Incubatee</p>
+</footer>
+
+<script>
+(function(){const c=document.getElementById('stars'),ctx=c.getContext('2d');let w,h,stars=[];function resize(){w=c.width=innerWidth;h=c.height=innerHeight;stars=[];for(let i=0;i<180;i++)stars.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.5+.3,a:Math.random(),da:Math.random()*.02-.01,s:Math.random()*.3+.05})}function draw(){ctx.clearRect(0,0,w,h);for(const s of stars){s.a+=s.da;if(s.a>.9||s.a<.1)s.da*=-1;s.y-=s.s;if(s.y<-2){s.y=h+2;s.x=Math.random()*w}ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(167,184,176,${s.a})`;ctx.fill()}requestAnimationFrame(draw)}resize();draw();window.addEventListener('resize',resize)})();
+document.addEventListener('DOMContentLoaded',()=>{const ro=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('v');ro.unobserve(x.target)}})},{threshold:.15});document.querySelectorAll('.fade-in').forEach(el=>ro.observe(el))});
+</script>
+</body>
+</html>
