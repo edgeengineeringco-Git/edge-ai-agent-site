@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EDGE Global Solutions — AI, Drones & Automation</title>
+<meta name="description" content="AI-powered automation, drone surveying, sensor technology and digital transformation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#0a1628;--primary-light:#162038;--accent:#00d4aa;--accent-hover:#00f0c0;--accent-dim:rgba(0,212,170,0.15);--secondary:#6366f1;--white:#fff;--gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-300:#cbd5e1;--gray-400:#94a3b8;--gray-500:#64748b;--gray-600:#475569;--gray-700:#334155;--gray-800:#1e293b;--gray-900:#0f172a;--gradient-1:linear-gradient(135deg,#0a1628 0%,#1a2942 50%,#0d2137 100%);--gradient-accent:linear-gradient(135deg,#00d4aa 0%,#6366f1 100%);--shadow-xl:0 20px 25px -5px rgba(0,0,0,0.1),0 8px 10px -6px rgba(0,0,0,0.1);--shadow-glow:0 0 40px rgba(0,212,170,0.15);--shadow-lg:0 10px 15px -3px rgba(0,0,0,0.1);--radius-sm:8px;--radius-md:12px;--radius-lg:20px;--radius-xl:28px;--font-main:'Inter','Noto Sans','Noto Sans Arabic',system-ui,sans-serif;--transition:0.3s cubic-bezier(0.4,0,0.2,1)}
+html[dir="rtl"]{--font-main:'Noto Sans Arabic','Inter',system-ui,sans-serif}
+html[dir="rtl"] .hero-badge{flex-direction:row-reverse}
+html[dir="rtl"] .footer-grid{direction:rtl}
+html[dir="rtl"] .nav-links{flex-direction:row-reverse}
+html[dir="rtl"] .advantage-item{flex-direction:row-reverse}
+html[dir="rtl"] .service-card .service-arrow{right:auto;left:20px}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-main);background:var(--white);color:var(--gray-700);line-height:1.7;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,h5{line-height:1.2;font-weight:700;color:var(--gray-900)}
+a{text-decoration:none;color:inherit;transition:var(--transition)}
+.container{max-width:1280px;margin:0 auto;padding:0 24px}
+.navbar{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(10,22,40,0.92);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid rgba(255,255,255,0.06);transition:var(--transition)}
+.navbar.scrolled{background:rgba(10,22,40,0.98);box-shadow:0 4px 30px rgba(0,0,0,0.3)}
+.nav-inner{max-width:1280px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:72px}
+.nav-logo{display:flex;align-items:center;gap:12px;font-size:1.4rem;font-weight:800;color:var(--white);letter-spacing:-0.5px}
+.nav-logo .logo-icon{width:40px;height:40px;border-radius:10px;background:var(--gradient-accent);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900;color:var(--primary)}
+.nav-logo span{color:var(--accent)}
+.nav-links{display:flex;align-items:center;gap:32px;list-style:none}
+.nav-links a{color:rgba(255,255,255,0.7);font-size:.9rem;font-weight:500;position:relative;padding:4px 0}
+.nav-links a::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;background:var(--accent);transform:scaleX(0);transition:var(--transition);transform-origin:left}
+.nav-links a:hover{color:var(--white)}
+.nav-links a:hover::after{transform:scaleX(1)}
+.lang-switcher{display:flex;align-items:center;gap:4px}
+.lang-btn{padding:6px 10px;border-radius:6px;border:none;background:transparent;color:rgba(255,255,255,0.5);font-size:.8rem;font-weight:600;cursor:pointer;transition:var(--transition);font-family:var(--font-main)}
+.lang-btn:hover{color:var(--white);background:rgba(255,255,255,0.08)}
+.lang-btn.active{color:var(--accent);background:var(--accent-dim)}
+.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:8px}
+.hamburger span{width:24px;height:2px;background:var(--white);transition:var(--transition);border-radius:2px}
+.hero{min-height:100vh;display:flex;align-items:center;background:var(--gradient-1);position:relative;overflow:hidden;padding-top:72px}
+.hero::before{content:'';position:absolute;top:-50%;right:-20%;width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,170,0.08) 0%,transparent 70%);animation:float 20s ease-in-out infinite}
+.hero::after{content:'';position:absolute;bottom:-30%;left:-10%;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,0.06) 0%,transparent 70%);animation:float 25s ease-in-out infinite reverse}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-30px) scale(1.05)}66%{transform:translate(-20px,20px) scale(0.95)}}
+.hero-content{position:relative;z-index:2;text-align:center;max-width:900px;margin:0 auto;padding:60px 24px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:50px;background:rgba(0,212,170,0.1);border:1px solid rgba(0,212,170,0.2);color:var(--accent);font-size:.85rem;font-weight:600;margin-bottom:32px}
+.hero-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.hero h1{font-size:clamp(2.5rem,5.5vw,4.2rem);font-weight:900;color:var(--white);margin-bottom:24px;letter-spacing:-1.5px;line-height:1.1}
+.hero h1 .gradient-text{background:var(--gradient-accent);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:clamp(1rem,1.5vw,1.25rem);color:rgba(255,255,255,0.6);max-width:680px;margin:0 auto 40px;line-height:1.8}
+.hero-buttons{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.btn{padding:14px 32px;border-radius:var(--radius-sm);font-weight:600;font-size:.95rem;cursor:pointer;transition:var(--transition);display:inline-flex;align-items:center;gap:8px;border:none;font-family:var(--font-main)}
+.btn-primary{background:var(--accent);color:var(--primary);box-shadow:0 4px 20px rgba(0,212,170,0.3)}
+.btn-primary:hover{background:var(--accent-hover);box-shadow:0 8px 30px rgba(0,212,170,0.4);transform:translateY(-2px)}
+.btn-secondary{background:rgba(255,255,255,0.06);color:var(--white);border:1px solid rgba(255,255,255,0.15)}
+.btn-secondary:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.3);transform:translateY(-2px)}
+.hero-stats{display:flex;justify-content:center;gap:48px;margin-top:60px;padding-top:40px;border-top:1px solid rgba(255,255,255,0.08);flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-number{font-size:2.2rem;font-weight:800;color:var(--accent);letter-spacing:-1px}
+.stat-label{font-size:.85rem;color:rgba(255,255,255,0.45);margin-top:4px;font-weight:500}
+section{padding:100px 0}
+.section-header{text-align:center;max-width:700px;margin:0 auto 64px}
+.section-tag{display:inline-block;padding:6px 16px;border-radius:50px;background:var(--accent-dim);color:var(--accent);font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px}
+.section-header h2{font-size:clamp(1.8rem,3.5vw,2.8rem);letter-spacing:-1px;margin-bottom:16px}
+.section-header p{color:var(--gray-500);font-size:1.05rem}
+.services-section{background:var(--gray-50)}
+.services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.service-card{background:var(--white);border-radius:var(--radius-lg);padding:36px 28px;border:1px solid var(--gray-200);transition:var(--transition);position:relative;overflow:hidden;cursor:pointer}
+.service-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gradient-accent);transform:scaleX(0);transition:var(--transition)}
+.service-card:hover{transform:translateY(-6px);border-color:var(--accent);box-shadow:var(--shadow-xl),var(--shadow-glow)}
+.service-card:hover::before{transform:scaleX(1)}
+.service-icon{width:56px;height:56px;border-radius:var(--radius-md);background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin-bottom:20px}
+.service-card h3{font-size:1.15rem;margin-bottom:10px;color:var(--gray-900)}
+.service-card p{color:var(--gray-500);font-size:.92rem;line-height:1.7}
+.service-card .service-arrow{position:absolute;bottom:20px;right:20px;width:32px;height:32px;border-radius:50%;background:var(--gray-100);display:flex;align-items:center;justify-content:center;color:var(--gray-400);font-size:.9rem;transition:var(--transition)}
+.service-card:hover .service-arrow{background:var(--accent);color:var(--primary)}
+.details-section{background:var(--white)}
+.service-detail{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;margin-bottom:80px}
+.service-detail:nth-child(even){direction:rtl}
+.service-detail:nth-child(even)>*{direction:ltr}
+html[dir="rtl"] .service-detail:nth-child(even){direction:ltr}
+html[dir="rtl"] .service-detail:nth-child(even)>*{direction:rtl}
+.detail-content h3{font-size:1.6rem;margin-bottom:16px;letter-spacing:-0.5px}
+.detail-content p{color:var(--gray-500);margin-bottom:24px;font-size:1rem}
+.detail-list{list-style:none}
+.detail-list li{padding:10px 0;display:flex;align-items:flex-start;gap:12px;color:var(--gray-600);font-size:.95rem;border-bottom:1px solid var(--gray-100)}
+.detail-list li:last-child{border-bottom:none}
+.detail-list .check{width:22px;height:22px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0;margin-top:2px}
+.detail-visual{background:var(--gradient-1);border-radius:var(--radius-xl);padding:48px;position:relative;overflow:hidden;min-height:360px;display:flex;align-items:center;justify-content:center}
+.detail-visual .visual-icon{font-size:5rem;opacity:.15;position:absolute;top:20px;right:20px}
+.detail-visual .visual-content{text-align:center;color:var(--white);position:relative;z-index:2}
+.visual-content .v-icon{font-size:3rem;margin-bottom:16px}
+.visual-content h4{font-size:1.2rem;color:var(--accent);margin-bottom:8px}
+.visual-content p{color:rgba(255,255,255,0.6);font-size:.9rem}
+.visual-stats{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
+.v-stat{background:rgba(255,255,255,0.06);border-radius:var(--radius-sm);padding:16px;text-align:center}
+.v-stat strong{display:block;font-size:1.3rem;color:var(--accent)}
+.v-stat span{font-size:.75rem;color:rgba(255,255,255,0.5)}
+.markets-section{background:var(--gray-50)}
+.markets-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+.market-card{background:var(--white);border-radius:var(--radius-lg);padding:32px;border:1px solid var(--gray-200);transition:var(--transition)}
+.market-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--accent)}
+.market-flag{font-size:2.5rem;margin-bottom:16px}
+.market-card h3{font-size:1.15rem;margin-bottom:8px}
+.market-card .market-desc{color:var(--gray-500);font-size:.9rem;margin-bottom:16px}
+.market-tags{display:flex;flex-wrap:wrap;gap:6px}
+.market-tag{padding:4px 12px;border-radius:50px;font-size:.75rem;font-weight:600;background:var(--gray-100);color:var(--gray-600)}
+.advantages-section{background:var(--primary);color:var(--white)}
+.advantages-section .section-tag{background:rgba(0,212,170,0.15)}
+.advantages-section .section-header h2{color:var(--white)}
+.advantages-section .section-header p{color:rgba(255,255,255,0.5)}
+.advantages-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
+.advantage-item{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-lg);padding:32px;transition:var(--transition)}
+.advantage-item:hover{background:rgba(255,255,255,0.08);border-color:rgba(0,212,170,0.3);transform:translateY(-4px)}
+.adv-icon{width:48px;height:48px;border-radius:var(--radius-sm);background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:16px}
+.advantage-item h4{color:var(--white);font-size:1.05rem;margin-bottom:8px}
+.advantage-item p{color:rgba(255,255,255,0.5);font-size:.9rem}
+.cta-section{background:var(--gradient-accent);padding:80px 0;text-align:center;color:var(--primary)}
+.cta-section h2{font-size:clamp(1.8rem,3.5vw,2.8rem);color:var(--primary);margin-bottom:16px}
+.cta-section p{color:rgba(10,22,40,0.7);max-width:550px;margin:0 auto 32px;font-size:1.05rem}
+.cta-section .btn{background:var(--primary);color:var(--white);box-shadow:0 4px 20px rgba(0,0,0,0.2)}
+.cta-section .btn:hover{background:var(--primary-light);transform:translateY(-2px)}
+.contact-section{background:var(--gray-50)}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.contact-info h3{font-size:1.4rem;margin-bottom:16px}
+.contact-info p{color:var(--gray-500);margin-bottom:32px}
+.contact-items{list-style:none}
+.contact-items li{display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--gray-200)}
+.contact-items .c-icon{width:44px;height:44px;border-radius:var(--radius-sm);background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.contact-items strong{display:block;font-size:.85rem;color:var(--gray-900)}
+.contact-items span{color:var(--gray-500);font-size:.9rem}
+.contact-form{background:var(--white);border-radius:var(--radius-xl);padding:40px;box-shadow:var(--shadow-lg);border:1px solid var(--gray-200)}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;font-size:.85rem;font-weight:600;color:var(--gray-700);margin-bottom:8px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:12px 16px;border-radius:var(--radius-sm);border:1px solid var(--gray-300);font-size:.95rem;font-family:var(--font-main);transition:var(--transition);background:var(--white)}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,170,0.1)}
+.form-group textarea{resize:vertical;min-height:120px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-success{text-align:center;padding:40px 20px}
+.form-success .success-icon{font-size:3rem;margin-bottom:16px}
+.form-success h3{font-size:1.3rem;margin-bottom:8px;color:var(--gray-900)}
+.form-success p{color:var(--gray-500)}
+.footer{background:var(--gray-900);color:var(--gray-400);padding:60px 0 30px}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+.footer-brand p{font-size:.9rem;line-height:1.7;margin-top:12px}
+.footer h5{color:var(--white);font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px}
+.footer ul{list-style:none}
+.footer ul li{margin-bottom:10px}
+.footer ul a{color:var(--gray-400);font-size:.9rem}
+.footer ul a:hover{color:var(--accent)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,0.08);padding-top:24px;text-align:center;font-size:.85rem}
+@media(max-width:1024px){.service-detail{grid-template-columns:1fr;gap:32px}.service-detail:nth-child(even){direction:ltr}.contact-grid{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:768px){.nav-links{display:none}.hamburger{display:flex}.nav-links.open{display:flex;flex-direction:column;position:absolute;top:72px;left:0;right:0;background:rgba(10,22,40,0.98);padding:24px;gap:16px;border-bottom:1px solid rgba(255,255,255,0.1)}.hero-stats{gap:24px}.stat-number{font-size:1.6rem}.hero h1{font-size:2rem}section{padding:60px 0}.form-row{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr}.lang-switcher{flex-wrap:wrap}.detail-visual{min-height:260px;padding:32px}.lang-btn{padding:4px 8px;font-size:.7rem}}
+
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="navbar" id="navbar">
+<div class="nav-inner">
+<a href="#hero" class="nav-logo"><div class="logo-icon">E</div>EDGE <span>Global</span></a>
+<ul class="nav-links" id="navLinks">
+<li><a href="#services" data-i18n="nav_services">Services</a></li>
+<li><a href="#details" data-i18n="nav_solutions">Solutions</a></li>
+<li><a href="#markets" data-i18n="nav_markets">Markets</a></li>
+<li><a href="#whyus" data-i18n="nav_why">Why Us</a></li>
+<li><a href="#contact" data-i18n="nav_contact">Contact</a></li>
+</ul>
+<div class="lang-switcher">
+<button class="lang-btn active" onclick="setLang('en')">EN</button>
+<button class="lang-btn" onclick="setLang('fr')">FR</button>
+<button class="lang-btn" onclick="setLang('es')">ES</button>
+<button class="lang-btn" onclick="setLang('ar')">عربي</button>
+<button class="lang-btn" onclick="setLang('tr')">TR</button>
+<button class="lang-btn" onclick="setLang('fa')">فارسی</button>
+</div>
+<button class="hamburger" id="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+<div class="hero-content">
+<div class="hero-badge"><span class="dot"></span><span data-i18n="hero_badge">AI-Powered Global Solutions</span></div>
+<h1 data-i18n="hero_title">Intelligent <span class="gradient-text">Automation</span> for a Connected World</h1>
+<p data-i18n="hero_sub">We combine artificial intelligence, drone technology, advanced sensors and autonomous agents to deliver cutting-edge solutions.</p>
+<div class="hero-buttons">
+<a href="#contact" class="btn btn-primary" data-i18n="hero_cta">Get Started</a>
+<a href="#services" class="btn btn-secondary" data-i18n="hero_cta2">Explore Services</a>
+</div>
+<div class="hero-stats">
+<div class="stat-item"><div class="stat-number">10+</div><div class="stat-label" data-i18n="stat_areas">Service Areas</div></div>
+<div class="stat-item"><div class="stat-number">6</div><div class="stat-label" data-i18n="stat_regions">Continental Regions</div></div>
+<div class="stat-item"><div class="stat-number">50+</div><div class="stat-label" data-i18n="stat_solutions">Solution Modules</div></div>
+<div class="stat-item"><div class="stat-number">24/7</div><div class="stat-label" data-i18n="stat_agents">Autonomous Agents</div></div>
+</div>
+</div>
+</section>
+
+<!-- SERVICES -->
+<section class="services-section" id="services">
+<div class="container">
+<div class="section-header">
+<div class="section-tag" data-i18n="svc_tag">What We Do</div>
+<h2 data-i18n="svc_title">Ten Pillars of Intelligent Service</h2>
+<p data-i18n="svc_sub">One technology stack, endless applications.</p>
+</div>
+<div class="services-grid">
+<div class="service-card"><div class="service-icon">🔆</div><h3 data-i18n="svc1_title">Solar Energy</h3><p data-i18n="svc1_desc">Thermal drone inspection, cleaning, monitoring, and degradation analytics.</p><div class="service-arrow">→</div></div>
+<div class="service-card"><div class="service-icon">🏗️</div><h3 data-i18n="svc2_title">Infrastructure</h3><p data-i18n="svc2_desc">Bridge surveys, heat-loss analysis, construction monitoring, pipeline assessment.</p><div class="service-arrow">→</div></div>
+<div class="service-card"><div class="service-icon">🌾</div><h3 data-i18n="svc3_title">Agriculture</h3><p data-i18n="svc3_desc">NDVI crop health, irrigation optimization, pest detection, livestock monitoring.</p><div class="service-arrow">→</div></div>
+<div class="service-card"><div class="service-icon">🏥</div><h3 data-i18n="svc4_title">Healthcare</h3><p data-i18n="svc4_desc">Telemedicine, patient AI, medical tourism booking, thermal screening.</p><div class="service-arrow">→</div></div>
+<div class="service-card"><div class="service-icon">🏨</div><h3 data-i18n="svc5_title">Tourism</h3><p data-i18n="svc5_desc">AI tour guides, booking automation, aerial content, heritage 3D mapping.</p><div class="service-arrow">→</div></div>
+<div class="service-card"><div class="service-icon">🏪</div><h3 data-i18n="svc6_title">Restaurant Automation</h3><p data-i18n="svc6_desc">WhatsApp/Telegram bots, order management, inventory, delivery optimization.</p><div class="service-arrow">→</div></div>
+<div class="service-card"><div class="service-icon">🏭</div><h3 data-i18n="svc7_title">Energy Auditing</h3><p data-i18n="svc7_desc">Thermal audits, hot-spot detection, cold storage, compliance monitoring.</p><div class="service-arrow">→</div></div>
+<div class="service-card"><div class="service-icon">📱</div><h3 data-i18n="svc8_title">App Development</h3><p data-i18n="svc8_desc">Custom AI agents, white-label platforms, gov services, fintech integrations.</p><div class="service-arrow">→</div></div>
+<div class="service-card"><div class="service-icon">🌍</div><h3 data-i18n="svc9_title">Environment</h3><p data-i18n="svc9_desc">Water quality, waste detection, air quality, flood warning, carbon verification.</p><div class="service-arrow">→</div></div>
+<div class="service-card"><div class="service-icon">📊</div><h3 data-i18n="svc10_title">AI Consulting</h3><p data-i18n="svc10_desc">AI transformation, geospatial processing, automation audits, training.</p><div class="service-arrow">→</div></div>
+</div>
+</div>
+</section>
+
+<!-- DETAILED SERVICES -->
+<section class="details-section" id="details">
+<div class="container">
+<div class="section-header">
+<div class="section-tag" data-i18n="det_tag">Deep Dive</div>
+<h2 data-i18n="det_title">Solutions That Deliver Results</h2>
+<p data-i18n="det_sub">Each module combines AI agents, drone survey, sensor data and autonomous automation.</p>
+</div>
+
+<div class="service-detail">
+<div class="detail-content">
+<h3 data-i18n="det1_title">🔆 Solar Energy Services</h3>
+<p data-i18n="det1_desc">End-to-end solar asset management from feasibility through performance monitoring.</p>
+<ul class="detail-list">
+<li><span class="check">✓</span><span data-i18n="det1_l1">Thermal drone panel inspection</span></li>
+<li><span class="check">✓</span><span data-i18n="det1_l2">Automated cleaning contracts</span></li>
+<li><span class="check">✓</span><span data-i18n="det1_l3">Feasibility studies</span></li>
+<li><span class="check">✓</span><span data-i18n="det1_l4">Real-time monitoring dashboard</span></li>
+<li><span class="check">✓</span><span data-i18n="det1_l5">Degradation tracking</span></li>
+</ul>
+</div>
+<div class="detail-visual"><div class="visual-icon">☀️</div><div class="visual-content">
+<div class="v-icon">🔆</div><h4 data-i18n="det1_v_title">Solar Intelligence</h4>
+<p data-i18n="det1_v_sub">640×512px thermal | 98.5% accuracy</p>
+<div class="visual-stats">
+<div class="v-stat"><strong>30%</strong><span data-i18n="det1_v_s1">Faster</span></div>
+<div class="v-stat"><strong>99.2%</strong><span data-i18n="det1_v_s2">Detection</span></div>
+<div class="v-stat"><strong>€0.02</strong><span data-i18n="det1_v_s3">Per panel</span></div>
+<div class="v-stat"><strong>48h</strong><span data-i18n="det1_v_s4">Reports</span></div>
+</div></div></div>
+</div>
+
+<div class="service-detail">
+<div class="detail-content">
+<h3 data-i18n="det2_title">🌾 Precision Agriculture</h3>
+<p data-i18n="det2_desc">Data-driven farming that increases yields while reducing water and chemical inputs.</p>
+<ul class="detail-list">
+<li><span class="check">✓</span><span data-i18n="det2_l1">NDVI crop health monitoring</span></li>
+<li><span class="check">✓</span><span data-i18n="det2_l2">Irrigation zone optimization</span></li>
+<li><span class="check">✓</span><span data-i18n="det2_l3">Pest & disease detection</span></li>
+<li><span class="check">✓</span><span data-i18n="det2_l4">Livestock heat stress monitoring</span></li>
+<li><span class="check">✓</span><span data-i18n="det2_l5">Yield prediction AI</span></li>
+</ul>
+</div>
+<div class="detail-visual"><div class="visual-icon">🌱</div><div class="visual-content">
+<div class="v-icon">🌾</div><h4 data-i18n="det2_v_title">Smart Farming</h4>
+<p data-i18n="det2_v_sub">Precision agriculture by aerial intelligence</p>
+<div class="visual-stats">
+<div class="v-stat"><strong>25%</strong><span data-i18n="det2_v_s1">Water savings</span></div>
+<div class="v-stat"><strong>18%</strong><span data-i18n="det2_v_s2">Yield up</span></div>
+<div class="v-stat"><strong>40%</strong><span data-i18n="det2_v_s3">Less pesticide</span></div>
+<div class="v-stat"><strong>3wk</strong><span data-i18n="det2_v_s4">Early detect</span></div>
+</div></div></div>
+</div>
+
+<div class="service-detail">
+<div class="detail-content">
+<h3 data-i18n="det3_title">🏪 Business Automation</h3>
+<p data-i18n="det3_desc">AI automation for restaurants, shops, and services — 24/7, any language.</p>
+<ul class="detail-list">
+<li><span class="check">✓</span><span data-i18n="det3_l1">WhatsApp & Telegram bots</span></li>
+<li><span class="check">✓</span><span data-i18n="det3_l2">Inventory management</span></li>
+<li><span class="check">✓</span><span data-i18n="det3_l3">Multi-location dashboards</span></li>
+<li><span class="check">✓</span><span data-i18n="det3_l4">Delivery optimization</span></li>
+<li><span class="check">✓</span><span data-i18n="det3_l5">Multilingual support</span></li>
+</ul>
+</div>
+<div class="detail-visual"><div class="visual-icon">🤖</div><div class="visual-content">
+<div class="v-icon">⚡</div><h4 data-i18n="det3_v_title">Autonomous Ops</h4>
+<p data-i18n="det3_v_sub">AI agents that work while you sleep</p>
+<div class="visual-stats">
+<div class="v-stat"><strong>24/7</strong><span data-i18n="det3_v_s1">Always on</span></div>
+<div class="v-stat"><strong>6</strong><span data-i18n="det3_v_s2">Languages</span></div>
+<div class="v-stat"><strong>85%</strong><span data-i18n="det3_v_s3">Automated</span></div>
+<div class="v-stat"><strong>&lt;2s</strong><span data-i18n="det3_v_s4">Response</span></div>
+</div></div></div>
+</div>
+
+<div class="service-detail">
+<div class="detail-content">
+<h3 data-i18n="det4_title">🏥 Healthcare Technology</h3>
+<p data-i18n="det4_desc">Digital health platforms bridging patients and providers across borders.</p>
+<ul class="detail-list">
+<li><span class="check">✓</span><span data-i18n="det4_l1">Telemedicine platform</span></li>
+<li><span class="check">✓</span><span data-i18n="det4_l2">Medical tourism booking</span></li>
+<li><span class="check">✓</span><span data-i18n="det4_l3">AI scheduling agents</span></li>
+<li><span class="check">✓</span><span data-i18n="det4_l4">Thermal screening</span></li>
+<li><span class="check">✓</span><span data-i18n="det4_l5">Health camp coordination</span></li>
+</ul>
+</div>
+<div class="detail-visual"><div class="visual-icon">💊</div><div class="visual-content">
+<div class="v-icon">🏥</div><h4 data-i18n="det4_v_title">Digital Health</h4>
+<p data-i18n="det4_v_sub">Patients to care across borders</p>
+<div class="visual-stats">
+<div class="v-stat"><strong>$2B+</strong><span data-i18n="det4_v_s1">Turkey med</span></div>
+<div class="v-stat"><strong>60%</strong><span data-i18n="det4_v_s2">Faster</span></div>
+<div class="v-stat"><strong>15+</strong><span data-i18n="det4_v_s3">Languages</span></div>
+<div class="v-stat"><strong>98%</strong><span data-i18n="det4_v_s4">Uptime</span></div>
+</div></div></div>
+</div>
+
+</div>
+</section>
+
+<!-- MARKETS -->
+<section class="markets-section" id="markets">
+<div class="container">
+<div class="section-header">
+<div class="section-tag" data-i18n="mkt_tag">Global Reach</div>
+<h2 data-i18n="mkt_title">Serving Six Continental Regions</h2>
+<p data-i18n="mkt_sub">Local expertise, global technology.</p>
+</div>
+<div class="markets-grid">
+<div class="market-card"><div class="market-flag">🇪🇺</div><h3 data-i18n="mkt1_name">European Union</h3><p class="market-desc" data-i18n="mkt1_desc">Energy efficiency, aging infrastructure, viticulture, compliance.</p><div class="market-tags"><span class="market-tag" data-i18n="mkt1_t1">Energy</span><span class="market-tag" data-i18n="mkt1_t2">Solar</span><span class="market-tag" data-i18n="mkt1_t3">Compliance</span><span class="market-tag" data-i18n="mkt1_t4">Carbon</span></div></div>
+<div class="market-card"><div class="market-flag">🌎</div><h3 data-i18n="mkt2_name">South America</h3><p class="market-desc" data-i18n="mkt2_desc">Agriculture, restaurant tech, delivery, environmental monitoring.</p><div class="market-tags"><span class="market-tag" data-i18n="mkt2_t1">Agri</span><span class="market-tag" data-i18n="mkt2_t2">Restaurant</span><span class="market-tag" data-i18n="mkt2_t3">Logistics</span><span class="market-tag" data-i18n="mkt2_t4">Fintech</span></div></div>
+<div class="market-card"><div class="market-flag">🌍</div><h3 data-i18n="mkt3_name">Africa</h3><p class="market-desc" data-i18n="mkt3_desc">Mobile-first, WhatsApp commerce, precision ag, telemedicine.</p><div class="market-tags"><span class="market-tag" data-i18n="mkt3_t1">WhatsApp</span><span class="market-tag" data-i18n="mkt3_t2">Telemedicine</span><span class="market-tag" data-i18n="mkt3_t3">Agri</span><span class="market-tag" data-i18n="mkt3_t4">Training</span></div></div>
+<div class="market-card"><div class="market-flag">🇹🇷</div><h3 data-i18n="mkt4_name">Turkey</h3><p class="market-desc" data-i18n="mkt4_desc">Medical tourism, post-earthquake inspection, manufacturing, restaurants.</p><div class="market-tags"><span class="market-tag" data-i18n="mkt4_t1">Medical</span><span class="market-tag" data-i18n="mkt4_t2">Construction</span><span class="market-tag" data-i18n="mkt4_t3">Manufacturing</span><span class="market-tag" data-i18n="mkt4_t4">Hospitality</span></div></div>
+<div class="market-card"><div class="market-flag">🇮🇷</div><h3 data-i18n="mkt5_name">Iran</h3><p class="market-desc" data-i18n="mkt5_desc">Water scarcity, heritage tourism, agriculture, telemedicine.</p><div class="market-tags"><span class="market-tag" data-i18n="mkt5_t1">Water</span><span class="market-tag" data-i18n="mkt5_t2">Heritage</span><span class="market-tag" data-i18n="mkt5_t3">Agri</span><span class="market-tag" data-i18n="mkt5_t4">Healthcare</span></div></div>
+<div class="market-card"><div class="market-flag">🌙</div><h3 data-i18n="mkt6_name">Middle East</h3><p class="market-desc" data-i18n="mkt6_desc">Mega-projects, solar maintenance, luxury tourism, Vision 2030.</p><div class="market-tags"><span class="market-tag" data-i18n="mkt6_t1">Solar</span><span class="market-tag" data-i18n="mkt6_t2">Mega Projects</span><span class="market-tag" data-i18n="mkt6_t3">Water</span><span class="market-tag" data-i18n="mkt6_t4">Smart Cities</span></div></div>
+</div>
+</div>
+</section>
+
+<!-- WHY US -->
+<section class="advantages-section" id="whyus">
+<div class="container">
+<div class="section-header">
+<div class="section-tag" data-i18n="why_tag">Our Edge</div>
+<h2 data-i18n="why_title">Why Choose EDGE Global</h2>
+<p data-i18n="why_sub">AI, hardware, and domain expertise — under one roof.</p>
+</div>
+<div class="advantages-grid">
+<div class="advantage-item"><div class="adv-icon">🤖</div><h4 data-i18n="why1_title">AI Agents</h4><p data-i18n="why1_desc">Self-operating agents — schedule, process, report, deliver. No human needed.</p></div>
+<div class="advantage-item"><div class="adv-icon">🚁</div><h4 data-i18n="why2_title">Drone + Sensors</h4><p data-i18n="why2_desc">Thermal, multispectral, gamma-ray on survey-grade drones.</p></div>
+<div class="advantage-item"><div class="adv-icon">🌍</div><h4 data-i18n="why3_title">6 Languages</h4><p data-i18n="why3_desc">EN, FR, ES, Arabic, Turkish, Farsi — all target markets natively.</p></div>
+<div class="advantage-item"><div class="adv-icon">⚡</div><h4 data-i18n="why4_title">Rapid Deploy</h4><p data-i18n="why4_desc">Solutions in days not months. Same engine, per-market configs.</p></div>
+<div class="advantage-item"><div class="adv-icon">📊</div><h4 data-i18n="why5_title">Auto Reporting</h4><p data-i18n="why5_desc">PDF, HTML, CSV — delivered via email, Telegram, or cloud.</p></div>
+<div class="advantage-item"><div class="adv-icon">🔒</div><h4 data-i18n="why6_title">Enterprise Security</h4><p data-i18n="why6_desc">OAuth 2.0, GDPR-compliant, encrypted pipelines, secure cloud.</p></div>
+</div>
+</div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+<div class="container">
+<h2 data-i18n="cta_title">Ready to Transform Your Operations?</h2>
+<p data-i18n="cta_sub">AI-powered solutions for efficiency, cost reduction, and new revenue streams.</p>
+<a href="#contact" class="btn" data-i18n="cta_btn">Schedule a Consultation</a>
+</div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact-section" id="contact">
+<div class="container">
+<div class="section-header">
+<div class="section-tag" data-i18n="con_tag">Get In Touch</div>
+<h2 data-i18n="con_title">Start Your Project</h2>
+<p data-i18n="con_sub">Tell us your needs — we'll design a tailored solution.</p>
+</div>
+<div class="contact-grid">
+<div class="contact-info">
+<h3 data-i18n="con_info_title">EDGE Global Solutions</h3>
+<p data-i18n="con_info_desc">Six continents, local expertise, global technology.</p>
+<ul class="contact-items">
+<li><div class="c-icon">📧</div><div><strong data-i18n="con_email_label">Email</strong><span>info@edge-global.solutions</span></div></li>
+<li><div class="c-icon">💬</div><div><strong data-i18n="con_tg_label">Telegram</strong><span>@EdgeGlobalBot</span></div></li>
+<li><div class="c-icon">📍</div><div><strong data-i18n="con_loc_label">HQ</strong><span data-i18n="con_loc_value">Ireland — Serving EU, ME, Africa, Americas</span></div></li>
+<li><div class="c-icon">⏰</div><div><strong data-i18n="con_hours_label">Response</strong><span data-i18n="con_hours_value">Under 24h — AI never sleeps</span></div></li>
+</ul>
+</div>
+<form class="contact-form" onsubmit="handleSubmit(event)">
+<div class="form-row">
+<div class="form-group"><label data-i18n="form_name">Name</label><input type="text" required></div>
+<div class="form-group"><label data-i18n="form_email">Email</label><input type="email" required></div>
+</div>
+<div class="form-group"><label data-i18n="form_service">Service</label><select>
+<option value="" data-i18n="form_select">Select...</option>
+<option data-i18n="svc1_title">Solar</option><option data-i18n="svc2_title">Infrastructure</option>
+<option data-i18n="svc3_title">Agriculture</option><option data-i18n="svc4_title">Healthcare</option>
+<option data-i18n="svc5_title">Tourism</option><option data-i18n="svc6_title">Restaurant</option>
+<option data-i18n="svc7_title">Auditing</option><option data-i18n="svc8_title">App Dev</option>
+<option data-i18n="svc9_title">Environment</option><option data-i18n="svc10_title">Consulting</option>
+</select></div>
+<div class="form-row">
+<div class="form-group"><label data-i18n="form_region">Region</label><select>
+<option value="" data-i18n="form_region_select">Select...</option>
+<option data-i18n="mkt1_name">EU</option><option data-i18n="mkt2_name">S. America</option>
+<option data-i18n="mkt3_name">Africa</option><option data-i18n="mkt4_name">Turkey</option>
+<option data-i18n="mkt5_name">Iran</option><option data-i18n="mkt6_name">Middle East</option>
+</select></div>
+<div class="form-group"><label data-i18n="form_budget">Budget</label><select>
+<option value="" data-i18n="form_budget_select">Select...</option>
+<option>€1K-€5K</option><option>€5K-€15K</option><option>€15K-€50K</option><option>€50K+</option>
+</select></div>
+</div>
+<div class="form-group"><label data-i18n="form_message">Details</label><textarea></textarea></div>
+<button type="submit" class="btn btn-primary" style="width:100%;justify-content:center" data-i18n="form_submit">Send Inquiry</button>
+</form>
+</div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+<div class="container">
+<div class="footer-grid">
+<div class="footer-brand"><div class="nav-logo" style="margin-bottom:0"><div class="logo-icon">E</div>EDGE <span>Global</span></div>
+<p data-i18n="footer_brand">AI automation, drone surveying, sensor tech, digital transformation. EU, ME, Africa, Americas.</p></div>
+<div><h5 data-i18n="footer_svc">Services</h5><ul>
+<li><a href="#services" data-i18n="svc1_title">Solar</a></li>
+<li><a href="#services" data-i18n="svc3_title">Agriculture</a></li>
+<li><a href="#services" data-i18n="svc6_title">Automation</a></li>
+<li><a href="#services" data-i18n="svc4_title">Healthcare</a></li></ul></div>
+<div><h5 data-i18n="footer_markets">Markets</h5><ul>
+<li><a href="#markets" data-i18n="mkt1_name">EU</a></li>
+<li><a href="#markets" data-i18n="mkt4_name">Turkey</a></li>
+<li><a href="#markets" data-i18n="mkt3_name">Africa</a></li>
+<li><a href="#markets" data-i18n="mkt6_name">Middle East</a></li></ul></div>
+<div><h5 data-i18n="footer_company">Company</h5><ul>
+<li><a href="#" data-i18n="footer_about">About</a></li>
+<li><a href="#" data-i18n="footer_careers">Careers</a></li>
+<li><a href="#" data-i18n="footer_privacy">Privacy</a></li>
+<li><a href="#" data-i18n="footer_terms">Terms</a></li></ul></div>
+</div>
+<div class="footer-bottom"><span data-i18n="footer_copy">© 2026 EDGE Global Solutions.</span></div>
+</div>
+</footer>
+
+<script src="translations.js"></script>
+<script src="app.js"></script>
+</body></html>
