@@ -1,113 +1,2098 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>EDGE GeoIntelligence – Client Portal</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --green-900: #0f2a1a; --green-700: #1b4332; --green-600: #2d6a4f;
-      --green-500: #40916c; --green-400: #52b788; --green-100: #d8f3dc; --green-50: #f0faf3;
-      --blue-700: #1e3a5f; --blue-600: #1d4e89; --blue-500: #2a6cb0;
-      --blue-400: #3a86c8; --blue-100: #dbeaf8; --blue-50: #eef5fc;
-      --ink: #101828; --ink-soft: #344054; --ink-muted: #667085;
-      --line: #d0d5dd; --surface: #f9fafb; --white: #ffffff;
-      --radius-card: 12px; --radius-input: 8px;
-      --shadow-card: 0 1px 3px rgba(16,24,40,0.08), 0 1px 2px rgba(16,24,40,0.06);
-      --shadow-pop: 0 12px 24px -8px rgba(16,24,40,0.18), 0 4px 8px -2px rgba(16,24,40,0.08);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDGE | Earthwise Dynamics Geo Environs — Geointelligence for a Sustainable Future</title>
+    <meta name="description" content="EDGE delivers geospatial modelling, Earth observation analysis, UAV surveys, and AI-driven solutions for geoengineering, environmental, and energy challenges. European Space Agency incubatee.">
+    <meta name="keywords" content="geospatial, Earth observation, UAV surveys, geotechnical engineering, critical minerals, environmental sustainability, renewable energy, Ireland">
+    <meta property="og:title" content="EDGE | Earthwise Dynamics Geo Environs">
+    <meta property="og:description" content="Geointelligence for a sustainable future. Geospatial modelling, Earth observation, UAV surveys, and AI solutions.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://edgeengineers.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+/* ============================================
+   EDGE — Earthwise Dynamics Geo Environs
+   Professional Website Stylesheet
+   ============================================ */
+
+/* ---------- CSS Reset ---------- */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+}
+
+/* ---------- CSS Variables ---------- */
+:root {
+    /* Colors */
+    --bg-darkest: #060912;
+    --bg-dark: #0a0e1a;
+    --bg-card: #0f1524;
+    --bg-card-hover: #131b30;
+    --bg-glass: rgba(15, 21, 36, 0.7);
+    --accent-primary: #10b981;
+    --accent-secondary: #06b6d4;
+    --accent-tertiary: #3b82f6;
+    --accent-gold: #fbbf24;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border-subtle: rgba(148, 163, 184, 0.1);
+    --border-accent: rgba(16, 185, 129, 0.3);
+    --gradient-hero: linear-gradient(135deg, #060912 0%, #0a1a2e 40%, #061520 70%, #060912 100%);
+    --gradient-accent: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%);
+    --gradient-text: linear-gradient(135deg, #34d399 0%, #22d3ee 50%, #60a5fa 100%);
+    --gradient-card: linear-gradient(145deg, rgba(16, 185, 129, 0.05) 0%, rgba(6, 182, 212, 0.03) 100%);
+    --shadow-glow: 0 0 30px rgba(16, 185, 129, 0.15);
+    --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.4);
+    --shadow-card-hover: 0 20px 60px rgba(16, 185, 129, 0.2);
+    --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Typography */
+    --font-head: 'Space Grotesk', 'Segoe UI', sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+    /* Layout */
+    --max-width: 1280px;
+    --nav-height: 72px;
+}
+
+/* ---------- Base ---------- */
+body {
+    font-family: var(--font-body);
+    background: var(--bg-darkest);
+    color: var(--text-primary);
+    line-height: 1.7;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-head);
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: var(--transition);
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+ul {
+    list-style: none;
+}
+
+/* ---------- Utility Classes ---------- */
+.container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.gradient-text {
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.section-tag {
+    display: inline-block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent-primary);
+    margin-bottom: 16px;
+    position: relative;
+    padding-left: 40px;
+}
+
+.section-tag::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 30px;
+    height: 2px;
+    background: var(--gradient-accent);
+}
+
+.section-title {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    margin-bottom: 16px;
+}
+
+.section-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    max-width: 640px;
+    margin-bottom: 48px;
+}
+
+/* ---------- Animated Background Mesh ---------- */
+.bg-mesh {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    background: var(--bg-darkest);
+    overflow: hidden;
+}
+
+.bg-mesh::before,
+.bg-mesh::after {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.15;
+    animation: meshFloat 20s ease-in-out infinite;
+}
+
+.bg-mesh::before {
+    background: var(--accent-primary);
+    top: 10%;
+    left: -5%;
+}
+
+.bg-mesh::after {
+    background: var(--accent-tertiary);
+    bottom: 10%;
+    right: -5%;
+    animation-delay: -10s;
+}
+
+@keyframes meshFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(60px, 40px) scale(1.1); }
+    66% { transform: translate(-40px, 60px) scale(0.95); }
+}
+
+/* ---------- Floating Particles Canvas ---------- */
+#particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* ============================================
+   NAVIGATION
+   ============================================ */
+.nav-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    transition: var(--transition);
+}
+
+.nav-wrapper.scrolled {
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.nav {
+    height: var(--nav-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 1.3rem;
+    letter-spacing: -0.5px;
+}
+
+.nav-logo-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-accent);
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-logo-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.nav-logo-icon::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
+    animation: logoShine 3s ease-in-out infinite;
+}
+
+@keyframes logoShine {
+    0%, 100% { transform: translate(-100%, -100%); }
+    50% { transform: translate(0%, 0%); }
+}
+
+.nav-logo-text {
+    color: var(--text-primary);
+}
+
+.nav-logo-text span {
+    color: var(--accent-primary);
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.nav-links a {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    position: relative;
+    padding: 4px 0;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--gradient-accent);
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: var(--text-primary);
+}
+
+.nav-links a:hover::after,
+.nav-links a.active::after {
+    width: 100%;
+}
+
+.nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    background: var(--gradient-accent);
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 50px;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+    transition: var(--transition);
+}
+
+.nav-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
+}
+
+/* Mobile Menu Toggle */
+.nav-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 8px;
+    z-index: 1001;
+}
+
+.nav-toggle span {
+    width: 24px;
+    height: 2px;
+    background: var(--text-primary);
+    transition: var(--transition);
+    border-radius: 2px;
+}
+
+.nav-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+.nav-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+.nav-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 32px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary {
+    background: var(--gradient-accent);
+    color: #fff;
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.25);
+}
+
+.btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-primary:hover::after {
+    left: 100%;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-accent);
+}
+
+.btn-outline:hover {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: var(--accent-primary);
+    transform: translateY(-3px);
+}
+
+/* ============================================
+   HERO SECTION
+   ============================================ */
+.hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-top: var(--nav-height);
+    overflow: hidden;
+}
+
+.hero-bg-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    z-index: 0;
+    animation: gridMove 20s linear infinite;
+}
+
+@keyframes gridMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(60px, 60px); }
+}
+
+.hero-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
+    z-index: 0;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 820px;
+    padding: 0 24px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    border-radius: 50px;
+    font-size: 0.85rem;
+    color: var(--accent-gold);
+    margin-bottom: 32px;
+    animation: badgePulse 3s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.3); }
+    50% { box-shadow: 0 0 0 8px rgba(251, 191, 36, 0); }
+}
+
+.hero h1 {
+    font-size: clamp(2.2rem, 5.5vw, 4.2rem);
+    line-height: 1.1;
+    margin-bottom: 24px;
+    letter-spacing: -1.5px;
+}
+
+.hero h1 .line {
+    display: block;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: heroLineIn 0.8s ease forwards;
+}
+
+.hero h1 .line:nth-child(1) { animation-delay: 0.2s; }
+.hero h1 .line:nth-child(2) { animation-delay: 0.4s; }
+.hero h1 .line:nth-child(3) { animation-delay: 0.6s; }
+
+@keyframes heroLineIn {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-tagline {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+    opacity: 0;
+    animation: heroLineIn 0.8s ease 0.8s forwards;
+}
+
+.hero-typed-text {
+    color: var(--accent-primary);
+    font-weight: 600;
+}
+
+.hero-typed-text::after {
+    content: '|';
+    animation: blink 1s step-end infinite;
+    color: var(--accent-secondary);
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: heroLineIn 0.8s ease 1s forwards;
+}
+
+.hero-scroll-indicator {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    animation: scrollBounce 2s ease-in-out infinite;
+}
+
+@keyframes scrollBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(10px); }
+}
+
+/* ============================================
+   SECTION SPACING
+   ============================================ */
+.section {
+    padding: 100px 0;
+    position: relative;
+}
+
+.section-light {
+    background: var(--bg-dark);
+}
+
+/* ============================================
+   STATS BAR
+   ============================================ */
+.stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    padding: 48px 0;
+}
+
+.stat-item {
+    text-align: center;
+    position: relative;
+}
+
+.stat-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 60px;
+    background: var(--border-subtle);
+}
+
+.stat-number {
+    font-family: var(--font-head);
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ============================================
+   SERVICE CARDS
+   ============================================ */
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+}
+
+.service-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    padding: 36px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--gradient-accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.5s ease;
+}
+
+.service-card:hover::before {
+    transform: scaleX(1);
+}
+
+.service-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-accent);
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-card-hover);
+}
+
+.service-icon {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-card);
+    border: 1px solid var(--border-accent);
+    border-radius: 16px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.service-icon svg {
+    width: 32px;
+    height: 32px;
+    stroke: var(--accent-primary);
+    transition: var(--transition);
+    z-index: 2;
+}
+
+.service-card:hover .service-icon {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+.service-card:hover .service-icon svg {
+    transform: scale(1.1);
+}
+
+.service-icon::after {
+    content: '';
+    position: absolute;
+    width: 120%;
+    height: 120%;
+    background: conic-gradient(from 0deg, transparent, rgba(16, 185, 129, 0.1), transparent);
+    animation: iconSpin 4s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.service-card:hover .service-icon::after {
+    opacity: 1;
+}
+
+@keyframes iconSpin {
+    to { transform: rotate(360deg); }
+}
+
+.service-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.service-card p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+.service-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent-primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.service-link svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+}
+
+.service-card:hover .service-link svg {
+    transform: translateX(5px);
+}
+
+/* ============================================
+   ABOUT PREVIEW
+   ============================================ */
+.about-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+}
+
+.about-text h2 {
+    font-size: clamp(1.6rem, 3.5vw, 2.5rem);
+    margin-bottom: 24px;
+}
+
+.about-text p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    font-size: 1.05rem;
+}
+
+.about-features {
+    margin-top: 32px;
+}
+
+.about-feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.about-feature svg {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    color: var(--accent-primary);
+}
+
+.about-visual {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.about-visual img {
+    width: 100%;
+    height: auto;
+    border-radius: 20px;
+}
+
+.about-visual-badge {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 20px 28px;
+}
+
+.about-visual-badge .badge-number {
+    font-family: var(--font-head);
+    font-size: 2rem;
+    font-weight: 800;
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.about-visual-badge .badge-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ============================================
+   PROJECT CARDS
+   ============================================ */
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 28px;
+}
+
+.project-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: var(--transition);
+    position: relative;
+}
+
+.project-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--border-accent);
+    box-shadow: var(--shadow-card-hover);
+}
+
+.project-image {
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    position: relative;
+}
+
+.project-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+}
+
+.project-card:hover .project-image img {
+    transform: scale(1.08);
+}
+
+.project-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 50%, var(--bg-card) 100%);
+}
+
+.project-tag {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent-primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.project-body {
+    padding: 28px;
+}
+
+.project-body h3 {
+    font-size: 1.15rem;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.project-body p {
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    margin-bottom: 20px;
+}
+
+.project-funder {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--accent-gold);
+    font-weight: 600;
+    padding: 6px 14px;
+    background: rgba(251, 191, 36, 0.08);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    border-radius: 50px;
+}
+
+/* ============================================
+   CTA SECTION
+   ============================================ */
+.cta-section {
+    padding: 80px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-card {
+    background: var(--gradient-hero);
+    border: 1px solid var(--border-accent);
+    border-radius: 30px;
+    padding: 64px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, transparent 50%);
+    animation: ctaPulse 6s ease-in-out infinite;
+}
+
+@keyframes ctaPulse {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(10%, 10%); }
+}
+
+.cta-card h2 {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    margin-bottom: 16px;
+    position: relative;
+}
+
+.cta-card p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    max-width: 520px;
+    margin: 0 auto 32px;
+    position: relative;
+}
+
+.cta-card .btn {
+    position: relative;
+}
+
+/* ============================================
+   CONTACT FORM
+   ============================================ */
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 48px;
+}
+
+.contact-info-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    padding: 40px;
+}
+
+.contact-info-card h3 {
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+}
+
+.contact-info-card > p {
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+    font-size: 0.95rem;
+}
+
+.contact-detail {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.contact-detail-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-card);
+    border: 1px solid var(--border-accent);
+    border-radius: 14px;
+    flex-shrink: 0;
+}
+
+.contact-detail-icon svg {
+    width: 22px;
+    height: 22px;
+    color: var(--accent-primary);
+}
+
+.contact-detail-content .label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.contact-detail-content .value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.contact-detail-content .value a {
+    color: var(--accent-primary);
+}
+
+.contact-form-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    padding: 40px;
+}
+
+.contact-form-card h3 {
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+}
+
+.contact-form-card > p {
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+    font-size: 0.95rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 14px 18px;
+    background: var(--bg-dark);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.form-submit {
+    width: 100%;
+    justify-content: center;
+}
+
+.form-note {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 16px;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.footer {
+    background: var(--bg-darkest);
+    border-top: 1px solid var(--border-subtle);
+    padding: 64px 0 32px;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 48px;
+    margin-bottom: 48px;
+}
+
+.footer-brand .nav-logo {
+    margin-bottom: 20px;
+}
+
+.footer-brand p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+    max-width: 400px;
+}
+
+.footer-social {
+    display: flex;
+    gap: 12px;
+}
+
+.footer-social a {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+.footer-social a:hover {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: var(--border-accent);
+    color: var(--accent-primary);
+    transform: translateY(-3px);
+}
+
+.footer-social a svg {
+    width: 20px;
+    height: 20px;
+}
+
+.footer-col h4 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.footer-col ul li {
+    margin-bottom: 12px;
+}
+
+.footer-col ul li a {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.footer-col ul li a:hover {
+    color: var(--accent-primary);
+}
+
+.footer-esa {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(251, 191, 36, 0.08);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    border-radius: 50px;
+    font-size: 0.8rem;
+    color: var(--accent-gold);
+    margin-top: 16px;
+}
+
+.footer-bottom {
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.footer-bottom p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.footer-bottom a {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.footer-bottom a:hover {
+    color: var(--accent-primary);
+}
+
+/* ============================================
+   PAGE HERO (Sub-pages)
+   ============================================ */
+.page-hero {
+    padding: calc(var(--nav-height) + 80px) 0 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.page-hero h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    margin-bottom: 16px;
+    letter-spacing: -1px;
+}
+
+.page-hero p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.page-hero-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    z-index: 0;
+}
+
+.page-hero .container {
+    position: relative;
+    z-index: 2;
+}
+
+/* ============================================
+   PARTNERS / COLLABORATORS
+   ============================================ */
+.partners-strip {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 48px;
+    padding: 40px 0;
+    opacity: 0.7;
+}
+
+.partner-name {
+    font-family: var(--font-head);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+.partner-name:hover {
+    color: var(--text-primary);
+}
+
+/* ============================================
+   SCROLL ANIMATIONS
+   ============================================ */
+.reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+.reveal-delay-5 { transition-delay: 0.5s; }
+.reveal-delay-6 { transition-delay: 0.6s; }
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 968px) {
+    .about-preview {
+        grid-template-columns: 1fr;
+        gap: 40px;
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; font-family: "Inter","Segoe UI",Roboto,-apple-system,sans-serif;
-      background: var(--surface); color: var(--ink); line-height: 1.55;
-      -webkit-font-smoothing: antialiased;
-      min-height: 100vh;
-      background:
-        radial-gradient(1200px 300px at 80% -20%, rgba(58,134,200,0.12), transparent 70%),
-        radial-gradient(1000px 300px at 20% -10%, rgba(82,183,136,0.15), transparent 70%),
-        linear-gradient(180deg, var(--green-700) 0%, var(--blue-700) 35%, var(--surface) 60%);
+
+    .contact-grid {
+        grid-template-columns: 1fr;
     }
-    main { max-width: 680px; margin: 0 auto; padding: 40px 20px 64px; }
-    .hero { text-align: center; margin-bottom: 40px; }
-    .hero .logo {
-      display: inline-flex; align-items: center; gap: 10px;
-      background: rgba(255,255,255,0.12); color: var(--white);
-      padding: 8px 20px; border-radius: 100px;
-      font-size: 0.85rem; font-weight: 600; letter-spacing: 0.04em;
-      margin-bottom: 24px; backdrop-filter: blur(6px);
+
+    .stats-bar {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 32px;
     }
-    .hero .logo .pulse {
-      width: 10px; height: 10px; border-radius: 50%;
-      background: var(--green-400); box-shadow: 0 0 0 4px rgba(82,183,136,0.3);
+
+    .stat-item:nth-child(2)::after {
+        display: none;
     }
-    .hero h1 { margin: 0 0 12px; font-size: 2rem; font-weight: 700; color: var(--white); letter-spacing: -0.02em; }
-    .hero p { margin: 0; font-size: 1.05rem; color: rgba(255,255,255,0.8); max-width: 480px; margin-left: auto; margin-right: auto; }
-    .card-grid { display: grid; gap: 20px; }
-    .portal-card {
-      background: var(--white); border: 1px solid var(--line);
-      border-radius: var(--radius-card); box-shadow: var(--shadow-card);
-      padding: 28px 32px; text-decoration: none; color: inherit;
-      display: flex; align-items: flex-start; gap: 20px;
-      transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
-      position: relative; overflow: hidden;
+
+    .footer-grid {
+        grid-template-columns: 1fr 1fr;
     }
-    .portal-card:hover { box-shadow: var(--shadow-pop); transform: translateY(-2px); border-color: var(--green-400); }
-    .portal-card::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--green-500); }
-    .card-icon { flex-shrink: 0; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 700; color: var(--white); background: var(--green-500); }
-    .card-body { flex: 1; }
-    .card-body h2 { margin: 0 0 4px; font-size: 1.15rem; font-weight: 600; }
-    .card-body p { margin: 0; font-size: 0.88rem; color: var(--ink-muted); }
-    .card-body .badge { display: inline-block; margin-top: 10px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; background: var(--green-50); color: var(--green-700); }
-    .card-arrow { flex-shrink: 0; font-size: 1.3rem; color: var(--ink-muted); align-self: center; transition: transform 0.2s; }
-    .portal-card:hover .card-arrow { transform: translateX(4px); }
-    .section-label{font-size:0.78rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin:8px 4px 12px;}
-    .site-footer { text-align: center; margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 0.8rem; color: var(--ink-muted); }
-    @media (max-width: 480px) {
-      .portal-card { flex-direction: column; gap: 12px; padding: 22px; }
-      .card-arrow { align-self: flex-end; }
-      .hero h1 { font-size: 1.5rem; }
+
+    .footer-brand {
+        grid-column: 1 / -1;
     }
-  </style>
+}
+
+@media (max-width: 768px) {
+    .nav-links {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 280px;
+        height: 100vh;
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        flex-direction: column;
+        justify-content: center;
+        padding: 40px;
+        gap: 28px;
+        transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        border-left: 1px solid var(--border-subtle);
+    }
+
+    .nav-links.active {
+        right: 0;
+    }
+
+    .nav-links a {
+        font-size: 1.1rem;
+    }
+
+    .nav-toggle {
+        display: flex;
+    }
+
+    .section {
+        padding: 64px 0;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .cta-card {
+        padding: 40px 24px;
+    }
+
+    .contact-info-card,
+    .contact-form-card {
+        padding: 28px;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-bar {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .stat-item::after {
+        display: none;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .hero-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .projects-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+    </style>
 </head>
 <body>
-  <main>
-    <div class="hero">
-      <div class="logo"><span class="pulse"></span> EDGE GeoIntelligence</div>
-      <h1>Client Portal</h1>
-      <p>Submit your project details for assessment and quoting.</p>
-    </div>
 
-    <div class="card-grid">
-      <a href="upload-form.html" class="portal-card">
-        <div class="card-icon">1</div>
-        <div class="card-body">
-          <h2>Project Setup &amp; Service Selection</h2>
-          <p>Tell us about your project — area of interest, services needed, detector type, and contact information.</p>
-          <span class="badge">Start here</span>
+<!-- Animated Background -->
+<div class="bg-mesh"></div>
+<canvas id="particles"></canvas>
+
+<!-- ====== NAVIGATION ====== -->
+<div class="nav-wrapper">
+    <nav class="nav container">
+        <a href="#hero" class="nav-logo">
+            <div class="nav-logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </div>
+            <span class="nav-logo-text">EDGE<span>.</span></span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#hero" class="active">Home</a></li>
+            <li><a href="#about">About Us</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#contact">Contact</a></li>
+            <li><a href="#contact" class="nav-cta">Start a Project →</a></li>
+        </ul>
+        <div class="nav-toggle"><span></span><span></span><span></span></div>
+    </nav>
+</div>
+
+<!-- ====== HERO ====== -->
+<section class="hero" id="hero">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-content">
+        <div class="hero-badge"><span>🚀</span> European Space Agency Incubatee</div>
+        <h1>
+            <span class="line">Innovating at the</span>
+            <span class="line"><span class="gradient-text">Intersection of Earth</span></span>
+            <span class="line">and Space</span>
+        </h1>
+        <p class="hero-tagline">
+            EDGE delivers advanced <span class="hero-typed-text" data-phrases='["geospatial modelling.","Earth observation analysis.","UAV survey technology.","critical mineral detection.","climate monitoring solutions.","AI-driven geoengineering."]'></span>
+        </p>
+        <div class="hero-buttons">
+            <a href="#services" class="btn btn-primary">Explore Our Services →</a>
+            <a href="#contact" class="btn btn-outline">Start a Project</a>
         </div>
-        <div class="card-arrow">→</div>
-      </a>
     </div>
+    <div class="hero-scroll-indicator">
+        <span>Scroll</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+</section>
 
-    <div class="section-label">Interactive Showcases</div>
-    <div class="card-grid">
-      <a href="geolibre.html" class="portal-card">
-        <div class="card-icon" style="background:var(--blue-500)">🌍</div>
-        <div class="card-body">
-          <h2>Planetary Atlas — Moon, Mars &amp; Beyond</h2>
-          <p>Explore interactive 3D globes of the Moon, Mars and other worlds — built on open-source MapLibre GL with real NASA, USGS &amp; OpenPlanetaryMap imagery. No sign-in required.</p>
-          <span class="badge" style="background:var(--blue-50);color:var(--blue-700)">Open now</span>
+<!-- ====== STATS BAR ====== -->
+<section class="section" style="padding:40px 0">
+    <div class="container">
+        <div class="stats-bar reveal">
+            <div class="stat-item">
+                <div class="stat-number" data-count="6" data-suffix="+">0</div>
+                <div class="stat-label">Core Services</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-count="3" data-suffix="+">0</div>
+                <div class="stat-label">Funded Projects</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-count="200" data-suffix="+">0</div>
+                <div class="stat-label">Geospatial Variables</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-count="60" data-suffix="M+">0</div>
+                <div class="stat-label">Data Points Processed</div>
+            </div>
         </div>
-        <div class="card-arrow">→</div>
-      </a>
     </div>
+</section>
 
-    <div class="site-footer">
-      EDGE Geointelligence · info@edgeengineers.net
+<!-- ====== SERVICES ====== -->
+<section class="section section-light" id="services">
+    <div class="container">
+        <div class="section-header reveal">
+            <span class="section-tag" style="padding-left:0">What We Do</span>
+            <h2 class="section-title">Our <span class="gradient-text">Capabilities</span></h2>
+            <p class="section-subtitle" style="margin-left:auto;margin-right:auto;text-align:center">From critical mineral exploration to climate resilience — we deploy cutting-edge technology to solve complex geoengineering and environmental challenges.</p>
+        </div>
+        <div class="services-grid">
+            <div class="service-card reveal reveal-delay-1">
+                <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M12 2v2M12 14v8M4 22h16M8 22l4-8 4 8"/></svg></div>
+                <h3>Renewable Energy & Critical Mineral Resourcing</h3>
+                <p>Exploration and assessment of rare earth elements and critical minerals using advanced geophysical and geochemical survey techniques.</p>
+            </div>
+            <div class="service-card reveal reveal-delay-2">
+                <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+                <h3>Earth Observation Data Analysis</h3>
+                <p>Satellite remote sensing and Earth observation analytics for environmental monitoring, land-use classification, and resource mapping.</p>
+            </div>
+            <div class="service-card reveal reveal-delay-3">
+                <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6M12 22v-6M2 12h6M22 12h-6"/><rect x="8" y="8" width="8" height="8" rx="2"/><path d="M4 4l2 2M20 4l-2 2M4 20l2-2M20 20l-2-2"/></svg></div>
+                <h3>Specialised UAV Surveys</h3>
+                <p>Drone-mounted gamma-ray spectrometry, pXRF, and hyperspectral imaging for high-resolution site characterisation and mineral targeting.</p>
+            </div>
+            <div class="service-card reveal reveal-delay-1">
+                <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0H5a2 2 0 0 1-2-2v-4m6 6h10a2 2 0 0 0 2-2v-4M3 9h18M3 15h18"/></svg></div>
+                <h3>Geospatial Modelling & Mapping</h3>
+                <p>GIS-based spatial analysis, multi-hazard susceptibility mapping, and geodatabase platforms for informed decision-making.</p>
+            </div>
+            <div class="service-card reveal reveal-delay-2">
+                <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96c1.4 9.3-3.6 12.8-8.2 13.4"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg></div>
+                <h3>Climate Change & Carbon Reduction</h3>
+                <p>Monitoring climate change impacts and developing data-driven carbon reduction strategies for resilient, sustainable communities.</p>
+            </div>
+            <div class="service-card reveal reveal-delay-3">
+                <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="14" y1="4" x2="10" y2="20"/></svg></div>
+                <h3>Software Development & Automation</h3>
+                <p>Custom geoscience software, AI-driven automation tools, and web platforms for data processing and geointelligence.</p>
+            </div>
+        </div>
     </div>
-  </main>
+</section>
+
+<!-- ====== ABOUT ====== -->
+<section class="section" id="about">
+    <div class="container">
+        <div class="about-preview">
+            <div class="about-text reveal">
+                <span class="section-tag">Who We Are</span>
+                <h2>A Research-Focused Team at the <span class="gradient-text">Forefront of Geoengineering</span></h2>
+                <p>Earthwise Dynamics Geo Environs (EDGE) is an Irish SME delivering advanced solutions in geotechnical engineering, environmental assessment, and geospatial analysis. We collaborate with leading institutions including Trinity College Dublin, UCD, and DIAS.</p>
+                <p>As a European Space Agency incubatee, we develop smart critical mineral detection tools for terrestrial and space applications, as well as technologies for mapping, monitoring, carbon reduction, and geoscience software.</p>
+                <div class="about-features">
+                    <div class="about-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>European Space Agency incubatee</span></div>
+                    <div class="about-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>Access to environmental laboratories across Europe</span></div>
+                    <div class="about-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>State-of-the-art sensors, drones, and analytical tools</span></div>
+                    <div class="about-feature"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>AI, big data processing, and advanced geospatial methods</span></div>
+                </div>
+            </div>
+            <div class="about-visual reveal reveal-delay-2">
+                <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80" alt="Earth from space — satellite view" onerror="this.style.display='none'">
+                <div class="about-visual-badge">
+                    <div class="badge-number">ESA</div>
+                    <div class="badge-label">Incubatee 2024</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== STRENGTHS / VALUES ====== -->
+<section class="section section-light">
+    <div class="container">
+        <div class="section-header reveal">
+            <span class="section-tag" style="padding-left:0">What Sets Us Apart</span>
+            <h2 class="section-title">Our <span class="gradient-text">Edge</span></h2>
+        </div>
+        <div class="values-grid">
+            <div class="value-card reveal reveal-delay-1">
+                <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+                <h4>Precision & Rigour</h4>
+                <p>Every project is backed by rigorous scientific methodology, advanced analytical tools, and data-driven validation.</p>
+            </div>
+            <div class="value-card reveal reveal-delay-2">
+                <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+                <h4>Innovation & Technology</h4>
+                <p>We integrate AI, big data, and cutting-edge geospatial methods to solve complex challenges in unconventional ways.</p>
+            </div>
+            <div class="value-card reveal reveal-delay-3">
+                <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19.2 2.96c1.4 9.3-3.6 12.8-8.2 13.4"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg></div>
+                <h4>Sustainability First</h4>
+                <p>Everything we do is oriented toward environmental resilience, carbon reduction, and sustainable outcomes.</p>
+            </div>
+            <div class="value-card reveal reveal-delay-4">
+                <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                <h4>Research Collaboration</h4>
+                <p>Strong partnerships with Trinity College Dublin, UCD, DIAS, and European research bodies.</p>
+            </div>
+            <div class="value-card reveal reveal-delay-5">
+                <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+                <h4>Earth + Space</h4>
+                <p>As an ESA incubatee, we bridge terrestrial geoengineering with space-based Earth observation.</p>
+            </div>
+            <div class="value-card reveal reveal-delay-6">
+                <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+                <h4>Proven Impact</h4>
+                <p>Funded by Enterprise Ireland, IRC, GSI, and EOSC — delivering measurable, real-world outcomes.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== PROJECTS ====== -->
+<section class="section" id="projects">
+    <div class="container">
+        <div class="section-header reveal">
+            <span class="section-tag" style="padding-left:0">Recent Work</span>
+            <h2 class="section-title">Funded <span class="gradient-text">Research Projects</span></h2>
+            <p class="section-subtitle" style="margin-left:auto;margin-right:auto;text-align:center">Our work is recognised and funded by leading research institutions across Ireland and Europe.</p>
+        </div>
+        <div class="projects-grid">
+            <div class="project-card reveal reveal-delay-1">
+                <div class="project-image">
+                    <span class="project-tag">Radiometric</span>
+                    <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=600&q=80" alt="Radiation monitoring laboratory" onerror="this.style.display='none'">
+                </div>
+                <div class="project-body">
+                    <h3>Quantifying Gamma Radiation Exposure and Radon/Thoron Emission in Irish Building Materials</h3>
+                    <p>Comprehensive assessment of naturally occurring radioactive materials (NORM) in construction materials across Ireland, quantifying exposure pathways for residential and commercial buildings.</p>
+                    <span class="project-funder">💰 Funded by IRC & Geological Survey Ireland · Sept 2024</span>
+                </div>
+            </div>
+            <div class="project-card reveal reveal-delay-2">
+                <div class="project-image">
+                    <span class="project-tag">GIS / Epidemiology</span>
+                    <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&q=80" alt="Data analysis and mapping" onerror="this.style.display='none'">
+                </div>
+                <div class="project-body">
+                    <h3>GIS & Spatiotemporal Analysis of SARS-CoV-2 — Using Multiple Datasets</h3>
+                    <p>Geospatial model predicting weekly contagion and lethality rates of COVID-19 in Ireland. Over 40 parameters including atmospheric pollutants, meteorological variables, sociodemographic factors, and lockdown phases used as model inputs.</p>
+                    <span class="project-funder">💰 Funded by European Open Science Cloud (EOSC) · May 2024</span>
+                </div>
+            </div>
+            <div class="project-card reveal reveal-delay-3">
+                <div class="project-image">
+                    <span class="project-tag">Multi-Hazard Platform</span>
+                    <img src="https://images.unsplash.com/photo-1569163139599-0f451ec186c0?w=600&q=80" alt="Topographic terrain analysis" onerror="this.style.display='none'">
+                </div>
+                <div class="project-body">
+                    <h3>Web-Based Geodatabase for Natural Hazard Assessment & Multi-Hazard Susceptibility Mapping</h3>
+                    <p>Advanced platform integrating 200+ geospatial variables with 60M+ data points for modelling landslide, flood, erosion, radon, and climate change susceptibility across Ireland at 500m resolution.</p>
+                    <span class="project-funder">💰 Funded by Enterprise Ireland · Jan 2024</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== PARTNERS ====== -->
+<section class="section section-light" style="padding:48px 0">
+    <div class="container">
+        <p style="text-align:center;color:var(--text-muted);font-size:0.8rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:32px" class="reveal">Collaborating with Leading Institutions</p>
+        <div class="partners-strip reveal">
+            <span class="partner-name">Trinity College Dublin</span>
+            <span class="partner-name">UCD</span>
+            <span class="partner-name">DIAS</span>
+            <span class="partner-name">European Space Agency</span>
+            <span class="partner-name">Enterprise Ireland</span>
+            <span class="partner-name">Geological Survey Ireland</span>
+        </div>
+    </div>
+</section>
+
+<!-- ====== CONTACT ====== -->
+<section class="section" id="contact">
+    <div class="container">
+        <div class="section-header reveal">
+            <span class="section-tag" style="padding-left:0">Get in Touch</span>
+            <h2 class="section-title">Let's Start a <span class="gradient-text">Conversation</span></h2>
+            <p class="section-subtitle" style="margin-left:auto;margin-right:auto;text-align:center">Whether you need geospatial analysis, environmental assessment, or custom geoengineering software — our team is ready to help.</p>
+        </div>
+        <div class="contact-grid">
+            <div class="contact-info-card reveal">
+                <h3>Contact Information</h3>
+                <p>Reach out to discuss how our team can support your project needs.</p>
+                <div class="contact-detail">
+                    <div class="contact-detail-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    </div>
+                    <div class="contact-detail-content">
+                        <div class="label">Email</div>
+                        <div class="value"><a href="mailto:info@edgeengineers.net">info@edgeengineers.net</a></div>
+                    </div>
+                </div>
+                <div class="contact-detail">
+                    <div class="contact-detail-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    </div>
+                    <div class="contact-detail-content">
+                        <div class="label">Headquarters</div>
+                        <div class="value">Unit 216, Second Floor<br>Eolas Building, MaynoothWorks<br>Maynooth University<br>Co. Kildare, W23 A3HY, Ireland</div>
+                    </div>
+                </div>
+                <div class="contact-detail">
+                    <div class="contact-detail-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    </div>
+                    <div class="contact-detail-content">
+                        <div class="label">LinkedIn</div>
+                        <div class="value"><a href="https://www.linkedin.com/company/earthwise-dynamics-geo-environs-edge-ltd/" target="_blank" rel="noopener">EDGE on LinkedIn</a></div>
+                    </div>
+                </div>
+                <div class="footer-esa" style="margin-top:24px">🚀 European Space Agency Incubatee</div>
+            </div>
+            <div class="contact-form-card reveal reveal-delay-2">
+                <h3>Send Us a Message</h3>
+                <p>Fill out the form below and we'll get back to you promptly.</p>
+                <form id="contactForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fname">First Name *</label>
+                            <input type="text" id="fname" name="fname" placeholder="Your first name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lname">Last Name</label>
+                            <input type="text" id="lname" name="lname" placeholder="Your last name">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" name="email" placeholder="you@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="subject">Subject</label>
+                            <select id="subject" name="subject" style="background:var(--bg-dark);color:var(--text-muted)">
+                                <option value="">Select a topic</option>
+                                <option value="general">General Enquiry</option>
+                                <option value="project">Project Collaboration</option>
+                                <option value="services">Service Enquiry</option>
+                                <option value="careers">Careers & Internships</option>
+                                <option value="research">Research Partnership</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message *</label>
+                        <textarea id="message" name="message" placeholder="Tell us about your project or enquiry..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary form-submit">Send Message →</button>
+                    <p class="form-note">We aim to respond within 2 business days.</p>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== CTA ====== -->
+<section class="section" style="padding-top:0">
+    <div class="container">
+        <div class="cta-card reveal">
+            <h2>Ready to Build Something <span class="gradient-text">Extraordinary?</span></h2>
+            <p>Whether you need geospatial analysis, environmental assessment, or custom geoengineering software — our team is ready.</p>
+            <a href="#contact" class="btn btn-primary">Start a Project with Us →</a>
+        </div>
+    </div>
+</section>
+
+<!-- ====== FOOTER ====== -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a href="#hero" class="nav-logo">
+                    <div class="nav-logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+                    <span class="nav-logo-text">EDGE<span>.</span></span>
+                </a>
+                <p>Earthwise Dynamics Geo Environs (EDGE) Ltd. — Innovative solutions in renewable energy, geotechnical engineering, geospatial modelling, and environmental sustainability.</p>
+                <div class="footer-social">
+                    <a href="https://www.linkedin.com/company/earthwise-dynamics-geo-environs-edge-ltd/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"/></svg></a>
+                    <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg></a>
+                    <a href="#" aria-label="Twitter/X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+                </div>
+                <div class="footer-esa">🚀 European Space Agency Incubatee</div>
+            </div>
+            <div class="footer-col">
+                <h4>Navigate</h4>
+                <ul>
+                    <li><a href="#hero">Home</a></li>
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#projects">Projects</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Get in Touch</h4>
+                <ul>
+                    <li><a href="mailto:info@edgeengineers.net">info@edgeengineers.net</a></li>
+                    <li>Unit 216, Second Floor<br>Eolas Building, MaynoothWorks<br>Maynooth University<br>Co. Kildare, W23 A3HY, Ireland</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Earthwise Dynamics Geo Environs (EDGE) Ltd. All rights reserved.</p>
+            <p>Designed for a sustainable future 🌍</p>
+        </div>
+    </div>
+</footer>
+
+<!-- ====== JAVASCRIPT ====== -->
+<script>
+/* ============================================
+   EDGE — Interactive JavaScript
+   ============================================ */
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    // ---------- Nav scroll effect ----------
+    const navWrapper = document.querySelector('.nav-wrapper');
+    let lastScroll = 0;
+
+    window.addEventListener('scroll', () => {
+        const scroll = window.scrollY;
+        if (scroll > 50) {
+            navWrapper.classList.add('scrolled');
+        } else {
+            navWrapper.classList.remove('scrolled');
+        }
+        lastScroll = scroll;
+    });
+
+    // ---------- Mobile menu toggle ----------
+    const navToggle = document.querySelector('.nav-toggle');
+    const navLinks = document.querySelector('.nav-links');
+
+    if (navToggle) {
+        navToggle.addEventListener('click', () => {
+            navToggle.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+
+        // Close on link click
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navToggle.classList.remove('active');
+                navLinks.classList.remove('active');
+            });
+        });
+    }
+
+    // ---------- Scroll reveal (Intersection Observer) ----------
+    const reveals = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+
+    reveals.forEach(el => revealObserver.observe(el));
+
+    // ---------- Animated counters ----------
+    const counters = document.querySelectorAll('[data-count]');
+    const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const el = entry.target;
+                const target = parseInt(el.dataset.count);
+                const suffix = el.dataset.suffix || '';
+                const duration = 2000;
+                const start = performance.now();
+
+                const animate = (now) => {
+                    const elapsed = now - start;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    const current = Math.floor(eased * target);
+                    el.textContent = current + suffix;
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        el.textContent = target + suffix;
+                    }
+                };
+
+                requestAnimationFrame(animate);
+                counterObserver.unobserve(el);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    counters.forEach(c => counterObserver.observe(c));
+
+    // ---------- Typing effect for hero ----------
+    const typedEl = document.querySelector('.hero-typed-text');
+    if (typedEl) {
+        const phrases = JSON.parse(typedEl.dataset.phrases || '[""]');
+        let phraseIdx = 0;
+        let charIdx = 0;
+        let isDeleting = false;
+
+        const typeEffect = () => {
+            const current = phrases[phraseIdx];
+
+            if (isDeleting) {
+                typedEl.textContent = current.substring(0, charIdx - 1);
+                charIdx--;
+            } else {
+                typedEl.textContent = current.substring(0, charIdx + 1);
+                charIdx++;
+            }
+
+            let delay = isDeleting ? 40 : 80;
+
+            if (!isDeleting && charIdx === current.length) {
+                delay = 2500;
+                isDeleting = true;
+            } else if (isDeleting && charIdx === 0) {
+                isDeleting = false;
+                phraseIdx = (phraseIdx + 1) % phrases.length;
+                delay = 400;
+            }
+
+            setTimeout(typeEffect, delay);
+        };
+
+        setTimeout(typeEffect, 2000);
+    }
+
+    // ---------- Floating particles canvas ----------
+    const canvas = document.getElementById('particles');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let animationId;
+
+        const resizeCanvas = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        };
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        class Particle {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * canvas.height;
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + 10;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedY = Math.random() * 0.6 + 0.2;
+                this.speedX = (Math.random() - 0.5) * 0.3;
+                this.opacity = Math.random() * 0.4 + 0.1;
+                this.colors = ['#10b981', '#06b6d4', '#3b82f6'];
+                this.color = this.colors[Math.floor(Math.random() * this.colors.length)];
+            }
+
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX;
+                if (this.y < -10) this.reset();
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        const createParticles = () => {
+            particles = [];
+            const count = Math.min(60, Math.floor(canvas.width / 25));
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        };
+        createParticles();
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            createParticles();
+        });
+
+        const animateParticles = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            animationId = requestAnimationFrame(animateParticles);
+        };
+        animateParticles();
+    }
+
+    // ---------- Smooth anchor scroll with offset ----------
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                e.preventDefault();
+                const offset = 80;
+                const pos = target.getBoundingClientRect().top + window.scrollY - offset;
+                window.scrollTo({ top: pos, behavior: 'smooth' });
+            }
+        });
+    });
+
+    // ---------- Contact form (demo — connects to Formspree or similar) ----------
+    const contactForm = document.querySelector('.contact-form-card form');
+    if (contactForm) {
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = contactForm.querySelector('button[type="submit"]') || contactForm.querySelector('.btn');
+            if (btn) {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = 'Sending...';
+                btn.disabled = true;
+
+                setTimeout(() => {
+                    btn.innerHTML = '✓ Message Sent!';
+                    btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '';
+                        btn.disabled = false;
+                        contactForm.reset();
+                    }, 3000);
+                }, 1500);
+            }
+        });
+    }
+
+    // ---------- Newsletter form ----------
+    const newsletterForm = document.querySelector('.newsletter-form');
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = newsletterForm.querySelector('button');
+            const input = newsletterForm.querySelector('input');
+            if (input.value.trim()) {
+                const original = btn.innerHTML;
+                btn.innerHTML = '✓';
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                    input.value = '';
+                }, 2000);
+            }
+        });
+    }
+
+});
+
+</script>
 </body>
 </html>
