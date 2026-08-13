@@ -146,16 +146,17 @@ a{text-decoration:none;color:inherit}img,video{max-width:100%;display:block}
 .footer__col li a:hover{color:var(--green2)}
 .footer__bot{border-top:1px solid var(--border);padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .footer__bot p{color:var(--gray3);font-size:.78rem}
-/* LOGOS SECTION */
-.logos-strip{position:relative;z-index:2;padding:80px 0;background:linear-gradient(180deg,rgba(16,185,129,.06),rgba(16,185,129,.02))}
+/* LOGOS SECTION - CLOUD BACKGROUND */
+.logos-strip{position:relative;z-index:2;padding:80px 0;overflow:hidden}
+.logos-strip::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,var(--bg) 0%,rgba(16,185,129,.08) 30%,rgba(16,185,129,.12) 50%,rgba(16,185,129,.08) 70%,var(--bg) 100%);z-index:0}
+.logos-strip::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(16,185,129,.06) 0%,transparent 60%),radial-gradient(ellipse at 80% 50%,rgba(212,168,83,.04) 0%,transparent 60%);z-index:1}
+.logos-strip .container{position:relative;z-index:2}
 .logos-strip__inner{display:flex;align-items:center;justify-content:center;gap:64px;flex-wrap:wrap}
 .logos-strip__item{display:flex;flex-direction:column;align-items:center;gap:12px}
-.logos-strip__item img{height:72px;width:auto;opacity:.9;filter:brightness(1.15);transition:all .3s}
-.logos-strip__item img:hover{opacity:1;filter:brightness(1.3)}
-.logos-strip__badge{display:flex;align-items:center;gap:10px;padding:14px 24px;background:rgba(212,168,83,.1);border:1px solid rgba(212,168,83,.2);border-radius:10px;font-size:.78rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px}
+.logos-strip__item img{height:80px;width:auto;opacity:.95;filter:brightness(1.15);transition:all .3s}
+.logos-strip__item img:hover{opacity:1;filter:brightness(1.3);transform:scale(1.05)}
+.logos-strip__badge{display:flex;align-items:center;gap:10px;padding:14px 24px;background:rgba(212,168,83,.12);border:1px solid rgba(212,168,83,.25);border-radius:10px;font-size:.78rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;backdrop-filter:blur(4px)}
 .logos-strip__badge svg{width:22px;height:22px;fill:var(--gold)}
-.logos-strip__badge--green{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.2);color:var(--green3)}
-.logos-strip__badge--green svg{fill:var(--green2)}
 .r{opacity:0;transform:translateY(40px);transition:all .8s cubic-bezier(.16,1,.3,1)}.r.v{opacity:1;transform:translateY(0)}
 .d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}
 @media(max-width:1024px){.services{grid-template-columns:1fr 1fr}.proj-grid{grid-template-columns:1fr 1fr}.hero__grid{gap:48px}.showcase{grid-template-columns:1fr 1fr}.impact{grid-template-columns:1fr 1fr}}
@@ -265,17 +266,17 @@ a{text-decoration:none;color:inherit}img,video{max-width:100%;display:block}
 <video autoplay muted loop playsinline>
 <source src="https://videos.pexels.com/video-files/4763824/4763824-sd_640_360_24fps.mp4" type="video/mp4">
 </video>
-<div class="showcase__label"><h4>UAV Surveys</h4><p>Drone-mounted sensor payloads</p></div>
+<div class="showcase__label"><h4>Drone Survey</h4><p>UAV-mounted sensor payloads</p></div>
 </div>
 <div class="showcase__item">
 <video autoplay muted loop playsinline>
-<source src="https://videos.pexels.com/video-files/3571264/3571264-uhd_2560_1440_30fps.mp4" type="video/mp4">
+<source src="https://videos.pexels.com/video-files/3571264/3571264-sd_640_360_30fps.mp4" type="video/mp4">
 </video>
-<div class="showcase__label"><h4>Space Missions</h4><p>Lunar & Mars prospecting</p></div>
+<div class="showcase__label"><h4>Space Research</h4><p>Lunar & Mars prospecting</p></div>
 </div>
 <div class="showcase__item">
 <video autoplay muted loop playsinline>
-<source src="https://videos.pexels.com/video-files/2611510/2611510-hd_1920_1080_30fps.mp4" type="video/mp4">
+<source src="https://videos.pexels.com/video-files/2611510/2611510-sd_640_360_30fps.mp4" type="video/mp4">
 </video>
 <div class="showcase__label"><h4>Earth Observation</h4><p>Satellite remote sensing</p></div>
 </div>
@@ -416,7 +417,7 @@ a{text-decoration:none;color:inherit}img,video{max-width:100%;display:block}
 </div>
 <div class="f-row">
 <div class="fg"><label>Email *</label><input type="email" placeholder="you@company.com" required></div>
-<div class="fg"><label>Subject</label><select style="color:var(--gray2)"><option value="">Select</option><option>Geoengineering</option><option>Critical Mineral Prospecting</option><option>Drone Survey</option><option>AI Automation</option><option>AstroTerra Platform</option><option>Research Partnership</option></select></div>
+<div class="fg"><label>Subject</label><select style="color:var(--gray2)"><option value="">Select</option><option>Work with Us</option><option>Geoengineering</option><option>Critical Mineral Prospecting</option><option>Drone Survey</option><option>AI Automation</option><option>AstroTerra Platform</option><option>Research Partnership</option></select></div>
 </div>
 <div class="fg"><label>Message *</label><textarea placeholder="Tell us about your project..." required></textarea></div>
 <button type="submit" class="btn btn--green f-submit">Send Message</button>
@@ -434,7 +435,7 @@ a{text-decoration:none;color:inherit}img,video{max-width:100%;display:block}
 </div>
 </section>
 
-<!-- LOGOS SECTION — BOTTOM -->
+<!-- LOGOS SECTION - CLOUD BACKGROUND -->
 <section class="logos-strip">
 <div class="container">
 <div class="logos-strip__inner">
