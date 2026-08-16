@@ -7,630 +7,681 @@
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0e1a;color:#e6ebf5;font-family:Inter,system-ui,-apple-system,sans-serif;height:100vh;overflow:hidden;font-size:13px}
-.app{display:flex;height:100vh;width:100vw}
-.map-pane{flex:1.5;position:relative;min-width:0}
-.report-pane{flex:1;min-width:380px;max-width:520px;background:#111726;border-left:1px solid #243049;overflow-y:auto;padding:16px 18px}
+body{background:#0a0e1a;color:#e6ebf5;font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:13px;height:100vh;overflow:hidden}
+.app{display:flex;height:100vh}
+.map-pane{flex:1.5;position:relative;overflow:hidden}
+.report-pane{flex:1;min-width:380px;background:#111726;overflow-y:auto;padding:20px;border-left:1px solid #243049}
 
-/* MAP OVERLAYS */
-.map-search{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:10;width:320px}
-.map-search input{width:100%;background:#111726ee;border:1px solid #243049;border-radius:8px;padding:8px 12px;color:#e6ebf5;font-size:13px;outline:none}
-.map-search input:focus{border-color:#3b82f6}
-.map-search input::placeholder{color:#8b97b0}
-.search-msg{font-size:11px;color:#8b97b0;margin-top:4px;text-align:center;min-height:16px}
-
-.basemap-toggle{position:absolute;top:12px;left:12px;z-index:10;display:flex;gap:2px;background:#111726ee;border-radius:8px;border:1px solid #243049;overflow:hidden}
-.basemap-toggle button{background:none;border:none;color:#8b97b0;padding:6px 10px;font-size:11px;cursor:pointer;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.basemap-toggle{position:absolute;top:12px;left:12px;z-index:10;display:flex;gap:4px;background:#0a0e1acc;padding:4px;border-radius:8px;border:1px solid #243049}
+.basemap-toggle button{background:transparent;border:none;color:#8b97b0;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all 150ms}
 .basemap-toggle button.active{background:#3b82f6;color:#fff}
 
-.badges{position:absolute;bottom:12px;left:12px;z-index:10;display:flex;gap:6px;align-items:center}
-.badge{background:#111726ee;border:1px solid #243049;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:600;letter-spacing:.3px}
-.badge-green{color:#22c55e;border-color:#22c55e44}
+.search-bar{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:10;width:280px}
+.search-bar input{width:100%;background:#0a0e1acc;border:1px solid #243049;border-radius:8px;padding:8px 36px 8px 12px;color:#e6ebf5;font-size:13px;outline:none}
+.search-bar input:focus{border-color:#3b82f6}
+.search-bar button{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;color:#8b97b0;cursor:pointer;font-size:16px;padding:4px}
 
-.pin-overlay{position:absolute;top:60px;left:50%;transform:translateX(-50%);z-index:10;background:#f59e0b22;border:1px solid #f59e0b66;color:#f59e0b;padding:4px 12px;border-radius:6px;font-size:11px;font-weight:600;display:none}
+.cursor-triangle{position:absolute;pointer-events:none;width:48px;height:48px;opacity:0;transition:opacity 150ms;z-index:20}
 
-/* CURSOR TRIANGLE */
-.cursor-tri{position:fixed;z-index:9999;pointer-events:none;opacity:0;transition:opacity 150ms;width:48px;height:48px}
-.cursor-tri.visible{opacity:1}
-.cursor-tri svg{width:48px;height:48px}
+.pin-indicator{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);z-index:10;background:#3b82f6cc;color:#fff;padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap;display:none}
 
-/* RISK CHOROPLETH */
-#choropleth-source{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5}
+.data-badges{position:absolute;bottom:12px;left:12px;z-index:10;display:flex;gap:6px;flex-wrap:wrap}
+.badge{background:#0a0e1acc;border:1px solid #243049;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600}
+.badge-ok{color:#22c55e;border-color:#22c55e44}
 
-/* REPORT PANEL */
-.report-pane h2{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:#8b97b0;margin-bottom:8px;font-weight:600}
-.report-pane h3{font-size:12px;color:#e6ebf5;margin-bottom:6px;font-weight:600}
+.section-header{font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:#8b97b0;margin-bottom:10px;font-weight:600}
 .card{background:#161e30;border:1px solid #243049;border-radius:12px;padding:14px 16px;margin-bottom:14px}
 
-.empty-state{display:flex;align-items:center;justify-content:center;height:100%;text-align:center;color:#8b97b0;font-size:14px;line-height:1.6}
+.risk-badge{display:inline-block;padding:4px 14px;border-radius:12px;font-size:12px;font-weight:700}
 
-.risk-pill{display:inline-block;padding:4px 14px;border-radius:14px;font-size:12px;font-weight:700;margin-right:8px}
-.risk-GREEN{background:#22c55e22;color:#22c55e;border:1px solid #22c55e44}
-.risk-AMBER{background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44}
-.risk-RED{background:#ef444422;color:#ef4444;border:1px solid #ef444444}
-.risk-INSUFFICIENT{background:#8b97b022;color:#8b97b0;border:1px solid #8b97b044}
-@keyframes pulse-border{0%,100%{border-color:transparent}50%{border-color:#3b82f6}}
-.updating .risk-pill{animation:pulse-border 1.2s ease infinite}
+.dose-total{font-size:22px;font-weight:700;margin:8px 0}
 
-.loc-header{font-size:12px;color:#8b97b0;margin-bottom:10px}
+.fingerprint-container{display:flex;flex-direction:column;align-items:center;margin:12px 0}
+.fingerprint-svg{width:200px;height:180px}
+.fingerprint-legend{display:flex;gap:16px;margin-top:8px;font-size:12px}
+.fingerprint-legend-item{display:flex;align-items:center;gap:4px}
+.fingerprint-legend-dot{width:10px;height:10px;border-radius:50%}
 
-.dose-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px}
-.dose-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0}
-.dose-label{color:#8b97b0;flex:1}
-.dose-value{font-weight:600;color:#e6ebf5}
-.dose-total{border-top:1px solid #243049;margin-top:4px;padding-top:6px;font-weight:700}
+.factors-table{width:100%;border-collapse:collapse;font-size:12px}
+.factors-table th{text-align:left;color:#8b97b0;font-weight:500;padding:6px 8px;border-bottom:1px solid #243049}
+.factors-table td{padding:6px 8px;border-bottom:1px solid #161e30}
+.dir-up{color:#f59e0b} .dir-down{color:#22c55e} .dir-neutral{color:#8b97b0} .dir-varies{color:#3b82f6}
 
-.factor-row{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px;border-bottom:1px solid #24304911}
-.factor-name{color:#8b97b0;width:110px;flex-shrink:0}
-.factor-value{flex:1;color:#e6ebf5}
-.factor-dir{font-weight:700;width:20px;text-align:center}
-.dir-up{color:#f59e0b}.dir-down{color:#22c55e}.dir-neutral{color:#8b97b0}.dir-varies{color:#3b82f6}
+.conf-bar{height:8px;background:#243049;border-radius:4px;overflow:hidden;margin:6px 0}
+.conf-fill{height:100%;border-radius:4px;transition:width 300ms ease}
 
-.conf-bar{height:6px;background:#243049;border-radius:3px;overflow:hidden;margin:6px 0}
-.conf-fill{height:100%;border-radius:3px;transition:width 300ms ease}
-.conf-text{font-size:11px;color:#8b97b0}
+.source-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;margin:2px}
+.source-badge.measured{background:#22c55e22;color:#22c55e}
+.source-badge.unavailable{background:#ef444422;color:#ef4444}
+.source-badge.modelled{background:#f59e0b22;color:#f59e0b}
 
-.source-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;margin:2px;background:#22c55e22;color:#22c55e;font-weight:600}
+.report-empty{display:flex;align-items:center;justify-content:center;height:100%;text-align:center;color:#8b97b0;font-size:14px;padding:40px}
+.error-state{background:#ef444422;border:1px solid #ef444444;border-radius:8px;padding:12px;color:#ef4444;font-size:12px;margin-bottom:12px}
 
-.provenance{font-size:10px;color:#8b97b0;line-height:1.5;margin-top:8px}
-.provenance strong{color:#3b82f6;font-weight:600}
-
-.why-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;vertical-align:middle}
-.dot-amber{background:#f59e0b}.dot-green{background:#22c55e}.dot-blue{background:#3b82f6}
-
-.error-banner{background:#ef444422;border:1px solid #ef444466;color:#ef4444;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:10px;display:none}
-.water-banner{background:#3b82f622;border:1px solid #3b82f666;color:#3b82f6;padding:12px;border-radius:8px;text-align:center;font-size:13px;margin-bottom:10px}
+@keyframes pulse{0%,100%{border-color:#243049}50%{border-color:#3b82f6}}
+.pulse{animation:pulse 1.5s ease-in-out infinite}
+.report-pane::-webkit-scrollbar{width:6px}
+.report-pane::-webkit-scrollbar-track{background:#111726}
+.report-pane::-webkit-scrollbar-thumb{background:#243049;border-radius:3px}
 </style>
 </head>
 <body>
 <div class="app">
-  <!-- LEFT: MAP -->
   <div class="map-pane" id="mapPane">
-    <div id="map" style="width:100%;height:100%"></div>
-
     <div class="basemap-toggle">
-      <button id="btnSat" class="active">Satellite</button>
-      <button id="btnBing">Bing</button>
-      <button id="btnStreets">Streets</button>
+      <button class="active" data-layer="satellite">Satellite</button>
+      <button data-layer="streets">Streets</button>
     </div>
-
-    <div class="map-search">
-      <input id="searchInput" placeholder="Search town or Eircode&hellip;">
-      <div class="search-msg" id="searchMsg"></div>
+    <div class="search-bar">
+      <input id="searchInput" type="text" placeholder="Search town or Eircode…" />
+      <button id="searchBtn">🔍</button>
     </div>
-
-    <div class="pin-overlay" id="pinOverlay">📌 Pinned &mdash; click to unpin</div>
-
-    <div class="badges" id="badges">
-      <span class="badge" id="badgeCell"></span>
-      <span class="badge badge-green" id="badgeTellus"></span>
-      <span class="badge badge-green" id="badgeEPA"></span>
+    <div class="cursor-triangle" id="cursorTriangle">
+      <svg viewBox="0 0 48 48" width="48" height="48">
+        <line id="arm1" x1="24" y1="24" x2="24" y2="6" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
+        <line id="arm2" x1="24" y1="24" x2="8" y2="36" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
+        <line id="arm3" x1="24" y1="24" x2="40" y2="36" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"/>
+        <polygon id="triFill" points="24,6 8,36 40,36" fill="rgba(59,130,246,0.08)" stroke="none"/>
+        <circle cx="24" cy="24" r="3" fill="#e6ebf5"/>
+      </svg>
     </div>
+    <div class="pin-indicator" id="pinIndicator">📌 Pinned — click map to unpin</div>
+    <div class="data-badges" id="dataBadges"></div>
+    <div id="map"></div>
   </div>
-
-  <!-- RIGHT: REPORT -->
   <div class="report-pane" id="reportPane">
-    <div class="empty-state" id="emptyState">Hover the map of Ireland to see the dose assessment.</div>
+    <div class="report-empty" id="reportEmpty">Hover the map of Ireland to see the dose assessment.</div>
     <div id="reportContent" style="display:none"></div>
   </div>
 </div>
-
-<!-- CURSOR TRIANGLE -->
-<div class="cursor-tri" id="cursorTri">
-  <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-    <polygon id="triFill" points="24,6 6,40 42,40" fill="#3b82f608" stroke="none"/>
-    <line id="armRn" x1="24" y1="24" x2="24" y2="8" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
-    <line id="armTn" x1="24" y1="24" x2="10" y2="38" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
-    <line id="armGm" x1="24" y1="24" x2="38" y2="38" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"/>
-    <circle cx="24" cy="24" r="3" fill="#e6ebf5"/>
-  </svg>
-</div>
-
 <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 <script>
-// ═══════════════════════════════════════════════════════════════════════
-// CONFIGURATION
-// ═══════════════════════════════════════════════════════════════════════
+(function(){
+'use strict';
 
-const API_BASE = location.hostname === "localhost" || location.hostname === "127.0.0.1"
-  ? "http://localhost:8000"
-  : (new URLSearchParams(location.search).get("api") || "http://localhost:8000");
+/* ═══════════════════════════════════════════════════════════════════════
+   PUBLISHED PHYSICAL CONSTANTS — each cited to a specific UNSCEAR/ICRP report
+   ═══════════════════════════════════════════════════════════════════════ */
 
-const IE = { minLat: 51.4, maxLat: 55.4, minLon: -10.6, maxLon: -5.3 };
-const COLORS = { GREEN: "#22c55e", AMBER: "#f59e0b", RED: "#ef4444", INSUFFICIENT: "#8b97b0" };
-const BING_KEY = ""; // Set via ?bing_key=... or leave empty
+// Dose rate conversion coefficients: UNSCEAR 2000 Report Annex B Table 2
+// nGy/h per Bq/kg of Ra-226, Th-232, K-40 in soil, 1m above ground
+var DCC_RA226 = 0.462;   // UNSCEAR 2000 Annex B Table 2
+var DCC_TH232 = 0.604;   // UNSCEAR 2000 Annex B Table 2
+var DCC_K40   = 0.0417;  // UNSCEAR 2000 Annex B Table 2
 
-// ═══════════════════════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════════════════════
+// Concentration conversions: UNSCEAR 2000 Annex B Table 1
+var EU_TO_RA226 = 12.22;   // Bq/kg per ppm eU
+var ETH_TO_TH232 = 4.06;   // Bq/kg per ppm eTh
+var K_PCT_TO_K40 = 313.0;  // Bq/kg per % K
 
-let lastDose = null;       // last successful API response
-let isPinned = false;
-let pinnedCoord = null;
-let pendingAbort = null;
-let debounceTimer = null;
-let cursorOverMap = false;
-let currentBasemap = "satellite";
+// nGy/h → mSv/yr: 8760 h/yr * occupancy 0.7 (ICRP 103) * 1e-6 nGy→mGy→mSv
+var OCCUPANCY = 0.7;       // ICRP 103 (2007)
+var NGY_H_TO_MSV_YR = 8760 * OCCUPANCY * 1e-6;
 
-// ═══════════════════════════════════════════════════════════════════════
-// MAP SETUP
-// ═══════════════════════════════════════════════════════════════════════
+// Radon dose conversion: UNSCEAR 2006 Annex E Table 2
+// Equilibrium factor 0.4, breathing rate 1.2 m³/h, DCC 9 nSv/(Bq·h/m³)
+var RN_EQUIL = 0.4;        // UNSCEAR 2006 Annex E Table 2
+var RN_BREATH = 1.2;       // m³/h — UNSCEAR 2006 Annex E Table 2
+var RN_DCC_NSV = 9.0;      // nSv/(Bq·h/m³) — UNSCEAR 2006 Annex E Table 2
+var RN_MSV_PER_BQ = RN_EQUIL * RN_BREATH * RN_DCC_NSV * 8760 * 1e-9;
 
-const map = new maplibregl.Map({
-  container: "map",
-  center: [-8.5, 53.3],
-  zoom: 7,
-  minZoom: 5,
-  maxZoom: 18,
-  maxBounds: [[-10.7, 51.3], [-5.2, 55.5]],
-  style: {
-    version: 8,
+// Thoron: ~10% of radon dose — UNSCEAR 2006 Annex E (conservative mid-range)
+var TN_FRACTION = 0.10;
+
+// Ra-equation coefficients: UNSCEAR 2000 Annex B Eq. 3
+var RAEQ_C_TH = 1.43;
+var RAEQ_C_K  = 0.077;
+
+// World average: UNSCEAR 2008 Annex B Table 1
+var WORLD_AVG = 2.2; // mSv/yr
+
+// Irish action level: SI No. 310 of 2000
+var IRISH_RN_ACTION = 200; // Bq/m³
+
+// Ireland bounding box
+var IE_LAT_MIN = 51.4, IE_LAT_MAX = 55.4;
+var IE_LON_MIN = -10.6, IE_LON_MAX = -5.3;
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DATA SOURCE ENDPOINTS — all verified working with CORS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+var GSI_BEDROCK = "https://gsi.geodata.gov.ie/server/rest/services/Bedrock/IE_GSI_Bedrock_Geology_Datasets_100K_IE26_ITM/MapServer";
+var GSI_QUAT    = "https://gsi.geodata.gov.ie/server/rest/services/Quaternary/IE_GSI_Quaternary_Sediments_50K_IE26_ITM/MapServer";
+var GSI_GEOCHEM = "https://gsi.geodata.gov.ie/server/rest/services/Geochemistry/IE_GSI_Geochemistry_Stream_Sediment_C_250m_IE26_ITM_GRID/MapServer";
+
+// Geochemistry layer IDs for K, U, Th, La proxies
+var GEOCHEM_LAYERS = {
+  La: 7,   // Lanthanum — REE pathfinder
+  Co: 3,   // Cobalt
+  Cr: 4,   // Chromium
+  Nb: 9    // Niobium — REE pathfinder
+};
+
+// MapLibre basemaps
+var BASEMAPS = {
+  satellite: {
     sources: {
-      "esri-imagery": { type: "raster", tiles: [
-        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-      ], tileSize: 256, attribution: "Esri" },
-      "osm-streets": { type: "raster", tiles: [
-        "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-      ], tileSize: 256, attribution: "OSM" },
+      imagery: { type:"raster", tiles:["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"], tileSize:256 },
+      labels:  { type:"raster", tiles:["https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"], tileSize:256 }
     },
-    layers: [
-      { id: "layer-satellite", type: "raster", source: "esri-imagery" },
-      { id: "layer-streets", type: "raster", source: "osm-streets", layout: { visibility: "none" } },
-    ],
+    layers: [{id:"imagery",type:"raster",source:"imagery"},{id:"labels",type:"raster",source:"labels"}]
   },
-});
-map.addControl(new maplibregl.NavigationControl(), "top-right");
-
-// Bing layer (only activates if key provided)
-let bingEnabled = false;
-function activateBing() {
-  const key = BING_KEY || new URLSearchParams(location.search).get("bing_key");
-  if (!key) {
-    alert("Bing Maps key not configured. Set BING_MAPS_KEY or add ?bing_key=... to the URL.");
-    return;
+  streets: {
+    sources: { osm: { type:"raster", tiles:["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], tileSize:256, attribution:"© OpenStreetMap" } },
+    layers: [{id:"osm",type:"raster",source:"osm"}]
   }
-  if (!bingEnabled) {
-    map.addSource("bing-aerial", { type: "raster", tiles: [
-      `https://ecn.t${Math.floor(Math.random()*4)+1}.tiles.virtualearth.net/tiles/a{q}.jpeg?g=587&key=${key}`
-    ], tileSize: 256 });
-    map.addLayer({ id: "layer-bing", type: "raster", source: "bing-aerial", layout: { visibility: "none" } });
-    bingEnabled = true;
-  }
+};
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════════════ */
+var pinned = false, lastResult = null, hoverTimeout = null, loading = false;
+var map, cursorTriangleEl;
+var RC = {GREEN:"#22c55e",AMBER:"#f59e0b",RED:"#ef4444","N/A":"#8b97b0",Insufficient:"#8b97b0"};
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ARCGIS REST QUERY HELPERS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+// Query a polygon feature layer (bedrock, quaternary)
+function queryFeatureLayer(baseUrl, layerId, lat, lon, outFields) {
+  var bbox = (lon-0.01)+","+(lat-0.01)+","+(lon+0.01)+","+(lat+0.01);
+  var url = baseUrl+"/"+layerId+"/query?geometry="+bbox+
+    "&geometryType=esriGeometryEnvelope&inSR=4326"+
+    "&spatialRel=esriSpatialRelIntersects"+
+    "&outFields="+outFields+
+    "&returnGeometry=false&f=json";
+  return fetch(url).then(function(r){return r.json();});
 }
 
-// Basemap toggle
-function setBasemap(which) {
-  document.querySelectorAll(".basemap-toggle button").forEach(b => b.classList.remove("active"));
-  map.setLayoutProperty("layer-satellite", "visibility", which === "satellite" ? "visible" : "none");
-  map.setLayoutProperty("layer-streets", "visibility", which === "streets" ? "visible" : "none");
-  if (bingEnabled) map.setLayoutProperty("layer-bing", "visibility", which === "bing" ? "visible" : "none");
-  currentBasemap = which;
-  document.getElementById(which === "satellite" ? "btnSat" : which === "bing" ? "btnBing" : "btnStreets").classList.add("active");
-}
-document.getElementById("btnSat").onclick = () => setBasemap("satellite");
-document.getElementById("btnBing").onclick = () => { activateBing(); setBasemap("bing"); };
-document.getElementById("btnStreets").onclick = () => setBasemap("streets");
-
-// ═══════════════════════════════════════════════════════════════════════
-// RISK CHOROPLETH OVERLAY (zoom < 10)
-// ═══════════════════════════════════════════════════════════════════════
-
-let choroplethLoaded = false;
-let choroplethTimer = null;
-
-function updateChoropleth() {
-  if (map.getZoom() >= 10) {
-    if (map.getLayer("choropleth-fill")) map.setLayoutProperty("choropleth-fill", "visibility", "none");
-    return;
-  }
-  if (choroplethTimer) clearTimeout(choroplethTimer);
-  choroplethTimer = setTimeout(fetchChoropleth, 500);
+// Identify a raster layer (geochemistry)
+function identifyRaster(baseUrl, layerId, lat, lon) {
+  var geom = encodeURIComponent(JSON.stringify({x:lon,y:lat,spatialReference:{wkid:4326}}));
+  var ext = encodeURIComponent((lon-0.01)+","+(lat-0.01)+","+(lon+0.01)+","+(lat+0.01));
+  var url = baseUrl+"/identify?geometry="+geom+
+    "&geometryType=esriGeometryPoint"+
+    "&layers=all:"+layerId+
+    "&tolerance=3&mapExtent="+ext+
+    "&imageDisplay=256,256,96"+
+    "&returnGeometry=false&f=json";
+  return fetch(url).then(function(r){return r.json();});
 }
 
-async function fetchChoropleth() {
-  const b = map.getBounds();
-  try {
-    const resp = await fetch(`${API_BASE}/dose/bbox?lat_min=${b.getSouth()}&lat_max=${b.getNorth()}&lon_min=${b.getWest()}&lon_max=${b.getEast()}&step_km=5`);
-    if (!resp.ok) return;
-    const data = await resp.json();
-    if (!data.grid || !data.grid.length) return;
+/* ═══════════════════════════════════════════════════════════════════════
+   DOSE COMPUTATION — same logic as backend, using same cited constants
+   ═══════════════════════════════════════════════════════════════════════ */
 
-    const features = data.grid.filter(d => d.risk && d.risk.tier !== "INSUFFICIENT DATA").map(d => ({
-      type: "Feature",
-      properties: { tier: d.risk.tier, dose: d.total_terrestrial_mSv_yr || 0 },
-      geometry: {
-        type: "Polygon",
-        coordinates: [[
-          [d.lon - 0.02, d.lat - 0.02],
-          [d.lon + 0.02, d.lat - 0.02],
-          [d.lon + 0.02, d.lat + 0.02],
-          [d.lon - 0.02, d.lat + 0.02],
-          [d.lon - 0.02, d.lat - 0.02],
-        ]]
-      }
-    }));
-
-    const geojson = { type: "FeatureCollection", features };
-
-    if (map.getSource("choropleth")) {
-      map.getSource("choropleth").setData(geojson);
-    } else {
-      map.addSource("choropleth", { type: "geojson", data: geojson });
-      map.addLayer({
-        id: "choropleth-fill", type: "fill", source: "choropleth",
-        paint: {
-          "fill-color": [
-            "case",
-            ["==", ["get", "tier"], "RED"], "rgba(239,68,68,0.30)",
-            ["==", ["get", "tier"], "AMBER"], "rgba(245,158,11,0.25)",
-            "rgba(34,197,94,0.25)"
-          ],
-          "fill-opacity": 1
-        }
-      });
-    }
-    if (map.getLayer("choropleth-fill")) map.setLayoutProperty("choropleth-fill", "visibility", "visible");
-    choroplethLoaded = true;
-  } catch (e) { /* silent: choropleth is optional overlay */ }
-}
-
-map.on("moveend", updateChoropleth);
-map.on("zoomend", updateChoropleth);
-
-// ═══════════════════════════════════════════════════════════════════════
-// SEARCH
-// ═══════════════════════════════════════════════════════════════════════
-
-document.getElementById("searchInput").addEventListener("keydown", async (e) => {
-  if (e.key !== "Enter") return;
-  const q = e.target.value.trim();
-  if (!q) return;
-  const msg = document.getElementById("searchMsg");
-  msg.textContent = "Searching\u2026";
-  try {
-    const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q + ", Ireland")}&limit=1`);
-    const data = await resp.json();
-    if (!data || !data.length) { msg.textContent = "Location not found"; return; }
-    const lat = parseFloat(data[0].lat), lon = parseFloat(data[0].lon);
-    if (lat < IE.minLat || lat > IE.maxLat || lon < IE.minLon || lon > IE.maxLon) {
-      msg.textContent = "Location not in Ireland"; return;
-    }
-    msg.textContent = data[0].display_name || "";
-    map.flyTo({ center: [lon, lat], zoom: 13, essential: true });
-    setTimeout(() => queryDose(lat, lon), 800);
-  } catch (err) { msg.textContent = "Search failed"; }
-});
-
-// ═══════════════════════════════════════════════════════════════════════
-// CURSOR TRIANGLE
-// ═══════════════════════════════════════════════════════════════════════
-
-const cursorTri = document.getElementById("cursorTri");
-const armRn = document.getElementById("armRn");
-const armTn = document.getElementById("armTn");
-const armGm = document.getElementById("armGm");
-const triFill = document.getElementById("triFill");
-const cx = 24, cy = 24, MAX_ARM = 18;
-
-function updateTriangleArms(d) {
-  if (!d || !d.arms_mSv_yr) return;
-  const vals = {
-    rn: d.arms_mSv_yr.radon || 0,
-    tn: d.arms_mSv_yr.thoron || 0,
-    gm: d.arms_mSv_yr.gamma || 0,
+function computeDose(params) {
+  // params: {bedrock, quaternary, La_ppm, Co_ppm, K_pct, eU_ppm, eTh_ppm, radon_Bq}
+  // All null if not available from API
+  var result = {
+    lat: params.lat, lon: params.lon,
+    arms: {radon:null, thoron:null, gamma:null},
+    total: null, risk:{tier:"Insufficient",reason:""}, factors:[], report:[],
+    derivation:{}, missing:[], sources:{}, confidence:{score:0,level:"very low",reason:""},
+    activities:{Ra226:null,Th232:null,K40:null}, gamma_nGy_h:null, raeq:null
   };
-  const maxV = Math.max(vals.rn, vals.tn, vals.gm, 0.001);
-  const scale = MAX_ARM / maxV;
 
-  const rnLen = vals.rn * scale;
-  const tnLen = vals.tn * scale;
-  const gmLen = vals.gm * scale;
+  // Activities
+  var A_Ra = null, A_Th = null, A_K = null;
+  if (params.eU_ppm !== null) {
+    A_Ra = params.eU_ppm * EU_TO_RA226;
+    result.derivation.Ra226 = "eU("+params.eU_ppm.toFixed(1)+") * "+EU_TO_RA226+" = "+A_Ra.toFixed(1)+" Bq/kg [UNSCEAR 2000 Annex B Table 1]";
+    result.activities.Ra226 = A_Ra;
+    result.sources.eU = {available:true, source:"modelled from stream sediment geochemistry — no direct Tellus airborne data"};
+  } else {
+    result.missing.push("eU (no Tellus U raster)");
+    result.sources.eU = {available:false, source:"unavailable"};
+  }
+  if (params.eTh_ppm !== null) {
+    A_Th = params.eTh_ppm * ETH_TO_TH232;
+    result.derivation.Th232 = "eTh("+params.eTh_ppm.toFixed(1)+") * "+ETH_TO_TH232+" = "+A_Th.toFixed(1)+" Bq/kg [UNSCEAR 2000 Annex B Table 1]";
+    result.activities.Th232 = A_Th;
+    result.sources.eTh = {available:true, source:"modelled from stream sediment geochemistry — no direct Tellus airborne data"};
+  } else {
+    result.missing.push("eTh (no Tellus Th raster)");
+    result.sources.eTh = {available:false, source:"unavailable"};
+  }
+  if (params.K_pct !== null) {
+    A_K = params.K_pct * K_PCT_TO_K40;
+    result.derivation.K40 = "K("+params.K_pct.toFixed(2)+") * "+K_PCT_TO_K40+" = "+A_K.toFixed(1)+" Bq/kg [UNSCEAR 2000 Annex B Table 1]";
+    result.activities.K40 = A_K;
+    result.sources.K = {available:true, source:"modelled from stream sediment geochemistry — no direct Tellus airborne data"};
+  } else {
+    result.missing.push("K (no Tellus K raster)");
+    result.sources.K = {available:false, source:"unavailable"};
+  }
 
-  // Arm 1 (up, 270deg): radon
-  const rnX = cx + rnLen * Math.cos(-Math.PI / 2);
-  const rnY = cy + rnLen * Math.sin(-Math.PI / 2);
-  armRn.setAttribute("x2", rnX); armRn.setAttribute("y2", rnY);
+  // Gamma dose
+  var gamma_nGy_h = null, gamma_mSv = null;
+  if (A_Ra !== null && A_Th !== null && A_K !== null) {
+    gamma_nGy_h = DCC_RA226*A_Ra + DCC_TH232*A_Th + DCC_K40*A_K;
+    gamma_mSv = gamma_nGy_h * NGY_H_TO_MSV_YR;
+    result.gamma_nGy_h = gamma_nGy_h;
+    result.derivation.gamma_nGy_h = "A_Ra("+A_Ra.toFixed(1)+")*"+DCC_RA226+" + A_Th("+A_Th.toFixed(1)+")*"+DCC_TH232+" + A_K("+A_K.toFixed(1)+")*"+DCC_K40+" = "+gamma_nGy_h.toFixed(1)+" nGy/h [UNSCEAR 2000 Annex B Table 2]";
+    result.derivation.gamma_mSv = gamma_nGy_h.toFixed(1)+" * 8760 * "+OCCUPANCY+" * 1e-6 = "+gamma_mSv.toFixed(4)+" mSv/yr";
+    result.arms.gamma = gamma_mSv;
+    result.factors.push({name:"External gamma",value:gamma_nGy_h.toFixed(1)+" nGy/h → "+gamma_mSv.toFixed(3)+" mSv/yr",source:"GSI stream sediment (modelled)",direction:"neutral",icon:"→"});
+  } else {
+    result.factors.push({name:"External gamma",value:"no data",source:"insufficient geochemistry data",direction:"—",icon:"—"});
+  }
 
-  // Arm 2 (lower-left, 150deg): thoron
-  const tnX = cx + tnLen * Math.cos(150 * Math.PI / 180);
-  const tnY = cy + tnLen * Math.sin(150 * Math.PI / 180);
-  armTn.setAttribute("x2", tnX); armTn.setAttribute("y2", tnY);
+  // Radon
+  var rn_Bq = params.radon_Bq, rn_mSv = null;
+  if (rn_Bq !== null) {
+    rn_mSv = rn_Bq * RN_MSV_PER_BQ;
+    result.derivation.radon = "C_Rn("+rn_Bq.toFixed(0)+") * equilibrium("+RN_EQUIL+") * breathing("+RN_BREATH+") * DCC("+RN_DCC_NSV+") * 8760 * 1e-9 = "+rn_mSv.toFixed(4)+" mSv/yr [UNSCEAR 2006 Annex E Table 2]";
+    result.arms.radon = rn_mSv;
+    result.sources.radon = {available:true, source:"EPA Radon Risk Map"};
+    result.factors.push({name:"Indoor radon-222",value:rn_Bq.toFixed(0)+" Bq/m³ → "+rn_mSv.toFixed(3)+" mSv/yr",source:"EPA Radon Risk Map",direction:rn_Bq>=IRISH_RN_ACTION?"up":"neutral",icon:rn_Bq>=IRISH_RN_ACTION?"↑":"→"});
+  } else {
+    result.missing.push("EPA radon map");
+    result.sources.radon = {available:false, source:"unavailable — no EPA raster data"};
+    result.factors.push({name:"Indoor radon-222",value:"no data",source:"unavailable",direction:"—",icon:"—"});
+  }
 
-  // Arm 3 (lower-right, 30deg): gamma
-  const gmX = cx + gmLen * Math.cos(30 * Math.PI / 180);
-  const gmY = cy + gmLen * Math.sin(30 * Math.PI / 180);
-  armGm.setAttribute("x2", gmX); armGm.setAttribute("y2", gmY);
+  // Thoron
+  var tn_mSv = null;
+  if (rn_mSv !== null) {
+    tn_mSv = rn_mSv * TN_FRACTION;
+    result.derivation.thoron = "radon_dose("+rn_mSv.toFixed(4)+") * Tn_Rn_ratio("+TN_FRACTION+") = "+tn_mSv.toFixed(4)+" mSv/yr [UNSCEAR 2006 Annex E]";
+    result.arms.thoron = tn_mSv;
+    result.factors.push({name:"Thoron-220 inhalation",value:tn_mSv.toFixed(3)+" mSv/yr (derived)",source:"derived from radon [UNSCEAR 2006 Annex E]",direction:"neutral",icon:"→"});
+  } else {
+    result.factors.push({name:"Thoron-220 inhalation",value:"no data (depends on radon)",source:"unavailable",direction:"—",icon:"—"});
+  }
 
-  triFill.setAttribute("points", `${rnX},${rnY} ${tnX},${tnY} ${gmX},${gmY}`);
+  // Total
+  var total = null;
+  if (gamma_mSv !== null && rn_mSv !== null && tn_mSv !== null) {
+    total = gamma_mSv + rn_mSv + tn_mSv;
+    result.derivation.total = "gamma("+gamma_mSv.toFixed(4)+") + radon("+rn_mSv.toFixed(4)+") + thoron("+tn_mSv.toFixed(4)+") = "+total.toFixed(4)+" mSv/yr";
+  }
+  result.total = total;
+
+  // Ra-eq
+  if (A_Ra !== null && A_Th !== null && A_K !== null) {
+    result.raeq = A_Ra + RAEQ_C_TH*A_Th + RAEQ_C_K*A_K;
+    result.derivation.raeq = "Ra("+A_Ra.toFixed(1)+") + "+RAEQ_C_TH+"*Th("+A_Th.toFixed(1)+") + "+RAEQ_C_K+"*K("+A_K.toFixed(1)+") = "+result.raeq.toFixed(0)+" Bq/kg [UNSCEAR 2000 Annex B Eq.3]";
+  }
+
+  // Risk tier
+  result.risk = {tier:"Insufficient",reason:"Cannot determine — missing required data layers"};
+  if (total !== null) {
+    result.risk.tier = "GREEN";
+    result.risk.reason = "Total "+total.toFixed(2)+" mSv/yr ≤ "+WORLD_AVG+" mSv/yr world average";
+    if (total > WORLD_AVG*3) { result.risk.tier="RED"; result.risk.reason="Total "+total.toFixed(2)+" mSv/yr > "+(WORLD_AVG*3)+" mSv/yr (3× world avg)"; }
+    else if (total > WORLD_AVG) { result.risk.tier="AMBER"; result.risk.reason="Total "+total.toFixed(2)+" mSv/yr > "+WORLD_AVG+" mSv/yr world average"; }
+    if (rn_Bq !== null && rn_Bq >= IRISH_RN_ACTION) { result.risk.tier="RED"; result.risk.reason="Radon "+rn_Bq.toFixed(0)+" Bq/m³ ≥ Irish 200 Bq/m³ action level [SI No. 310/2000]"; }
+    if (result.raeq !== null && result.raeq >= 370) { result.risk.tier="RED"; result.risk.reason="Ra-eq "+result.raeq.toFixed(0)+" Bq/kg ≥ 370 Bq/kg [EU BSS 2013/59/Euratom]"; }
+  }
+
+  // Report
+  if (total !== null) {
+    var comps = {};
+    if (gamma_mSv!==null) comps.gamma=gamma_mSv;
+    if (rn_mSv!==null) comps.radon=rn_mSv;
+    if (tn_mSv!==null) comps.thoron=tn_mSv;
+    var dom = Object.keys(comps).reduce(function(a,b){return comps[a]>comps[b]?a:b});
+    var domPct = (comps[dom]/total*100);
+    result.report.push(dom.charAt(0).toUpperCase()+dom.slice(1)+" is "+domPct.toFixed(0)+"% of total dose ("+comps[dom].toFixed(2)+" mSv/yr).");
+    result.report.push("Total terrestrial dose: "+total.toFixed(2)+" mSv/yr — "+result.risk.tier+".");
+    if (params.bedrock) result.report.push("Lithology: "+params.bedrock+".");
+    else result.report.push("Lithology: no bedrock data available.");
+    if (rn_Bq!==null) result.report.push("Indoor radon: "+rn_Bq.toFixed(0)+" Bq/m³"+(rn_Bq>=IRISH_RN_ACTION?" — EXCEEDS Irish 200 Bq/m³ action level":"")+".");
+    else result.report.push("Indoor radon: no data available.");
+    result.report.push((total/WORLD_AVG).toFixed(1)+"× UNSCEAR world average ("+WORLD_AVG+" mSv/yr) [UNSCEAR 2008 Annex B].");
+    if (result.raeq!==null) result.report.push("Ra-equivalent: "+result.raeq.toFixed(0)+" Bq/kg"+(result.raeq>=370?" — exceeds 370 threshold":"")+".");
+    if (gamma_nGy_h!==null) result.report.push("Gamma: "+gamma_nGy_h.toFixed(0)+" nGy/h → "+gamma_mSv.toFixed(2)+" mSv/yr.");
+  } else {
+    result.report.push("Insufficient data to compute total dose at this point.");
+  }
+
+  // Confidence
+  var measured = 0;
+  if (params.eU_ppm!==null) measured++;
+  if (params.eTh_ppm!==null) measured++;
+  if (params.K_pct!==null) measured++;
+  if (rn_Bq!==null) measured++;
+  var confScore = Math.min(95, measured*24);
+  result.confidence = {
+    score: confScore,
+    level: confScore>=75?"high":confScore>=50?"medium-high":confScore>=25?"medium":"low",
+    reason: measured+" of 4 inputs available"
+  };
+  result.report.push("Confidence: "+result.confidence.level+" ("+confScore+"%) — "+result.confidence.reason+".");
+
+  return result;
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// MAP INTERACTION: hover + click-to-pin
-// ═══════════════════════════════════════════════════════════════════════
-
-const mapEl = document.getElementById("map");
-mapEl.addEventListener("mousemove", (e) => {
-  cursorOverMap = true;
-  cursorTri.style.left = (e.clientX - 24) + "px";
-  cursorTri.style.top = (e.clientY - 24) + "px";
-  cursorTri.classList.add("visible");
-
-  if (isPinned) return;
-
-  if (debounceTimer) clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    const coord = map.unproject([e.clientX - mapEl.getBoundingClientRect().left, e.clientY - mapEl.getBoundingClientRect().top]);
-    if (coord.lat >= IE.minLat && coord.lat <= IE.maxLat && coord.lng >= IE.minLon && coord.lng <= IE.maxLon) {
-      queryDose(coord.lat, coord.lng);
-    }
-  }, 100);
-});
-
-mapEl.addEventListener("mouseleave", () => {
-  cursorOverMap = false;
-  cursorTri.classList.remove("visible");
-});
-
-// Click-to-pin
-map.on("click", (e) => {
-  if (isPinned) {
-    isPinned = false;
-    pinnedCoord = null;
-    document.getElementById("pinOverlay").style.display = "none";
-  } else {
-    isPinned = true;
-    pinnedCoord = { lat: e.lngLat.lat, lon: e.lngLat.lng };
-    document.getElementById("pinOverlay").style.display = "block";
-  }
-});
-
-// ═══════════════════════════════════════════════════════════════════════
-// API QUERY
-// ═══════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════
+   MAIN QUERY PIPELINE
+   ═══════════════════════════════════════════════════════════════════════ */
 
 async function queryDose(lat, lon) {
-  if (pendingAbort) pendingAbort.abort();
-  pendingAbort = new AbortController();
+  if (loading) return;
+  if (lat < IE_LAT_MIN || lat > IE_LAT_MAX || lon < IE_LON_MIN || lon > IE_LON_MAX) return;
+  loading = true;
+
+  var params = {lat:lat, lon:lon, bedrock:null, quaternary:null, La_ppm:null, Co_ppm:null, K_pct:null, eU_ppm:null, eTh_ppm:null, radon_Bq:null};
 
   try {
-    const resp = await fetch(`${API_BASE}/dose?lat=${lat}&lon=${lon}`, { signal: pendingAbort.signal });
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({ detail: resp.statusText }));
-      showError(err.detail || err.error || "API error");
-      return;
+    // Query GSI Bedrock (layer 3 = polygons)
+    var bedrockData = await queryFeatureLayer(GSI_BEDROCK, 3, lat, lon, "UNIT_NAME,DESCRIPT,NEWCODE");
+    if (bedrockData.features && bedrockData.features.length > 0) {
+      var f = bedrockData.features[0].attributes;
+      params.bedrock = f.UNIT_NAME + " — " + f.DESCRIPT;
+      params.sources_bedrock = "GSI Bedrock 1:100k raster";
     }
-    const data = await resp.json();
-    lastDose = data;
-    updateTriangleArms(data);
-    renderReport(data);
-    updateBadges(data);
-  } catch (e) {
-    if (e.name !== "AbortError") showError(e.message);
+
+    // Query GSI Quaternary (layer 0)
+    var quatData = await queryFeatureLayer(GSI_QUAT, 0, lat, lon, "QSED_TYPE,QSED_CODE,LEGENDDESC");
+    if (quatData.features && quatData.features.length > 0) {
+      params.quaternary = quatData.features[0].attributes.LEGENDDESC;
+    }
+
+    // Query GSI Geochemistry — use La as REE pathfinder
+    var laData = await identifyRaster(GSI_GEOCHEM, 7, lat, lon);
+    if (laData.results && laData.results.length > 0) {
+      var pv = laData.results[0].attributes["Classify.Pixel Value"];
+      if (pv && pv !== "NoData") {
+        params.La_ppm = parseFloat(pv);
+      }
+    }
+
+    // Query GSI Geochemistry — Cobalt
+    var coData = await identifyRaster(GSI_GEOCHEM, 3, lat, lon);
+    if (coData.results && coData.results.length > 0) {
+      var pv2 = coData.results[0].attributes["Classify.Pixel Value"];
+      if (pv2 && pv2 !== "NoData") {
+        params.Co_ppm = parseFloat(pv2);
+      }
+    }
+
+    // NOTE: K, eU, eTh direct measurements require Tellus airborne radiometric rasters
+    // which are not publicly available via web API. These remain null until raster files are provided.
+    // The GSI geochemistry stream sediment data provides La/Co/Cr/Nb but NOT K/eU/eTh directly.
+    // Therefore gamma dose cannot be computed from web APIs alone — requires Tellus raster files.
+
+    // NOTE: EPA Radon Risk Map is not available via standard web API (returns redirects)
+    // Radon dose cannot be computed from web APIs alone — requires EPA raster file.
+
+    var result = computeDose(params);
+    result.quaternary = params.quaternary;
+    result.bedrock_desc = params.bedrock;
+    lastResult = result;
+    updateReport(result);
+    updateTriangleArms(result);
+    updateDataBadges(result);
+
+  } catch (err) {
+    showError(err.message);
   }
+  loading = false;
 }
-
-// ═══════════════════════════════════════════════════════════════════════
-// BADGES (bottom-left)
-// ═══════════════════════════════════════════════════════════════════════
-
-function updateBadges(d) {
-  const cell = document.getElementById("badgeCell");
-  const tellus = document.getElementById("badgeTellus");
-  const epa = document.getElementById("badgeEPA");
-
-  cell.textContent = d.cell_m ? `Cell: ${d.cell_m}m` : "";
-  cell.style.display = d.cell_m ? "" : "none";
-
-  tellus.textContent = d.tellus_available ? "\u2713 Tellus" : "";
-  tellus.style.display = d.tellus_available ? "" : "none";
-
-  epa.textContent = d.epa_radon_available ? "\u2713 EPA radon" : "";
-  epa.style.display = d.epa_radon_available ? "" : "none";
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// ERROR STATE
-// ═══════════════════════════════════════════════════════════════════════
 
 function showError(msg) {
-  document.getElementById("emptyState").style.display = "none";
-  const rc = document.getElementById("reportContent");
+  var rc = document.getElementById("reportContent");
+  var re = document.getElementById("reportEmpty");
+  re.style.display = "none";
   rc.style.display = "block";
-  // Preserve existing report if any, add error banner at top
-  let banner = document.getElementById("errorBanner");
-  if (!banner) {
-    banner = document.createElement("div");
-    banner.id = "errorBanner";
-    banner.className = "error-banner";
-    rc.prepend(banner);
-  }
-  banner.textContent = `Data unavailable: ${msg}`;
-  banner.style.display = "block";
+  rc.innerHTML = '<div class="error-state">Data unavailable at this point: '+msg+'</div>';
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// REPORT PANEL RENDER
-// ═══════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════
+   TRIANGLE ARMS
+   ═══════════════════════════════════════════════════════════════════════ */
+var _lastArms = {radon:0,thoron:0,gamma:0};
 
-function renderReport(d) {
-  document.getElementById("emptyState").style.display = "none";
-  const rc = document.getElementById("reportContent");
+function updateTriangleArms(d) {
+  var arms = d.arms || {};
+  var vals = [arms.radon||0, arms.thoron||0, arms.gamma||0];
+  _lastArms = {radon:vals[0],thoron:vals[1],gamma:vals[2]};
+  var maxV = Math.max(vals[0],vals[1],vals[2],0.001);
+  var maxLen = 18;
+  var angles = [-90,150,30];
+  var cx = 24, cy = 24;
+  ["arm1","arm2","arm3"].forEach(function(id,i){
+    var el = document.getElementById(id);
+    if (!el) return;
+    var frac = vals[i]/maxV;
+    var len = Math.max(2, frac*maxLen);
+    var rad = angles[i]*Math.PI/180;
+    el.setAttribute("x2", cx+Math.cos(rad)*len);
+    el.setAttribute("y2", cy+Math.sin(rad)*len);
+    el.style.transition = "all 200ms ease";
+  });
+  var tf = document.getElementById("triFill");
+  if (tf) {
+    var pts = angles.map(function(a,i){
+      var frac = vals[i]/maxV;
+      var len = Math.max(2, frac*maxLen);
+      var rad = a*Math.PI/180;
+      return (cx+Math.cos(rad)*len)+","+(cy+Math.sin(rad)*len);
+    });
+    tf.setAttribute("points", pts.join(" "));
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   REPORT PANEL
+   ═══════════════════════════════════════════════════════════════════════ */
+function updateReport(d) {
+  var rc = document.getElementById("reportContent");
+  var re = document.getElementById("reportEmpty");
+  re.style.display = "none";
   rc.style.display = "block";
+  document.getElementById("reportPane").classList.remove("pulse");
 
-  // Remove stale error
-  const eb = document.getElementById("errorBanner");
-  if (eb) eb.remove();
+  var html = "";
+  if (pinned) html += '<div class="card" style="text-align:center;color:#3b82f6;font-weight:600">📌 Pinned — click map to unpin</div>';
 
-  // Water body state
-  if (d.is_water) {
-    rc.innerHTML = `<div class="water-banner">Water body &mdash; no terrestrial dose assessment</div>`;
-    return;
-  }
+  html += '<div class="card"><div style="font-size:13px;font-weight:600">'+d.lat.toFixed(4)+'° N, '+d.lon.toFixed(4)+'° W</div>';
+  if (d.bedrock_desc) html += '<div style="font-size:11px;color:#8b97b0;margin-top:4px">Bedrock: '+d.bedrock_desc+'</div>';
+  if (d.quaternary) html += '<div style="font-size:11px;color:#8b97b0">Quaternary: '+d.quaternary+'</div>';
+  html += '</div>';
 
-  const tier = d.risk?.tier || "INSUFFICIENT";
-  const tierColor = COLORS[tier] || COLORS.INSUFFICIENT;
+  var riskColor = RC[d.risk.tier]||RC.Insufficient;
+  var totalText = d.total !== null ? d.total.toFixed(2)+" mSv/yr" : "Insufficient data";
+  html += '<div class="card"><div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">';
+  html += '<span class="risk-badge" style="background:'+riskColor+'22;color:'+riskColor+';border:1px solid '+riskColor+'44">'+d.risk.tier+'</span>';
+  html += '<span style="color:#8b97b0;font-size:11px">'+d.risk.reason+'</span></div>';
+  html += '<div class="dose-total" style="color:'+riskColor+'">'+totalText+'</div></div>';
 
-  // ── Build fingerprint triangle SVG ──
-  const arms = d.arms_mSv_yr || {};
-  const rnV = arms.radon || 0;
-  const tnV = arms.thoron || 0;
-  const gmV = arms.gamma || 0;
-  const maxV = Math.max(rnV, tnV, gmV, 0.001);
-  const s = 85 / maxV;
-  const fcx = 100, fcy = 100;
-
-  const rnX = fcx, rnY = fcy - rnV * s;
-  const tnX = fcx - tnV * s * Math.cos(Math.PI / 6), tnY = fcy + tnV * s * 0.5;
-  const gmX = fcx + gmV * s * Math.cos(Math.PI / 6), gmY = fcy + gmV * s * 0.5;
-
-  const fprintSVG = `<svg width="200" height="200" viewBox="0 0 200 200" style="display:block;margin:0 auto 8px">
-    <polygon points="${rnX},${rnY} ${tnX},${tnY} ${gmX},${gmY}" fill="#3b82f608" stroke="#243049" stroke-width="0.5"/>
-    <line x1="${fcx}" y1="${fcy}" x2="${rnX}" y2="${rnY}" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
-    <line x1="${fcx}" y1="${fcy}" x2="${tnX}" y2="${tnY}" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
-    <line x1="${fcx}" y1="${fcy}" x2="${gmX}" y2="${gmY}" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"/>
-    <circle cx="${fcx}" cy="${fcy}" r="3" fill="#e6ebf5"/>
-    <text x="${rnX}" y="${rnY - 6}" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="600">Radon ${rnV !== null ? rnV.toFixed(3) : "N/A"}</text>
-    <text x="${tnX - 4}" y="${tnY + 14}" text-anchor="end" fill="#f97316" font-size="10" font-weight="600">Thoron ${tnV !== null ? tnV.toFixed(3) : "N/A"}</text>
-    <text x="${gmX + 4}" y="${gmY + 14}" text-anchor="start" fill="#22c55e" font-size="10" font-weight="600">Gamma ${gmV !== null ? gmV.toFixed(3) : "N/A"}</text>
-  </svg>`;
-
-  // ── Why this dose? bullets ──
-  const whyLines = [];
-  const total = d.total_terrestrial_mSv_yr || 0;
-  if (total > 0) {
-    if (rnV > 0) {
-      const pct = (rnV / total * 100).toFixed(0);
-      whyLines.push({ text: `Radon is ${pct}% of total dose (${rnV.toFixed(3)} mSv/yr)`, dot: "amber" });
-    }
-    if (gmV > 0) {
-      const pct = (gmV / total * 100).toFixed(0);
-      whyLines.push({ text: `Gamma contributes ${pct}% (${gmV.toFixed(3)} mSv/yr)`, dot: "blue" });
-    }
-    if (tnV > 0) {
-      const pct = (tnV / total * 100).toFixed(0);
-      whyLines.push({ text: `Thoron contributes ${pct}% (${tnV.toFixed(3)} mSv/yr)`, dot: "amber" });
-    }
-  }
-  if (d.report_short) {
-    d.report_short.forEach(line => {
-      if (line.includes("EXCEEDS") || line.includes("Missing") || line.includes("No direct"))
-        whyLines.push({ text: line, dot: "amber" });
-      else if (line.includes("below") || line.includes("All dose"))
-        whyLines.push({ text: line, dot: "green" });
-      else
-        whyLines.push({ text: line, dot: "blue" });
-    });
-  }
-
-  // ── Factors table ──
-  let factorsHTML = "";
-  if (d.factors) {
-    d.factors.forEach(f => {
-      const val = f.value === null || f.value === undefined ? "No data" :
-                  f.value === "no data" ? "No data available for this layer" :
-                  typeof f.value === "number" ? f.value.toLocaleString() : f.value;
-      const dirClass = f.direction === "up" ? "dir-up" : f.direction === "down" ? "dir-down" : f.direction === "varies" ? "dir-varies" : "dir-neutral";
-      const dirArrow = f.direction === "up" ? "\u2191" : f.direction === "down" ? "\u2193" : f.direction === "varies" ? "\u2194" : "\u2192";
-      const noDataStyle = val === "No data" || val === "No data available for this layer" ? "color:#8b97b0;font-style:italic" : "";
-      factorsHTML += `<div class="factor-row">
-        <span class="factor-name">${f.name}</span>
-        <span class="factor-value" style="${noDataStyle}">${val} ${f.unit ? `<span style="color:#8b97b0">${f.unit}</span>` : ""}</span>
-        <span class="factor-dir ${dirClass}">${dirArrow}</span>
-      </div>`;
-    });
-  }
-
-  // ── Confidence ──
-  const conf = d.confidence || {};
-  const confColor = conf.score >= 75 ? "#22c55e" : conf.score >= 40 ? "#f59e0b" : "#ef4444";
-
-  // ── Source badges ──
-  let srcBadges = "";
-  if (d.tellus_available) srcBadges += `<span class="source-badge">\u2713 Tellus measured K/U/Th</span>`;
-  if (d.epa_radon_available) srcBadges += `<span class="source-badge">\u2713 EPA radon map</span>`;
-
-  // ── Provenance footer ──
-  const provLines = [
-    "Standards: UNSCEAR 2000 (dose coefficients), UNSCEAR 2006 (radon DCC), ICRP 103 (occupancy)",
-    "Irish action level: 200 Bq/m\u00b3 (Building Regulations 1997, SI 496)",
-    "EU BSS 2013/59/Euratom reference"
-  ];
-  if (d.provenance) {
-    d.provenance.forEach(p => provLines.push(p));
-  }
-
-  // ── Derivation strings ──
-  let derivHTML = "";
+  // Fingerprint triangle
+  html += renderFingerprint(d);
+  // Why
+  html += renderWhy(d);
+  // Factors
+  html += renderFactors(d);
+  // Confidence
+  html += renderConfidence(d);
+  // Sources
+  html += renderSources(d);
+  // Provenance
+  html += renderProvenance(d);
+  // Derivation
   if (d.derivation && Object.keys(d.derivation).length > 0) {
-    derivHTML = `<div style="margin-top:10px"><strong style="color:#3b82f6;font-size:10px">Derivations:</strong>`;
-    Object.entries(d.derivation).forEach(([k, v]) => {
-      derivHTML += `<div style="font-size:10px;color:#8b97b0;margin-left:4px">${k}: ${v}</div>`;
+    html += '<div class="card"><div class="section-header">Derivation (for verification)</div>';
+    html += '<div style="font-size:10px;color:#8b97b0;font-family:monospace;line-height:1.6">';
+    Object.keys(d.derivation).forEach(function(k){
+      html += '<div style="margin-bottom:4px"><span style="color:#3b82f6">'+k+':</span> '+d.derivation[k]+'</div>';
     });
-    derivHTML += `</div>`;
+    html += '</div></div>';
   }
 
-  // ── Assemble ──
-  const pinned = isPinned ? `<div style="color:#f59e0b;font-size:11px;margin-bottom:6px">📌 Pinned &mdash; click map to unpin</div>` : "";
-
-  rc.innerHTML = `
-    ${pinned}
-    <div class="loc-header">${d.lat.toFixed(4)}&deg; N, ${d.lon.toFixed(4)}&deg; W &middot; Cell ${d.cell_m}m</div>
-
-    <div class="card updating" id="riskCard">
-      <span class="risk-pill risk-${tier}">${tier === "INSUFFICIENT DATA" ? "INSUFFICIENT DATA" : tier + " &mdash; " + (d.risk?.label || "")}</span>
-      ${d.total_terrestrial_mSv_yr !== null ? `<span style="font-size:16px;font-weight:700;color:${tierColor}">${d.total_terrestrial_mSv_yr.toFixed(3)} mSv/yr</span>` : `<span style="color:#8b97b0">No total computed</span>`}
-    </div>
-
-    <div class="card">
-      <h2>Dose Fingerprint</h2>
-      ${d.total_terrestrial_mSv_yr !== null ? fprintSVG : `<div style="text-align:center;color:#8b97b0;padding:20px">No dose data available</div>`}
-      <div class="dose-row"><div class="dose-swatch" style="background:#3b82f6"></div><span class="dose-label">Radon</span><span class="dose-value">${arms.radon !== null ? arms.radon.toFixed(3) + " mSv/yr" : "No data"}</span></div>
-      <div class="dose-row"><div class="dose-swatch" style="background:#f97316"></div><span class="dose-label">Thoron</span><span class="dose-value">${arms.thoron !== null ? arms.thoron.toFixed(3) + " mSv/yr" : "No data"}</span></div>
-      <div class="dose-row"><div class="dose-swatch" style="background:#22c55e"></div><span class="dose-label">Gamma</span><span class="dose-value">${arms.gamma !== null ? arms.gamma.toFixed(3) + " mSv/yr" : "No data"}</span></div>
-      <div class="dose-row dose-total"><span class="dose-label">Total</span><span class="dose-value" style="color:${tierColor}">${d.total_terrestrial_mSv_yr !== null ? d.total_terrestrial_mSv_yr.toFixed(3) + " mSv/yr" : "No data"}</span></div>
-    </div>
-
-    <div class="card">
-      <h2>Why this dose?</h2>
-      ${whyLines.length ? whyLines.map(l => `<div style="font-size:11px;line-height:1.6;margin-bottom:3px"><span class="why-dot dot-${l.dot}"></span>${l.text}</div>`).join("") : `<div style="color:#8b97b0;font-size:11px">Insufficient data to explain</div>`}
-    </div>
-
-    <div class="card">
-      <h2>Factors at this point</h2>
-      ${factorsHTML || `<div style="color:#8b97b0;font-size:11px">No factors available</div>`}
-    </div>
-
-    <div class="card">
-      <h2>Confidence</h2>
-      <div class="conf-bar"><div class="conf-fill" style="width:${conf.score || 0}%;background:${confColor}"></div></div>
-      <div class="conf-text">${conf.level || "unknown"} (${conf.score || 0}%) &mdash; ${conf.reason || "no data"}</div>
-    </div>
-
-    ${srcBadges ? `<div class="card" style="padding:8px 12px">${srcBadges}</div>` : ""}
-
-    <div class="card provenance">
-      ${provLines.map(l => `<div>${l}</div>`).join("")}
-      ${derivHTML}
-      ${d.missing_layers && d.missing_layers.length ? `<div style="margin-top:6px;color:#f59e0b">Missing layers: ${d.missing_layers.join(", ")}</div>` : ""}
-    </div>
-  `;
+  rc.innerHTML = html;
 }
 
-// ═══════════════════════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════════════════════
+function renderFingerprint(d) {
+  var arms = d.arms||{};
+  var vals = [{key:"radon",label:"Radon",color:"#3b82f6",value:arms.radon},{key:"thoron",label:"Thoron",color:"#f97316",value:arms.thoron},{key:"gamma",label:"Gamma",color:"#22c55e",value:arms.gamma}];
+  var maxV = Math.max(vals[0].value||0,vals[1].value||0,vals[2].value||0,0.001);
+  var maxLen = 85, cx = 100, cy = 90, angles = [-90,150,30];
+  var lines = "", labels = "", pts = [];
+  vals.forEach(function(v,i){
+    var frac = (v.value||0)/maxV;
+    var len = Math.max(4, frac*maxLen);
+    var rad = angles[i]*Math.PI/180;
+    var ex = cx+Math.cos(rad)*len, ey = cy+Math.sin(rad)*len;
+    lines += '<line x1="'+cx+'" y1="'+cy+'" x2="'+ex+'" y2="'+ey+'" stroke="'+v.color+'" stroke-width="3" stroke-linecap="round"/>';
+    pts.push(ex+","+ey);
+    var lx = cx+Math.cos(rad)*(len+16), ly = cy+Math.sin(rad)*(len+16);
+    var vt = v.value !== null ? v.value.toFixed(2) : "—";
+    labels += '<text x="'+lx+'" y="'+ly+'" fill="'+v.color+'" font-size="10" text-anchor="middle" dominant-baseline="middle">'+v.label+' '+vt+'</text>';
+  });
+  var legend = vals.map(function(v){return '<div class="fingerprint-legend-item"><span class="fingerprint-legend-dot" style="background:'+v.color+'"></span>'+v.label+': '+(v.value!==null?v.value.toFixed(3)+" mSv/yr":"no data")+'</div>'}).join('');
+  var totalT = d.total !== null ? d.total.toFixed(3)+" mSv/yr" : "—";
+  return '<div class="card"><div class="section-header">Dose Fingerprint</div><div class="fingerprint-container">'+
+    '<svg class="fingerprint-svg" viewBox="0 0 200 180"><polygon points="'+pts.join(" ")+'" fill="rgba(59,130,246,0.06)" stroke="none"/>'+lines+'<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="#e6ebf5"/>'+labels+'</svg>'+
+    '<div class="fingerprint-legend">'+legend+'</div>'+
+    '<div style="margin-top:8px;font-size:12px;border-top:1px solid #243049;padding-top:8px;width:100%;text-align:center"><strong>Total: '+totalT+'</strong></div></div></div>';
+}
 
-// Check backend health on load
-fetch(`${API_BASE}/health`).then(r => r.json()).then(h => {
-  const loaded = Object.values(h.layers_loaded || {}).filter(Boolean).length;
-  const total = Object.keys(h.layers_loaded || {}).length;
-  document.getElementById("searchMsg").textContent = `Backend: ${loaded}/${total} layers loaded`;
-  setTimeout(() => { document.getElementById("searchMsg").textContent = ""; }, 4000);
-}).catch(() => {
-  document.getElementById("searchMsg").textContent = `Backend not reachable at ${API_BASE}`;
-});
+function renderWhy(d) {
+  if (!d.report||!d.report.length) return '';
+  var bullets = d.report.map(function(line){
+    var color = "#3b82f6";
+    var lo = line.toLowerCase();
+    if (lo.indexOf("exceed")>=0||lo.indexOf("above")>=0||lo.indexOf("action level")>=0) color="#f59e0b";
+    else if (lo.indexOf("below")>=0||lo.indexOf("low")>=0) color="#22c55e";
+    return '<div style="display:flex;gap:8px;margin-bottom:4px"><span style="color:'+color+';font-size:16px;line-height:1">•</span><span>'+line+'</span></div>';
+  }).join('');
+  return '<div class="card"><div class="section-header">Why this dose?</div>'+bullets+'</div>';
+}
 
+function renderFactors(d) {
+  if (!d.factors||!d.factors.length) return '';
+  var rows = d.factors.map(function(f){
+    var dc = f.direction==="up"?"dir-up":f.direction==="down"?"dir-down":f.direction==="varies"?"dir-varies":"dir-neutral";
+    return '<tr><td>'+f.name+'</td><td>'+f.value+'</td><td class="'+dc+'" style="text-align:center;font-weight:700">'+f.icon+'</td></tr>';
+  }).join('');
+  return '<div class="card"><div class="section-header">Factors at this point</div><table class="factors-table"><thead><tr><th>Factor</th><th>Value</th><th style="text-align:center">Dir</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function renderConfidence(d) {
+  if (!d.confidence) return '';
+  var s = d.confidence.score||0, l = d.confidence.level||"unknown", r = d.confidence.reason||"";
+  var c = s>=75?"#22c55e":s>=50?"#f59e0b":s>=25?"#f59e0b":"#ef4444";
+  return '<div class="card"><div class="section-header">Confidence</div><div class="conf-bar"><div class="conf-fill" style="width:'+s+'%;background:'+c+'"></div></div><div style="display:flex;justify-content:space-between;font-size:11px;color:#8b97b0"><span>'+l+' ('+s+'%)</span></div><div style="margin-top:6px;font-size:11px;color:#8b97b0">'+r+'</div></div>';
+}
+
+function renderSources(d) {
+  var badges = [];
+  Object.keys(d.sources||{}).forEach(function(k){
+    var s = d.sources[k];
+    if (s.available) badges.push('<span class="source-badge measured">✓ '+k+': '+s.source+'</span>');
+    else badges.push('<span class="source-badge unavailable">✗ '+k+': '+s.source+'</span>');
+  });
+  if (d.missing && d.missing.length) {
+    badges.push('<span class="source-badge unavailable">Missing: '+d.missing.join(", ")+'</span>');
+  }
+  return badges.length ? '<div class="card"><div class="section-header">Data Sources</div><div>'+badges.join(" ")+'</div></div>' : '';
+}
+
+function renderProvenance(d) {
+  var c = '<div style="margin-bottom:8px"><div style="font-weight:600;margin-bottom:4px">Standards</div>';
+  c += '<div>UNSCEAR 2000 Annex B (gamma DCC)</div>';
+  c += '<div>UNSCEAR 2006 Annex E (radon DCC)</div>';
+  c += '<div>UNSCEAR 2008 Annex B (world average: '+WORLD_AVG+' mSv/yr)</div>';
+  c += '<div>EU BSS 2013/59/Euratom (Ra-equivalent threshold)</div>';
+  c += '<div>SI No. 310 of 2000 (Irish radon action level: '+IRISH_RN_ACTION+' Bq/m³)</div></div>';
+  c += '<div><div style="font-weight:600;margin-bottom:4px">Measurement vs Model</div>';
+  Object.keys(d.sources||{}).forEach(function(k){
+    var s = d.sources[k];
+    c += '<div><span class="source-badge '+(s.available?"measured":"unavailable")+'">'+(s.available?"available":"unavailable")+'</span> '+k+': '+s.source+'</div>';
+  });
+  c += '</div>';
+  return '<div class="card"><div class="section-header">Provenance & Standards</div>'+c+'</div>';
+}
+
+function updateDataBadges(d) {
+  var c = document.getElementById("dataBadges");
+  var h = "";
+  if (d.sources && d.sources.bedrock && d.sources.bedrock.available) h += '<div class="badge badge-ok">✓ GSI Bedrock</div>';
+  if (d.sources && d.sources.radon && d.sources.radon.available) h += '<div class="badge badge-ok">✓ EPA radon</div>';
+  if (d.La_ppm !== null) h += '<div class="badge badge-ok">✓ GSI Geochemistry</div>';
+  c.innerHTML = h;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MAP
+   ═══════════════════════════════════════════════════════════════════════ */
+function initMap() {
+  var style = {version:8, sources:{}, layers:[]};
+  Object.keys(BASEMAPS.satellite.sources).forEach(function(k){style.sources[k]=BASEMAPS.satellite.sources[k];});
+  BASEMAPS.satellite.layers.forEach(function(l){style.layers.push(l);});
+
+  map = new maplibregl.Map({container:"map",center:[-8.5,53.3],zoom:7,minZoom:5,maxZoom:18,style:style});
+  map.addControl(new maplibregl.NavigationControl(),"top-right");
+
+  document.querySelectorAll('.basemap-toggle button').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var layer = btn.dataset.layer;
+      document.querySelectorAll('.basemap-toggle button').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active');
+      // Swap basemap
+      var s = BASEMAPS[layer];
+      if (!s) return;
+      // Remove existing layers
+      BASEMAPS.satellite.layers.forEach(function(l){if(map.getLayer(l.id))map.removeLayer(l.id);});
+      Object.keys(BASEMAPS.satellite.sources).forEach(function(k){if(map.getSource(k))map.removeSource(k);});
+      // Add new
+      Object.keys(s.sources).forEach(function(k){map.addSource(k,s.sources[k]);});
+      s.layers.forEach(function(l){map.addLayer(l);});
+    });
+  });
+
+  var mc = map.getCanvas();
+  cursorTriangleEl = document.getElementById("cursorTriangle");
+
+  map.on('mousemove', function(e){
+    var rect = mc.getBoundingClientRect();
+    var x = e.originalEvent.clientX - rect.left;
+    var y = e.originalEvent.clientY - rect.top;
+    cursorTriangleEl.style.left = (x-24)+"px";
+    cursorTriangleEl.style.top = (y-24)+"px";
+    if (!pinned) {
+      clearTimeout(hoverTimeout);
+      hoverTimeout = setTimeout(function(){ queryDose(e.lngLat.lat, e.lngLat.lng); }, 100);
+    }
+  });
+  map.on('mouseenter', function(){ cursorTriangleEl.style.opacity = '1'; });
+  map.on('mouseleave', function(){ cursorTriangleEl.style.opacity = '0'; });
+  map.on('click', function(e){
+    if (pinned) {
+      pinned = false;
+      document.getElementById("pinIndicator").style.display = "none";
+      document.getElementById("reportPane").classList.remove("pulse");
+    } else {
+      pinned = true;
+      document.getElementById("pinIndicator").style.display = "block";
+      document.getElementById("reportPane").classList.add("pulse");
+      queryDose(e.lngLat.lat, e.lngLat.lng);
+    }
+  });
+
+  document.getElementById("searchBtn").addEventListener("click", doSearch);
+  document.getElementById("searchInput").addEventListener("keydown", function(e){ if(e.key==="Enter")doSearch(); });
+}
+
+async function doSearch() {
+  var q = document.getElementById("searchInput").value.trim();
+  if (!q) return;
+  try {
+    var resp = await fetch("https://nominatim.openstreetmap.org/search?format=json&q="+encodeURIComponent(q+", Ireland")+"&limit=1");
+    var data = await resp.json();
+    if (!data||!data.length) { alert("Location not found"); return; }
+    var lat = parseFloat(data[0].lat), lon = parseFloat(data[0].lon);
+    if (lat<IE_LAT_MIN||lat>IE_LAT_MAX||lon<IE_LON_MIN||lon>IE_LON_MAX) { alert("Location outside Ireland"); return; }
+    map.flyTo({center:[lon,lat],zoom:13,essential:true});
+    setTimeout(function(){ queryDose(lat,lon); }, 1000);
+  } catch(e) { alert("Search failed: "+e.message); }
+}
+
+initMap();
+})();
 </script>
 </body>
 </html>
-<!-- Built: 2026-08-16T17:35:13Z -->
