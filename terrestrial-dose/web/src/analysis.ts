@@ -6,7 +6,7 @@
  */
 
 import type { DoseFingerprint } from "./dose_core";
-import { getRegionInfo } from "./lithology";
+import { getLithologyAt } from "./lithology";
 import { RISK } from "./dose_core";
 
 export interface AnalysisResult {
@@ -80,9 +80,9 @@ export function analyze(data: DoseFingerprint, lon?: number, lat?: number): Anal
 
   // ── Region info (if available) ──
   if (lon != null && lat != null) {
-    const region = getRegionInfo(lon, lat);
-    if (region) {
-      why.push(`Location is within the ${region.name} geological province (GLiM code: ${region.glim}).`);
+    const region = getLithologyAt(lon, lat);
+    if (region && region.region) {
+      why.push(`Location: ${region.region} (GLiM: ${region.glim}, scale: 1:${region.map_scale}, cell: ${region.cell_m}m).`);
     }
   }
 

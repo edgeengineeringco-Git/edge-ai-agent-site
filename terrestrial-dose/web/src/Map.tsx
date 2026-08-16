@@ -1,65 +1,65 @@
 /**
- * Map.tsx — MapLibre GL JS satellite map with VisQuill hover behavior
- * ===================================================================
- * Hover: debounced 100ms, updates live triangle + headline.
- * Click: locks the full analysis panel.
- * Search: geocode via Nominatim → fly to location.
- * Marker: pulsing ring coloured by risk tier.
+ * Map.tsx — Satellite basemap with VisQuill hover/click behaviour
+ * Basemap: Esri World Imagery + labels overlay
+ * Hover: debounced 100ms, live dose triangle + report
+ * Click: pins full report
  */
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
-import { polygonDoseFingerprint, type DoseFingerprint } from "./dose_core";
-import { getLithologyAtPoint, getLithologyLabel } from "./lithology";
+import type { DoseFingerprint } from "./dose_core";
+import { polygonDoseFingerprint } from "./dose_core";
+import { getLithologyAt } from "./lithology";
 
 interface MapProps {
-  onHover: (data: DoseFingerprint, locationName: string) => void;
-  onClick: (data: DoseFingerprint, locationName: string) => void;
+  onHover: (data: DoseFingerprint, name: string) => void;
+  onClick: (data: DoseFingerprint, name: string) => void;
   flyTo: { lat: number; lon: number; name: string } | null;
 }
 
-const RISK_COLORS: Record<string, string> = {
-  GREEN: "#22c55e",
-  AMBER: "#f59e0b",
-  RED: "#ef4444",
-};
+const RISK_COLORS: Record<string, string> = { GREEN: "#22c55e", AMBER: "#f59e0b", RED: "#ef4444" };
 
 export default function MapComponent({ onHover, onClick, flyTo }: MapProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstance = useRef<maplibregl.Map | null>(null);
   const markerRef = useRef<maplibregl.Marker | null>(null);
-  const markerDivRef = useRef<HTMLDivElement | null>(null);
-  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastHoverRef = useRef<string>("");
+  const [loaded, setLoaded] = useState(false);
+  const [showLabels, setShowLabels] = useState(true);
 
-  // Stable callback refs
-  const onHoverRef = useRef(onHover);
-  const onClickRef = useRef(onClick);
-  onHoverRef.current = onHover;
-  onClickRef.current = onClick;
+  // Debounced hover handler
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const computeAtPoint = useCallback((lon: number, lat: number): DoseFingerprint => {
-    const lith = getLithologyAtPoint(lon, lat);
-    return polygonDoseFingerprint({ lithology: lith, lat, lon });
-  }, []);
+  const handleMove = useCallback((lon: number, lat: number) => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    hoverTimer.current = setTimeout(() => {
+      const lith = getLithologyAt(lon, lat);
+      if (lith.glim === "water" || lith.glim === "Water" || lith.glim === "Ice") return;
+      const fp = polygonDoseFingerprint({ lithology: lith.glim, lat, lon });
+      onHover(fp, lith.region);
+    }, 100);
+  }, [onHover]);
 
+  // Init map
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    if (!mapRef.current || mapInstance.current) return;
 
     const map = new maplibregl.Map({
-      container: containerRef.current,
+      container: mapRef.current,
+      center: [-6.26, 53.35],
+      zoom: 10,
+      maxZoom: 18,
+      minZoom: 3,
       style: {
         version: 8,
+        name: "Terrestrial Dose Indicator",
         sources: {
-          "esri-satellite": {
+          "esri-imagery": {
             type: "raster",
             tiles: [
               "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             ],
             tileSize: 256,
             attribution: "Esri, Maxar, Earthstar Geographics",
-            maxzoom: 19,
           },
           "esri-labels": {
             type: "raster",
@@ -67,7 +67,7 @@ export default function MapComponent({ onHover, onClick, flyTo }: MapProps) {
               "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
             ],
             tileSize: 256,
-            maxzoom: 19,
+            attribution: "Esri",
           },
           "esri-hillshade": {
             type: "raster",
@@ -75,262 +75,124 @@ export default function MapComponent({ onHover, onClick, flyTo }: MapProps) {
               "https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}",
             ],
             tileSize: 256,
-            maxzoom: 16,
+            attribution: "Esri",
           },
         },
         layers: [
           {
-            id: "satellite-base",
+            id: "satellite",
             type: "raster",
-            source: "esri-satellite",
-            paint: { "raster-opacity": 0.92 },
+            source: "esri-imagery",
+            minzoom: 0,
+            maxzoom: 18,
           },
           {
-            id: "hillshade-overlay",
+            id: "hillshade",
             type: "raster",
             source: "esri-hillshade",
-            paint: { "raster-opacity": 0.12 },
+            minzoom: 0,
+            maxzoom: 18,
+            paint: { "raster-opacity": 0.15 },
           },
           {
-            id: "labels-overlay",
+            id: "labels",
             type: "raster",
             source: "esri-labels",
-            paint: { "raster-opacity": 0.85 },
+            minzoom: 0,
+            maxzoom: 18,
           },
         ],
       },
-      center: [-8, 53.3],
-      zoom: 5,
-      minZoom: 2,
-      maxZoom: 18,
-      attributionControl: false,
-      pitchWithRotate: false,
     });
 
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
-    map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-left");
-    map.addControl(new maplibregl.ScaleControl({ unit: "metric", maxWidth: 200 }), "bottom-left");
+    // Scale bar
+    map.addControl(new maplibregl.ScaleControl({ maxWidth: 150 }), "bottom-left");
 
-    // ── Pulsing marker ──
-    const markerDiv = document.createElement("div");
-    markerDiv.className = "dose-marker";
-    markerDiv.innerHTML = `<div class="dose-marker-pulse"></div><div class="dose-marker-dot"></div>`;
-    const marker = new maplibregl.Marker({ element: markerDiv })
-      .setLngLat([-8, 53.3])
-      .addTo(map);
-    markerDivRef.current = markerDiv;
-
-    // ── Hover cursor indicator ──
-    const hoverCursor = document.createElement("div");
-    hoverCursor.className = "hover-cursor";
-    hoverCursor.innerHTML = `<span class="hover-cursor-label"></span>`;
+    // Nav controls
+    map.addControl(new maplibregl.NavigationControl(), "top-right");
 
     map.on("load", () => {
-      // ── Dose heatmap grid ──
-      try {
-        const gridFeatures: any[] = [];
-        const step = 2;
-        for (let lat = 35; lat <= 72; lat += step) {
-          for (let lng = -12; lng <= 40; lng += step) {
-            const lith = getLithologyAtPoint(lng, lat);
-            if (lith === "Ice" || lith === "Wa") continue;
-            const fp = polygonDoseFingerprint({ lithology: lith });
-            gridFeatures.push({
-              type: "Feature",
-              geometry: { type: "Point", coordinates: [lng, lat] },
-              properties: {
-                dose: fp.total_terrestrial_mSv_yr,
-                tier: fp.risk.tier,
-                lithology: lith,
-              },
-            });
-          }
-        }
-
-        map.addSource("dose-grid", {
-          type: "geojson",
-          data: { type: "FeatureCollection", features: gridFeatures },
-        });
-
-        map.addLayer({
-          id: "dose-heat",
-          type: "heatmap",
-          source: "dose-grid",
-          maxzoom: 7,
-          paint: {
-            "heatmap-weight": ["interpolate", ["linear"], ["get", "dose"], 0, 0, 2, 0.4, 5, 0.8, 10, 1.5],
-            "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 0.8, 7, 2.5],
-            "heatmap-color": [
-              "step", ["get", "dose"],
-              "rgba(0,0,0,0)",
-              0.5, "rgba(34,197,94,0.08)",
-              1.5, "rgba(245,158,11,0.15)",
-              3.0, "rgba(249,115,22,0.22)",
-              5.0, "rgba(239,68,68,0.32)",
-              10, "rgba(185,28,28,0.45)",
-            ],
-            "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 30, 7, 80],
-            "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 3, 0.5, 7, 0.15],
-          },
-        });
-      } catch (e) {
-        console.warn("Heatmap layer failed:", e);
-      }
-
-      // Remove loader
-      const loader = document.getElementById("map-loader");
-      if (loader) {
-        loader.style.opacity = "0";
-        setTimeout(() => { loader.style.display = "none"; }, 500);
-      }
+      setLoaded(true);
     });
 
-    // ── VisQuill hover: debounced 100ms ──
+    // Mouse move → hover
     map.on("mousemove", (e) => {
       const { lng, lat } = e.lngLat;
-      const key = `${lng.toFixed(3)},${lat.toFixed(3)}`;
+      handleMove(lng, lat);
 
       // Update status bar
       const coordsEl = document.getElementById("status-coords");
-      if (coordsEl) coordsEl.textContent = `${lat.toFixed(4)}°, ${lng.toFixed(4)}°`;
       const lithEl = document.getElementById("status-lith");
-      if (lithEl) {
-        const lith = getLithologyAtPoint(lng, lat);
-        lithEl.textContent = getLithologyLabel(lith);
-      }
-
-      // Skip if same cell
-      if (key === lastHoverRef.current) return;
-      lastHoverRef.current = key;
-
-      // Debounce hover computation
-      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = setTimeout(() => {
-        const fp = computeAtPoint(lng, lat);
-        const label = getLithologyLabel(fp.lithology);
-        onHoverRef.current(fp, label);
-      }, 100);
+      if (coordsEl) coordsEl.textContent = `${lat.toFixed(4)}°, ${lng.toFixed(4)}°`;
+      const lith = getLithologyAt(lng, lat);
+      if (lithEl) lithEl.textContent = `${lith.label} (${lith.region}) — ${lith.source}`;
     });
 
-    // ── Click: lock full panel ──
+    // Click → pin
     map.on("click", (e) => {
       const { lng, lat } = e.lngLat;
-      const fp = computeAtPoint(lng, lat);
-      const label = getLithologyLabel(fp.lithology);
+      const lith = getLithologyAt(lng, lat);
+      if (lith.glim === "water" || lith.glim === "Water" || lith.glim === "Ice") return;
+      const fp = polygonDoseFingerprint({ lithology: lith.glim, lat, lon: lng });
+      onClick(fp, lith.region);
 
       // Move marker
-      marker.setLngLat([lng, lat]);
+      if (markerRef.current) markerRef.current.remove();
       const color = RISK_COLORS[fp.risk.tier] || "#5ad1c5";
-      markerDiv.style.setProperty("--marker-color", color);
-      markerDiv.classList.add("active");
-
-      onClickRef.current(fp, label);
+      const el = document.createElement("div");
+      el.className = "dose-marker active";
+      el.style.setProperty("--marker-color", color);
+      el.innerHTML = `<div class="dose-marker-dot"></div><div class="dose-marker-pulse"></div>`;
+      markerRef.current = new maplibregl.Marker({ element: el })
+        .setLngLat([lng, lat])
+        .addTo(map);
     });
 
-    map.on("error", () => {});
+    mapInstance.current = map;
 
-    // Safety timeout for loader
-    setTimeout(() => {
-      const loader = document.getElementById("map-loader");
-      if (loader && loader.style.display !== "none") {
-        loader.style.opacity = "0";
-        setTimeout(() => { loader.style.display = "none"; }, 500);
-      }
-    }, 8000);
+    return () => {
+      map.remove();
+      mapInstance.current = null;
+    };
+  }, [handleMove, onClick]);
 
-    mapRef.current = map;
-    return () => { map.remove(); mapRef.current = null; };
-  }, [computeAtPoint]);
-
-  // ── Fly to location ──
+  // Fly-to handler
   useEffect(() => {
-    if (!flyTo || !mapRef.current) return;
-    const map = mapRef.current;
+    if (!flyTo || !mapInstance.current) return;
+    mapInstance.current.flyTo({ center: [flyTo.lon, flyTo.lat], zoom: 14, essential: true });
+    // Trigger compute at destination
+    setTimeout(() => handleMove(flyTo.lon, flyTo.lat), 500);
+  }, [flyTo, handleMove]);
 
-    map.flyTo({
-      center: [flyTo.lon, flyTo.lat],
-      zoom: 10,
-      duration: 2500,
-      essential: true,
-    });
-
-    const timeout = setTimeout(() => {
-      const fp = computeAtPoint(flyTo.lon, flyTo.lat);
-
-      // Move marker
-      const markerDiv = markerDivRef.current;
-      if (markerDiv) {
-        const color = RISK_COLORS[fp.risk.tier] || "#5ad1c5";
-        markerDiv.style.setProperty("--marker-color", color);
-        markerDiv.classList.add("active");
-      }
-
-      onClickRef.current(fp, flyTo.name);
-    }, 2600);
-
-    return () => clearTimeout(timeout);
-  }, [flyTo, computeAtPoint]);
+  // Toggle labels
+  const toggleLabels = useCallback(() => {
+    const map = mapInstance.current;
+    if (!map) return;
+    const vis = showLabels ? "none" : "visible";
+    map.setLayoutProperty("labels", "visibility", vis);
+    setShowLabels(!showLabels);
+  }, [showLabels]);
 
   return (
-    <>
-      <div ref={containerRef} className="map-container" />
-      <div id="map-loader" className="map-loader">
-        <div className="loader-spinner" />
-        <span>Loading satellite imagery…</span>
-      </div>
-      {/* Layer controls */}
+    <div className="map-container">
+      {!loaded && (
+        <div className="map-loader">
+          <div className="loader-spinner" />
+          Loading satellite imagery…
+        </div>
+      )}
+      <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
       <div className="map-controls">
         <button
-          className="map-control-btn"
-          title="Toggle risk heatmap"
-          onClick={() => {
-            const map = mapRef.current;
-            if (!map) return;
-            try {
-              const vis = map.getLayoutProperty("dose-heat", "visibility");
-              map.setLayoutProperty("dose-heat", "visibility", vis === "none" ? "visible" : "none");
-            } catch {}
-          }}
+          className={`map-control-btn ${showLabels ? "active" : ""}`}
+          onClick={toggleLabels}
+          title="Toggle labels"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="3" />
-            <circle cx="12" cy="12" r="7" opacity="0.5" />
-            <circle cx="12" cy="12" r="11" opacity="0.25" />
-          </svg>
-        </button>
-        <button
-          className="map-control-btn"
-          title="Toggle town labels"
-          onClick={() => {
-            const map = mapRef.current;
-            if (!map) return;
-            try {
-              const vis = map.getLayoutProperty("labels-overlay", "visibility");
-              map.setLayoutProperty("labels-overlay", "visibility", vis === "none" ? "visible" : "none");
-            } catch {}
-          }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M4 7h16M4 12h16M4 17h10" />
-          </svg>
-        </button>
-        <button
-          className="map-control-btn"
-          title="Toggle terrain hillshade"
-          onClick={() => {
-            const map = mapRef.current;
-            if (!map) return;
-            try {
-              const vis = map.getLayoutProperty("hillshade-overlay", "visibility");
-              map.setLayoutProperty("hillshade-overlay", "visibility", vis === "none" ? "visible" : "none");
-            } catch {}
-          }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M2 20L8 8l4 6 4-10 6 16" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 7V4h16v3M9 20h6M12 4v16" />
           </svg>
         </button>
       </div>
-    </>
+    </div>
   );
 }
