@@ -9,17 +9,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "maplibre-gl": "^5.6.1",
     "d3": "^7.9.0",
+    "maplibre-gl": "^5.6.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@types/d3": "^7.4.3",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "@types/d3": "^7.4.3",
     "@vitejs/plugin-react": "^4.3.0",
-    "typescript": "^5.6.0",
+    "typescript": "^5.9.3",
     "vite": "^6.0.0"
   }
 }
