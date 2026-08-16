@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Terrestrial Dose Indicator — Interactive Web GIS Platform for radiation dose estimation (radon, thoron, gamma) with VisQuill-style dose fingerprints. EDGE Engineering.">
+<meta name="theme-color" content="#05070d">
+<title>Terrestrial Dose Indicator — EDGE Engineering</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css"/>
+<script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/d3@7/dist/d3.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05070d;--bg2:#0a0f18;--bg3:#10151f;--panel:rgba(15,20,31,.88);--panel-solid:#0f141f;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);--accent:#2f8f85;--accent2:#5ad1c5;--accent3:#8eeae2;--gold:#d4a853;--gold2:#f0d78c;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--green-bg:rgba(34,197,94,.12);--amber-bg:rgba(245,158,11,.12);--red-bg:rgba(239,68,68,.12);--text:#e7ecf3;--muted:#8b97a8;--muted2:#5e6878;--font:'Inter',system-ui,-apple-system,sans-serif;--mono:'JetBrains Mono','SF Mono',monospace}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased}
+a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+button{font-family:inherit;cursor:pointer}input,select,textarea{font-family:inherit}
+#map{position:absolute;inset:0;background:#05070d}#map canvas{outline:none}
+.topbar{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:10px;padding:10px 14px;flex-wrap:wrap;background:linear-gradient(180deg,rgba(5,7,13,.94),rgba(5,7,13,.5) 70%,transparent);pointer-events:none}
+.topbar>*{pointer-events:auto}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0}
+.logo{width:36px;height:36px;border-radius:9px;flex:none;position:relative;overflow:hidden;background:linear-gradient(135deg,#ef4444 0%,#f59e0b 50%,#22c55e 100%);box-shadow:0 0 0 1px rgba(255,255,255,.1),0 6px 18px rgba(0,0,0,.45)}
+.logo:after{content:"";position:absolute;inset:0;border-radius:9px;background:radial-gradient(80% 60% at 70% 80%,rgba(0,0,0,.3),transparent)}
+.logo svg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:20px;height:20px}
+.brand h1{font-size:15px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.brand h1 b{color:var(--accent2)}
+.brand .sub{font-size:11px;color:var(--muted);font-weight:500;display:block}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px;backdrop-filter:blur(12px)}
+.seg button{border:0;background:transparent;color:var(--muted);font-size:12px;font-weight:600;padding:7px 12px;border-radius:7px;white-space:nowrap;transition:.15s}
+.seg button:hover{color:var(--text)}
+.seg button.on{background:linear-gradient(180deg,#346b62,#2f8f85);color:#fff;box-shadow:0 2px 10px rgba(47,143,133,.35)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:12px;font-weight:600;backdrop-filter:blur(10px);transition:.2s}
+.btn:hover{border-color:var(--accent);color:var(--accent2)}
+.btn--accent{background:linear-gradient(180deg,#346b62,#2f8f85);border-color:#3a9488;color:#fff}
+.btn--accent:hover{box-shadow:0 4px 16px rgba(47,143,133,.4)}
+.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn{width:36px;height:36px;border-radius:9px;background:var(--panel);border:1px solid var(--line);color:var(--text);display:inline-flex;align-items:center;justify-content:center;font-size:15px;backdrop-filter:blur(10px);transition:.15s}
+.iconbtn:hover{border-color:var(--accent);color:var(--accent2)}
+.right-panel{position:absolute;top:74px;right:14px;bottom:56px;z-index:15;width:380px;max-width:calc(100vw - 28px);display:flex;flex-direction:column;gap:10px;pointer-events:none;overflow-y:auto}
+.right-panel>*{pointer-events:auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;backdrop-filter:blur(14px);overflow:hidden}
+.card-head{padding:12px 16px 10px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.card-head h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
+.card-head .pill{margin-left:auto;font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(90,209,197,.1);border:1px solid rgba(90,209,197,.2);color:var(--accent2);font-weight:600}
+.card-body{padding:14px 16px}
+#triangle-container{padding:8px 16px 16px}
+#triangle-svg{width:100%;height:auto}
+.risk-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.risk-badge--green{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,.25)}
+.risk-badge--amber{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(245,158,11,.25)}
+.risk-badge--red{background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+.dose-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.dose-cell{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}
+.dose-cell .val{font-size:20px;font-weight:700;font-family:var(--mono);letter-spacing:-0.5px}
+.dose-cell .lbl{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.dose-cell.radon .val{color:#f97316}.dose-cell.thoron .val{color:#a855f7}.dose-cell.gamma .val{color:#3b82f6}
+.dose-total{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.dose-total .val{font-size:26px;font-weight:800;font-family:var(--mono)}
+.dose-total .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.dose-total .ref{font-size:10px;color:var(--muted2)}
+.prov-table{width:100%;border-collapse:collapse;font-size:11.5px}
+.prov-table th{text-align:left;padding:6px 8px;color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--line)}
+.prov-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:top}
+.prov-table .src{display:inline-flex;align-items:center;gap:4px;padding:1px 6px;border-radius:4px;font-size:9.5px;font-weight:600}
+.prov-table .src--prior{background:rgba(139,151,168,.12);color:var(--muted)}
+.prov-table .src--measured{background:rgba(34,197,94,.12);color:var(--green)}
+.confidence-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(255,255,255,.03);border-radius:8px;margin-top:8px}
+.confidence-bar .track{flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+.confidence-bar .fill{height:100%;border-radius:3px;transition:width .5s ease}
+.confidence-bar .label{font-size:10px;color:var(--muted);font-weight:600;min-width:80px}
+.confidence-bar .pct{font-size:11px;font-weight:700;font-family:var(--mono);min-width:36px;text-align:right}
+.left-panel{position:absolute;top:74px;left:14px;bottom:56px;z-index:15;width:290px;max-width:calc(100vw - 28px);display:flex;flex-direction:column;gap:10px;transition:transform .28s cubic-bezier(.2,.7,.2,1)}
+.left-panel.collapsed{transform:translateX(-320px)}
+.left-panel>*{pointer-events:auto}
+.layer-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:.13s;border:1px solid transparent}
+.layer-item:hover{background:rgba(255,255,255,.04);border-color:var(--line)}
+.layer-item .dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 3px rgba(255,255,255,.06)}
+.layer-item .info{flex:1;min-width:0}
+.layer-item .nm{font-size:12.5px;font-weight:600}.layer-item .ds{font-size:10.5px;color:var(--muted)}
+.layer-toggle{width:36px;height:20px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.06);position:relative;transition:.2s;flex:none}
+.layer-toggle.on{background:var(--accent);border-color:var(--accent)}
+.layer-toggle::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.2s}
+.layer-toggle.on::after{left:18px}
+.search-box{display:flex;gap:6px;padding:12px 14px;border-top:1px solid var(--line)}
+.search-box input{flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--text);font-size:12px;outline:none;transition:.2s}
+.search-box input:focus{border-color:var(--accent);background:rgba(255,255,255,.08)}
+.search-box input::placeholder{color:var(--muted2)}
+.statusbar{position:absolute;left:0;right:0;bottom:0;z-index:15;display:flex;align-items:center;gap:14px;padding:8px 16px;background:linear-gradient(0deg,rgba(5,7,13,.94),transparent);font-family:var(--mono);font-size:11px;flex-wrap:wrap}
+.statusbar .s-item{color:var(--muted)}.statusbar .s-item b{color:var(--text);font-weight:500}
+.statusbar .spacer{flex:1}.statusbar .attr{color:#6c7686;font-size:10px}.statusbar .attr a{color:#8f99a8}
+#loader{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--bg);transition:opacity .5s}
+.spin{width:42px;height:42px;border-radius:50%;border:3px solid rgba(255,255,255,.1);border-top-color:var(--accent2);animation:rot .8s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+#loader .ltxt{color:var(--muted);font-size:13px}#loader.hide{opacity:0;pointer-events:none}
+.draw-hint{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);z-index:16;padding:10px 20px;background:var(--panel);border:1px solid var(--line);border-radius:10px;font-size:12px;color:var(--muted);backdrop-filter:blur(12px);pointer-events:none;opacity:0;transition:opacity .3s}
+.draw-hint.show{opacity:1}
+.modal-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.3s}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal{background:var(--panel-solid);border:1px solid var(--line2);border-radius:16px;max-width:720px;max-height:80vh;width:calc(100% - 40px);overflow-y:auto;padding:32px}
+.modal h2{font-size:1.4rem;font-weight:700;margin-bottom:16px}
+.modal h3{font-size:1rem;font-weight:600;margin:20px 0 8px;color:var(--accent2)}
+.modal p,.modal li{font-size:.88rem;color:var(--muted);line-height:1.7;margin-bottom:8px}
+.modal ul{padding-left:20px}
+.modal .close-btn{float:right;width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--text);font-size:18px;display:flex;align-items:center;justify-content:center}
+.modal .close-btn:hover{border-color:var(--accent);color:var(--accent2)}
+.modal table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12px}
+.modal table th{text-align:left;padding:8px;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--line)}
+.modal table td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.03)}
+@media(max-width:900px){.right-panel{width:320px}.left-panel{width:260px}}
+@media(max-width:680px){.right-panel{display:none}.left-panel{width:calc(100vw - 28px)}}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
+</style>
+</head>
+<body>
+<div id="loader"><div class="spin"></div><div class="ltxt">Initialising Terrestrial Dose Indicator…</div></div>
+<div id="map"></div>
+<div class="draw-hint" id="drawHint">Click points on the map to draw a region. Double-click or click first point to close.</div>
+<div class="topbar">
+<div class="brand">
+<div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg></div>
+<div><h1>Terrestrial Dose <b>Indicator</b></h1><span class="sub">Radon · Thoron · Gamma — Web GIS Platform</span></div>
+</div>
+<div class="seg" id="modeSeg"><button class="on" data-mode="explore">Explore</button><button data-mode="draw">Draw Region</button><button data-mode="point">Point Query</button></div>
+<button class="btn btn--accent" id="btnAnalyze" title="Run analysis on selected region"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 17 4-8 4 5 5-9"/></svg>Analyse</button>
+<button class="iconbtn" id="btnReset" title="Reset view"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+<button class="iconbtn" id="btnInfo" title="Standards & Provenance"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button>
+</div>
+<div class="left-panel" id="leftPanel">
+<div class="card"><div class="card-head"><h2>Data Layers</h2><span class="pill">5 sources</span></div>
+<div class="card-body" style="padding:8px 10px 12px">
+<div class="layer-item" data-layer="geology"><div class="dot" style="background:#8b5cf6"></div><div class="info"><div class="nm">Geology (OneGeology)</div><div class="ds">Lithology polygons — primary predictor</div></div><div class="layer-toggle on" id="togGeology"></div></div>
+<div class="layer-item" data-layer="faults"><div class="dot" style="background:#ef4444"></div><div class="info"><div class="nm">Active Faults (GEM)</div><div class="ds">Radon migration pathways</div></div><div class="layer-toggle on" id="togFaults"></div></div>
+<div class="layer-item" data-layer="radon"><div class="dot" style="background:#f97316"></div><div class="info"><div class="nm">Radon Potential</div><div class="ds">Geogenic radon risk zones</div></div><div class="layer-toggle on" id="togRadon"></div></div>
+<div class="layer-item" data-layer="dose"><div class="dot" style="background:#22c55e"></div><div class="info"><div class="nm">Terrestrial Dose</div><div class="ds">Annual dose heatmap (mSv/yr)</div></div><div class="layer-toggle" id="togDose"></div></div>
+<div class="layer-item" data-layer="sentinel2"><div class="dot" style="background:#3b82f6"></div><div class="info"><div class="nm">Sentinel-2 Composite</div><div class="ds">False-colour alteration imagery</div></div><div class="layer-toggle" id="togSentinel"></div></div>
+</div></div>
+<div class="card"><div class="card-head"><h2>Location</h2></div>
+<div class="search-box"><input type="text" id="searchInput" placeholder="Search place or coordinates…" autocomplete="off"/><button class="btn" id="btnSearch" style="padding:8px 10px"><svg viewBox="0 0 24 24" style="width:14px;height:14px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button></div></div>
+<div class="card" style="flex:1;overflow-y:auto"><div class="card-head"><h2>Test Regions</h2></div>
+<div class="card-body" style="padding:8px 10px 12px">
+<div class="layer-item preset" data-lat="53.3" data-lng="-8.0" data-zoom="7"><div class="dot" style="background:#22c55e"></div><div class="info"><div class="nm">Ireland (Granite Belt)</div><div class="ds">Radon-prone geology, GSI data</div></div></div>
+<div class="layer-item preset" data-lat="46.9" data-lng="7.4" data-zoom="9"><div class="dot" style="background:#f59e0b"></div><div class="info"><div class="nm">Swiss Alps</div><div class="ds">Varied lithology, high relief</div></div></div>
+<div class="layer-item preset" data-lat="64.1" data-lng="-21.9" data-zoom="8"><div class="dot" style="background:#ef4444"></div><div class="info"><div class="nm">Reykjavik, Iceland</div><div class="ds">Volcanic terrain, high radon</div></div></div>
+<div class="layer-item preset" data-lat="26.9" data-lng="75.8" data-zoom="8"><div class="dot" style="background:#a855f7"></div><div class="info"><div class="nm">Rajasthan, India</div><div class="ds">Monazite-bearing — thoron test</div></div></div>
+<div class="layer-item preset" data-lat="-22.9" data-lng="-43.2" data-zoom="8"><div class="dot" style="background:#3b82f6"></div><div class="info"><div class="nm">Rio de Janeiro, Brazil</div><div class="ds">Coastal granite + alkaline complexes</div></div></div>
+<div class="layer-item preset" data-lat="47.6" data-lng="14.2" data-zoom="8"><div class="dot" style="background:#ec4899"></div><div class="info"><div class="nm">Styria, Austria</div><div class="ds">Known high-radon area</div></div></div>
+</div></div>
+</div>
+<div class="right-panel" id="rightPanel">
+<div class="card" id="doseCard"><div class="card-head"><h2>Dose Fingerprint</h2><span class="risk-badge risk-badge--green" id="riskBadge">GREEN</span></div><div id="triangle-container"><svg id="triangle-svg" viewBox="0 0 340 300"></svg></div></div>
+<div class="card" id="summaryCard"><div class="card-head"><h2>Annual Dose Summary</h2></div><div class="card-body">
+<div class="dose-total"><div><div class="lbl">Total Terrestrial Dose</div><div class="val" id="totalDose">—</div></div><div style="text-align:right"><div class="ref">UNSCEAR 2024 avg: 2.2 mSv/yr</div><div id="doseStatus" style="font-size:11px;color:var(--muted)">Select a region to analyse</div></div></div>
+<div class="dose-grid"><div class="dose-cell radon"><div class="val" id="radonDose">—</div><div class="lbl">Radon</div></div><div class="dose-cell thoron"><div class="val" id="thoronDose">—</div><div class="lbl">Thoron</div></div><div class="dose-cell gamma"><div class="val" id="gammaDose">—</div><div class="lbl">Gamma</div></div></div>
+</div></div>
+<div class="card" id="indicesCard"><div class="card-head"><h2>Activity Indices</h2></div><div class="card-body">
+<table class="prov-table"><thead><tr><th>Parameter</th><th>Value</th><th>Threshold</th></tr></thead><tbody id="indicesBody">
+<tr><td>Gamma Dose Rate</td><td id="idxGammaRate">—</td><td style="color:var(--muted)">59 nGy/h avg</td></tr>
+<tr><td>Radium Equivalent</td><td id="idxRaeq">—</td><td style="color:var(--muted)">370 Bq/kg</td></tr>
+<tr><td>Gamma Activity Index</td><td id="idxGammaAct">—</td><td style="color:var(--muted)">Iγ ≤ 1</td></tr>
+<tr><td>Indoor Radon</td><td id="idxRadon">—</td><td style="color:var(--muted)">100 Bq/m³ WHO</td></tr>
+<tr><td>Excess Lifetime Cancer Risk</td><td id="idxELCR">—</td><td style="color:var(--muted)">0.29 × 10⁻³</td></tr>
+</tbody></table></div></div>
+<div class="card" id="provCard"><div class="card-head"><h2>Provenance</h2><span class="pill" id="confidencePill">—</span></div><div class="card-body">
+<table class="prov-table"><thead><tr><th>Parameter</th><th>Source</th><th>Method</th></tr></thead><tbody id="provBody">
+<tr><td>A<sub>Ra-226</sub></td><td><span class="src src--prior">PRIOR</span></td><td style="color:var(--muted)">Lithology lookup</td></tr>
+<tr><td>A<sub>Th-232</sub></td><td><span class="src src--prior">PRIOR</span></td><td style="color:var(--muted)">Lithology lookup</td></tr>
+<tr><td>A<sub>K-40</sub></td><td><span class="src src--prior">PRIOR</span></td><td style="color:var(--muted)">Lithology lookup</td></tr>
+<tr><td>C<sub>Rn</sub> indoor</td><td><span class="src src--prior">GEOGENIC</span></td><td style="color:var(--muted)">GRP model</td></tr>
+<tr><td>C<sub>Tn</sub> indoor</td><td><span class="src src--prior">GEOGENIC</span></td><td style="color:var(--muted)">GTP model</td></tr>
+</tbody></table>
+<div class="confidence-bar"><div class="label">Confidence</div><div class="track"><div class="fill" id="confFill" style="width:20%;background:var(--amber)"></div></div><div class="pct" id="confPct">20%</div></div>
+</div></div>
+</div>
+<div class="statusbar">
+<span class="s-item">Lat <b id="sLat">—</b></span><span class="s-item">Lng <b id="sLng">—</b></span><span class="s-item">Zoom <b id="sZoom">—</b></span><span class="s-item">Lithology <b id="sLith">—</b></span><span class="spacer"></span><span class="attr">Standards: UNSCEAR 2024 · ICRP 137 · EU BSS 2013/59</span>
+</div>
+<div class="modal-overlay" id="infoModal"><div class="modal"><button class="close-btn" id="closeModal">×</button>
+<h2>Terrestrial Dose Indicator — Standards &amp; Provenance</h2>
+<h3>Architecture</h3>
+<p>Geology is the primary predictor. OneGeology lithology polygons are mapped to typical K/U/Th activities via a 35-class lookup table, then through UNSCEAR/ICRP dose models. Measurements (airborne radiometric, geochemical) override the prior where available.</p>
+<p style="font-family:var(--mono);font-size:11px;background:rgba(255,255,255,.04);padding:12px;border-radius:8px;margin:12px 0;">OneGeology polygon → lithology class → LITHOLOGY_ACTIVITIES prior (K/U/Th Bq/kg)<br>→ [if radiometric survey] OVERRIDE prior<br>→ external gamma + GRP (radon) + GTP (thoron) → dose → risk tier<br>→ [if measured C<sub>Rn</sub>/C<sub>Tn</sub>] override geogenic estimates</p>
+<h3>Dose Models</h3>
+<ul>
+<li><b>External gamma:</b> Ḋ<sub>air</sub> = 0.462·A<sub>Ra</sub> + 0.604·A<sub>Th</sub> + 0.041·A<sub>K</sub> (nGy/h); E<sub>ext</sub> = Ḋ<sub>air</sub> × 8760 × 0.8 × 0.7 × 10⁻⁶</li>
+<li><b>Geogenic Radon Potential (GRP):</b> from Ra-226 + permeability + fault proximity + lineament density + lithology factor</li>
+<li><b>Global Thoron Potential (GTP):</b> from Th-232 → emanation (0.1–0.3) → indoor gas → EEC (×0.02) → dose (×40 nSv × 7000 h). Calibrated: world-average soil → 0.10 mSv/yr</li>
+<li><b>Radon dose:</b> EU BSS method (default): 300 Bq/m³ → 10 mSv/yr; ICRP 137; UNSCEAR; ICRP 65</li>
+</ul>
+<h3>Risk Classification</h3>
+<table><thead><tr><th>Indicator</th><th style="color:var(--green)">GREEN</th><th style="color:var(--amber)">AMBER</th><th style="color:var(--red)">RED</th></tr></thead><tbody>
+<tr><td>Annual terrestrial dose</td><td>≤ 2.2 mSv/yr</td><td>2.2–6.6 (1–3× avg)</td><td>&gt; 6.6 mSv/yr</td></tr>
+<tr><td>Indoor radon</td><td>&lt; 100 Bq/m³</td><td>100–300 Bq/m³</td><td>≥ 300 Bq/m³</td></tr>
+<tr><td>Gamma dose rate</td><td>&lt; 59 nGy/h</td><td>59–1000 nGy/h</td><td>≥ 1000 nGy/h</td></tr>
+<tr><td>Radium equivalent</td><td>&lt; 370 Bq/kg</td><td>370–740 Bq/kg</td><td>≥ 740 Bq/kg</td></tr>
+</tbody></table>
+<p>Flags: WHO radon action level (100 Bq/m³), UNSCEAR upper-normal (1500 nGy/h), EU BSS activity index Iγ ≥ 1.</p>
+<h3>Data Sources</h3>
+<ul>
+<li><b>OneGeology Portal</b> — global geological survey map; lithology polygons; WMS/WFS. Open.</li>
+<li><b>GEM Global Active Faults Database</b> — GEMScienceTools/gem-global-active-faults. Open.</li>
+<li><b>Copernicus GLO-30 DEM</b> — 30 m resolution; hillshade for lineament extraction. Open.</li>
+<li><b>SoilGrids (ISRIC)</b> — permeability, depth to bedrock. Open (CC-BY).</li>
+<li><b>FOREGS Geochemical Atlas</b> — stream sediment U/Th/K₂O. Open.</li>
+<li><b>Sentinel-2 (Copernicus)</b> — 10–20 m multispectral for alteration mapping. Open (CC-BY).</li>
+<li><b>European Atlas of Natural Radiation (JRC REMAP)</b> — radon, gamma, cosmic. Open.</li>
+</ul>
+<h3>Unit Conversions</h3>
+<table><thead><tr><th>From</th><th>To</th><th>Factor</th></tr></thead><tbody>
+<tr><td>eU (ppm)</td><td>A<sub>Ra-226</sub> (Bq/kg)</td><td>× 12.22</td></tr>
+<tr><td>eTh (ppm)</td><td>A<sub>Th-232</sub> (Bq/kg)</td><td>× 4.06</td></tr>
+<tr><td>K (%)</td><td>A<sub>K-40</sub> (Bq/kg)</td><td>× 313</td></tr>
+</tbody></table>
+<h3>Global Averages (UNSCEAR 2024)</h3>
+<ul><li>Total natural: 3.0 mSv/yr</li><li>Inhalation (Rn+Tn): 1.8 mSv/yr</li><li>External terrestrial: 0.4 mSv/yr</li><li><b>Terrestrial dose reference: 2.2 mSv/yr</b></li></ul>
+<h3>Validation Cases</h3>
+<table><thead><tr><th>Case</th><th>Inputs</th><th>Expected</th></tr></thead><tbody>
+<tr><td>World-average soil</td><td>lithology="world_average_soil"</td><td>thoron 0.10 mSv/yr; γ 52 nGy/h; GREEN</td></tr>
+<tr><td>Granite (Ireland)</td><td>lithology="granite", dist_fault=200 m</td><td>radon-dominated; AMBER</td></tr>
+<tr><td>Monazite/REE</td><td>lithology="monazite_bearing"</td><td>thoron 5.4 mSv/yr; RED</td></tr>
+<tr><td>Limestone</td><td>lithology="limestone"</td><td>~0.65 mSv/yr; GREEN</td></tr>
+<tr><td>Radon action level</td><td>C<sub>Rn</sub>=300 Bq/m³</td><td>10.0 mSv/yr; RED</td></tr>
+<tr><td>Measurement override</td><td>lithology="granite", eU_ppm=10</td><td>A<sub>Ra226</sub>=122; provenance="measured"</td></tr>
+</tbody></table>
+<h3>References</h3>
+<ul><li>UNSCEAR (2024). Sources, Effects and Risks of Ionizing Radiation. United Nations.</li><li>ICRP (2017). ICRP Publication 137: Occupational Intakes of Radionuclides.</li><li>EU BSS (2013). Council Directive 2013/59/Euratom.</li><li>WHO (2009). WHO Handbook on Indoor Radon.</li><li>NEA/OECD (2023). Gamma-Ray Dose Rates from Natural Radionuclides.</li></ul>
+</div></div>
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// dose_calculation_core.js v4 — Single source of truth for all dose math
+// Ported from Python dose_calculation_core.py reference module
+// Every constant traceable to UNSCEAR / ICRP / EU BSS
+// ════════════════════════════════════════════════════════════════════════════
+const DoseCore = (() => {
+"use strict";
+
+const WORLD_AVG_DOSE = 2.2;
+const TOTAL_NATURAL = 3.0;
+const INHALATION_DOSE = 1.8;
+const EXTERNAL_TERRESTRIAL = 0.4;
+const OUTDOOR_FRACTION = 0.2;
+const HOURS_PER_YEAR = 8760;
+const INDOOR_HOURS = 7000;
+const EU_TO_RA226 = 12.22;
+const ETH_TO_TH232 = 4.06;
+const K_PCT_TO_K40 = 313;
+const GAMMA_COEFF_RA = 0.462;
+const GAMMA_COEFF_TH = 0.604;
+const GAMMA_COEFF_K = 0.041;
+
+const RADON_METHODS = {
+  eubss:   { name: "EU BSS 2013/59", dcf: 10.0/300.0, ref: "EU BSS Annex VIII" },
+  icrp137: { name: "ICRP 137",       dcf: 10.0/300.0, ref: "ICRP Pub. 137 (2017)" },
+  unscear: { name: "UNSCEAR 2024",   dcf: 0.00678,    ref: "UNSCEAR 2024 Report" },
+  icrp65:  { name: "ICRP 65",        dcf: 0.00865,    ref: "ICRP Pub. 65 (1993)" }
+};
+
+const Tn_EEC_RATIO = 0.02;
+const Tn_DCF = 40e-6 * INDOOR_HOURS;
+
+const RISK = {
+  dose:  { green: 2.2,  amber: 6.6 },
+  rn:    { green: 100,  amber: 300 },
+  gamma: { green: 59,   amber: 1000 },
+  raeq:  { green: 370,  amber: 740 }
+};
+const WHO_RN_ACTION = 100;
+const UNSCEAR_GAMMA_MAX = 1500;
+
+// ════════════════════════════════════════════════════════════════════════════
+// LITHOLOGY_ACTIVITIES — 35-class table (Bq/kg)
+// Sources: UNSCEAR 2000 Table 2, IAEA SRS-49, NEA/OECD 2023, Saito & Jacob 1995
+// ════════════════════════════════════════════════════════════════════════════
+const LITHOLOGY_ACTIVITIES = {
+  granite:             { A_Ra226:59,  A_Th232:64,  A_K40:1070, label:"Granite" },
+  granodiorite:        { A_Ra226:40,  A_Th232:50,  A_K40:900,  label:"Granodiorite" },
+  rhyolite:            { A_Ra226:55,  A_Th232:60,  A_K40:1000, label:"Rhyolite" },
+  syenite:             { A_Ra226:45,  A_Th232:70,  A_K40:1100, label:"Syenite" },
+  pegmatite:           { A_Ra226:65,  A_Th232:80,  A_K40:1200, label:"Pegmatite" },
+  gneiss:              { A_Ra226:38,  A_Th232:45,  A_K40:850,  label:"Gneiss" },
+  basalt:              { A_Ra226:15,  A_Th232:18,  A_K40:300,  label:"Basalt" },
+  gabbro:              { A_Ra226:12,  A_Th232:15,  A_K40:250,  label:"Gabbro" },
+  diorite:             { A_Ra226:25,  A_Th232:30,  A_K40:550,  label:"Diorite" },
+  peridotite:          { A_Ra226:3,   A_Th232:5,   A_K40:80,   label:"Peridotite" },
+  dunite:              { A_Ra226:2,   A_Th232:3,   A_K40:40,   label:"Dunite" },
+  tuff:                { A_Ra226:30,  A_Th232:35,  A_K40:600,  label:"Tuff" },
+  pumice:              { A_Ra226:25,  A_Th232:30,  A_K40:500,  label:"Pumice" },
+  obsidian:            { A_Ra226:40,  A_Th232:50,  A_K40:800,  label:"Obsidian" },
+  limestone:           { A_Ra226:12,  A_Th232:6,   A_K40:100,  label:"Limestone" },
+  dolomite:            { A_Ra226:10,  A_Th232:5,   A_K40:80,   label:"Dolomite" },
+  sandstone:           { A_Ra226:18,  A_Th232:22,  A_K40:350,  label:"Sandstone" },
+  arkose:              { A_Ra226:22,  A_Th232:28,  A_K40:400,  label:"Arkose" },
+  shale:               { A_Ra226:30,  A_Th232:35,  A_K40:580,  label:"Shale" },
+  mudstone:            { A_Ra226:28,  A_Th232:32,  A_K40:520,  label:"Mudstone" },
+  siltstone:           { A_Ra226:25,  A_Th232:30,  A_K40:480,  label:"Siltstone" },
+  chalk:               { A_Ra226:8,   A_Th232:4,   A_K40:60,   label:"Chalk" },
+  marl:                { A_Ra226:15,  A_Th232:10,  A_K40:200,  label:"Marl" },
+  coal:                { A_Ra226:20,  A_Th232:12,  A_K40:100,  label:"Coal" },
+  slate:               { A_Ra226:22,  A_Th232:28,  A_K40:480,  label:"Slate" },
+  schist:              { A_Ra226:35,  A_Th232:42,  A_K40:750,  label:"Schist" },
+  quartzite:           { A_Ra226:10,  A_Th232:8,   A_K40:150,  label:"Quartzite" },
+  marble:              { A_Ra226:8,   A_Th232:5,   A_K40:80,   label:"Marble" },
+  amphibolite:         { A_Ra226:15,  A_Th232:12,  A_K40:300,  label:"Amphibolite" },
+  monazite_bearing:    { A_Ra226:80,  A_Th232:350, A_K40:400,  label:"Monazite-bearing" },
+  carbonatite:         { A_Ra226:120, A_Th232:150, A_K40:200,  label:"Carbonatite" },
+  ion_adsorption_clay: { A_Ra226:50,  A_Th232:100, A_K40:500,  label:"Ion-adsorption clay" },
+  alluvium:            { A_Ra226:20,  A_Th232:25,  A_K40:400,  label:"Alluvium" },
+  glacial_till:        { A_Ra226:18,  A_Th232:22,  A_K40:380,  label:"Glacial till" },
+  world_average_soil:  { A_Ra226:30,  A_Th232:30,  A_K40:400,  label:"World Average Soil" }
+};
+
+const LITHOLOGY_FACTOR = {
+  granite:0.35, granodiorite:0.30, rhyolite:0.25, syenite:0.30, pegmatite:0.45,
+  gneiss:0.25, basalt:0.15, gabbro:0.10, diorite:0.20, peridotite:0.05, dunite:0.05,
+  tuff:0.50, pumice:0.60, obsidian:0.15, limestone:0.40, dolomite:0.45,
+  sandstone:0.70, arkose:0.65, shale:0.20, mudstone:0.18, siltstone:0.30,
+  chalk:0.50, marl:0.35, coal:0.55, slate:0.15, schist:0.25, quartzite:0.10,
+  marble:0.20, amphibolite:0.15, monazite_bearing:0.40, carbonatite:0.50,
+  ion_adsorption_clay:0.55, alluvium:0.75, glacial_till:0.60, world_average_soil:0.50
+};
+
+// ── Core Functions ──
+function lithology_to_activities(lithology) {
+  const key = lithology.toLowerCase().replace(/[\s-]+/g, '_');
+  return LITHOLOGY_ACTIVITIES[key] || LITHOLOGY_ACTIVITIES.world_average_soil;
+}
+
+function lithology_factor(lithology) {
+  const key = lithology.toLowerCase().replace(/[\s-]+/g, '_');
+  return LITHOLOGY_FACTOR[key] !== undefined ? LITHOLOGY_FACTOR[key] : 0.50;
+}
+
+function ppm_to_bqkg(eU_ppm, eTh_ppm, K_pct) {
+  return { A_Ra226: eU_ppm * EU_TO_RA226, A_Th232: eTh_ppm * ETH_TO_TH232, A_K40: K_pct * K_PCT_TO_K40 };
+}
+
+function external_gamma_dose_rate(A_Ra226, A_Th232, A_K40) {
+  return GAMMA_COEFF_RA * A_Ra226 + GAMMA_COEFF_TH * A_Th232 + GAMMA_COEFF_K * A_K40;
+}
+
+function annual_external_dose(A_Ra226, A_Th232, A_K40, outdoor_fraction = OUTDOOR_FRACTION) {
+  const D_air = external_gamma_dose_rate(A_Ra226, A_Th232, A_K40);
+  return D_air * HOURS_PER_YEAR * (1 - outdoor_fraction) * 0.7 * 1e-6;
+}
+
+function geogenic_radon_potential(A_Ra226, lithology = "world_average_soil", dist_fault_m = 5000, lineament_density = 0) {
+  const lFactor = lithology_factor(lithology);
+  const fault_factor = Math.max(0.1, Math.exp(-dist_fault_m / 3000));
+  const line_factor = 1.0 + Math.min(lineament_density, 1.0) * 0.5;
+  return (A_Ra226 / 30) * lFactor * fault_factor * line_factor;
+}
+
+function radon_inhalation_dose(C_Rn, method = "eubss") {
+  const m = RADON_METHODS[method] || RADON_METHODS.eubss;
+  return C_Rn * m.dcf;
+}
+
+function radon_from_grp(grp) { return grp * 60; }
+
+function geogenic_thoron_potential(A_Th232, lithology = "world_average_soil") {
+  const lFactor = lithology_factor(lithology);
+  const emanation = 0.1 + lFactor * 0.25;
+  return (A_Th232 / 30) * emanation / 0.175;
+}
+
+function thoron_inhalation_dose(A_Th232, lithology = "world_average_soil", C_Tn = null) {
+  if (C_Tn !== null && C_Tn > 0) {
+    return C_Tn * Tn_EEC_RATIO * Tn_DCF;
+  }
+  const gtp = geogenic_thoron_potential(A_Th232, lithology);
+  return gtp * 1.8 * Tn_DCF;
+}
+
+function indoor_radon_from_geogenic(A_Ra226, lithology = "world_average_soil", dist_fault_m = 5000, lineament_density = 0) {
+  const grp = geogenic_radon_potential(A_Ra226, lithology, dist_fault_m, lineament_density);
+  return radon_from_grp(grp);
+}
+
+function radium_equivalent(A_Ra226, A_Th232, A_K40) {
+  return A_Ra226 + (A_Th232 * 10/7) + (A_K40 * 10/130);
+}
+
+function gamma_activity_index(A_Ra226, A_Th232, A_K40) {
+  return A_Ra226/370 + A_Th232/259 + A_K40/4810;
+}
+
+function excess_lifetime_cancer_risk(annual_dose_mSv, years = 70, risk_factor = 0.005) {
+  return annual_dose_mSv * years * risk_factor / 1000;
+}
+
+function risk_class(E_dose, C_Rn, raeq, gamma_rate) {
+  let tier = "GREEN";
+  let reasons = [];
+  let flags = [];
+  if (E_dose > RISK.dose.amber) { tier = "RED"; reasons.push(`Dose ${E_dose.toFixed(2)} > 6.6 mSv/yr`); }
+  else if (E_dose > RISK.dose.green) { if (tier !== "RED") tier = "AMBER"; reasons.push(`Dose ${E_dose.toFixed(2)} > 2.2 mSv/yr`); }
+  if (C_Rn >= RISK.rn.amber) { tier = "RED"; reasons.push(`Radon ${C_Rn.toFixed(0)} ≥ 300 Bq/m³`); }
+  else if (C_Rn >= RISK.rn.green) { if (tier === "GREEN") tier = "AMBER"; reasons.push(`Radon ${C_Rn.toFixed(0)} ≥ 100 Bq/m³`); }
+  if (gamma_rate >= RISK.gamma.amber) { tier = "RED"; reasons.push(`Gamma ${gamma_rate.toFixed(0)} ≥ 1000 nGy/h`); }
+  else if (gamma_rate >= RISK.gamma.green) { if (tier === "GREEN") tier = "AMBER"; reasons.push(`Gamma ${gamma_rate.toFixed(0)} ≥ 59 nGy/h`); }
+  if (raeq >= RISK.raeq.amber) { tier = "RED"; reasons.push(`Ra-eq ${raeq.toFixed(0)} ≥ 740 Bq/kg`); }
+  else if (raeq >= RISK.raeq.green) { if (tier === "GREEN") tier = "AMBER"; reasons.push(`Ra-eq ${raeq.toFixed(0)} ≥ 370 Bq/kg`); }
+  if (C_Rn >= WHO_RN_ACTION) flags.push("WHO_RN_ACTION");
+  if (gamma_rate >= UNSCEAR_GAMMA_MAX) flags.push("UNSCEAR_GAMMA_UPPER");
+  if (gamma_activity_index(0,0,0) >= 1) flags.push("EU_BSS_IAI");
+  return { tier, reasons, flags };
+}
+
+function polygon_dose_fingerprint(opts = {}) {
+  const {
+    lithology = "world_average_soil", eU_ppm = null, eTh_ppm = null, K_pct = null,
+    C_Rn = null, C_Tn = null, dist_fault_m = 5000, lineament_density = 0,
+    radon_method = "eubss"
+  } = opts;
+
+  let activities = lithology_to_activities(lithology);
+  let provenance = {
+    A_Ra226: { source: "prior", method: `Lithology lookup (${activities.label})` },
+    A_Th232: { source: "prior", method: `Lithology lookup (${activities.label})` },
+    A_K40:   { source: "prior", method: `Lithology lookup (${activities.label})` },
+    C_Rn:    { source: "geogenic", method: "GRP model" },
+    C_Tn:    { source: "geogenic", method: "GTP model" }
+  };
+
+  let A_Ra226 = activities.A_Ra226;
+  let A_Th232 = activities.A_Th232;
+  let A_K40 = activities.A_K40;
+
+  if (eU_ppm !== null) {
+    A_Ra226 = eU_ppm * EU_TO_RA226;
+    provenance.A_Ra226 = { source: "measured", method: `eU ${eU_ppm} ppm × ${EU_TO_RA226} = ${A_Ra226.toFixed(1)} Bq/kg` };
+  }
+  if (eTh_ppm !== null) {
+    A_Th232 = eTh_ppm * ETH_TO_TH232;
+    provenance.A_Th232 = { source: "measured", method: `eTh ${eTh_ppm} ppm × ${ETH_TO_TH232} = ${A_Th232.toFixed(1)} Bq/kg` };
+  }
+  if (K_pct !== null) {
+    A_K40 = K_pct * K_PCT_TO_K40;
+    provenance.A_K40 = { source: "measured", method: `K ${K_pct}% × ${K_PCT_TO_K40} = ${A_K40.toFixed(1)} Bq/kg` };
+  }
+
+  const gamma_rate = external_gamma_dose_rate(A_Ra226, A_Th232, A_K40);
+  const E_gamma = annual_external_dose(A_Ra226, A_Th232, A_K40);
+
+  let indoor_Rn;
+  if (C_Rn !== null) {
+    indoor_Rn = C_Rn;
+    provenance.C_Rn = { source: "measured", method: `C_Rn = ${C_Rn} Bq/m³` };
+  } else {
+    indoor_Rn = indoor_radon_from_geogenic(A_Ra226, lithology, dist_fault_m, lineament_density);
+  }
+  const E_radon = radon_inhalation_dose(indoor_Rn, radon_method);
+
+  const E_thoron = thoron_inhalation_dose(A_Th232, lithology, C_Tn);
+  if (C_Tn !== null) {
+    provenance.C_Tn = { source: "measured", method: `C_Tn = ${C_Tn} Bq/m³` };
+  }
+
+  const E_total = E_gamma + E_radon + E_thoron;
+  const raeq = radium_equivalent(A_Ra226, A_Th232, A_K40);
+  const I_gamma = gamma_activity_index(A_Ra226, A_Th232, A_K40);
+  const ELCR = excess_lifetime_cancer_risk(E_total);
+  const risk = risk_class(E_total, indoor_Rn, raeq, gamma_rate);
+
+  const total_sources = Object.values(provenance).length;
+  const measured_count = Object.values(provenance).filter(p => p.source === "measured").length;
+  const confidence = Math.round((measured_count / total_sources) * 100) || 20;
+
+  return {
+    arms: { radon: +E_radon.toFixed(4), thoron: +E_thoron.toFixed(4), gamma: +E_gamma.toFixed(4), total: +E_total.toFixed(4) },
+    activities: { A_Ra226: +A_Ra226.toFixed(1), A_Th232: +A_Th232.toFixed(1), A_K40: +A_K40.toFixed(1) },
+    indices: { gamma_rate: +gamma_rate.toFixed(1), raeq: +raeq.toFixed(1), I_gamma: +I_gamma.toFixed(4), indoor_Rn: +indoor_Rn.toFixed(1), ELCR: +ELCR.toFixed(6) },
+    risk, provenance, confidence, lithology_label: activities.label,
+    constants: { WORLD_AVG_DOSE, RISK, WHO_RN_ACTION, UNSCEAR_GAMMA_MAX }
+  };
+}
+
+return {
+  LITHOLOGY_ACTIVITIES, LITHOLOGY_FACTOR, WORLD_AVG_DOSE, RISK, WHO_RN_ACTION, UNSCEAR_GAMMA_MAX,
+  EU_TO_RA226, ETH_TO_TH232, K_PCT_TO_K40, GAMMA_COEFF_RA, GAMMA_COEFF_TH, GAMMA_COEFF_K,
+  lithology_to_activities, lithology_factor, ppm_to_bqkg,
+  external_gamma_dose_rate, annual_external_dose,
+  geogenic_radon_potential, radon_inhalation_dose, radon_from_grp,
+  geogenic_thoron_potential, thoron_inhalation_dose,
+  indoor_radon_from_geogenic, radium_equivalent, gamma_activity_index,
+  excess_lifetime_cancer_risk, risk_class, polygon_dose_fingerprint,
+  RADON_METHODS, Tn_EEC_RATIO, Tn_DCF
+};
+})();
+</script>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// Application Layer — Map, Triangle, Interactions
+// ════════════════════════════════════════════════════════════════════════════
+(function() {
+"use strict";
+
+// ── State ──
+let map, mode = "explore", drawPoints = [], drawSource = null, drawLayer = null;
+let pointMarker = null, currentResult = null, analysisPolygons = [];
+let geologyVisible = true, faultsVisible = true, radonVisible = true;
+
+// ── Geological Provinces (simplified regions for demo) ──
+// Maps approximate regions to dominant lithology for client-side lookup
+const GEO_PROVINCES = [
+  { name: "Caledonian Granite", lith: "granite", coords: [[-10,51],[-6,51],[-6,55],[-10,55]] },
+  { name: "Hercynian Granite", lith: "granite", coords: [[-8,44],[-2,44],[-2,49],[-8,49]] },
+  { name: "Alpine Metamorphics", lith: "schist", coords: [[5,44],[16,44],[16,49],[5,49]] },
+  { name: "Scandinavian Shield", lith: "gneiss", coords: [[5,58],[30,58],[30,70],[5,70]] },
+  { name: "Iceland Volcanic", lith: "basalt", coords: [[-25,63],[-13,63],[-13,67],[-25,67]] },
+  { name: "Indian Shield Monazite", lith: "monazite_bearing", coords: [[73,8],[85,8],[85,24],[73,24]] },
+  { name: "Brazilian Shield", lith: "granite", coords: [[-50,-25],[-35,-25],[-35,-10],[-50,-10]] },
+  { name: "Carbonatite Belt (E Africa)", lith: "carbonatite", coords: [[28,-5],[40,-5],[40,10],[28,10]] },
+  { name: "Saharan Sandstone", lith: "sandstone", coords: [[-10,18],[35,18],[35,32],[-10,32]] },
+  { name: "North European Plain", lith: "glacial_till", coords: [[3,48],[25,48],[25,56],[3,56]] },
+  { name: "UK Coal Measures", lith: "coal", coords: [[-4,52],[0,52],[0,55],[-4,55]] },
+  { name: "Paris Basin Chalk", lith: "chalk", coords: [[0,47],[4,47],[4,50],[0,50]] },
+  { name: "Appalachian Fold Belt", lith: "shale", coords: [[-84,34],[-74,34],[-74,42],[-84,42]] },
+  { name: "Colorado Plateau Sandstone", lith: "sandstone", coords: [[-112,34],[-106,34],[-106,40],[-112,40]] },
+  { name: "Andean Volcanic Arc", lith: "andesite", coords: [[-75,-40],[-68,-40],[-68,5],[-75,5]] },
+  { name: "Australian Outback Sediments", lith: "sandstone", coords: [[115,-30],[145,-30],[145,-15],[115,-15]] },
+  { name: "Siberian Traps", lith: "basalt", coords: [[80,50],[120,50],[120,70],[80,70]] },
+  { name: "Himalayan Crystalline", lith: "gneiss", coords: [[73,28],[95,28],[95,35],[73,35]] },
+  { name: "West African Craton", lith: "gneiss", coords: [[-18,5],[15,5],[15,20],[-18,20]] },
+  { name: "Default", lith: "world_average_soil", coords: [[-180,-90],[180,-90],[180,90],[-180,90]] }
+];
+
+function getLithologyAtPoint(lng, lat) {
+  for (let i = 0; i < GEO_PROVINCES.length - 1; i++) {
+    const p = GEO_PROVINCES[i];
+    if (pointInPolygon(lng, lat, p.coords)) return p.lith;
+  }
+  return "world_average_soil";
+}
+
+function pointInPolygon(x, y, polygon) {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i][0], yi = polygon[i][1];
+    const xj = polygon[j][0], yj = polygon[j][1];
+    const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+// ── MapLibre Style ──
+const MAP_STYLE = {
+  version: 8,
+  name: "Terrestrial Dose Indicator",
+  sources: {
+    osm: {
+      type: "raster",
+      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      tileSize: 256,
+      attribution: "© OpenStreetMap contributors",
+      maxzoom: 19
+    },
+    geology_wms: {
+      type: "raster",
+      tiles: [
+        "https://ogc.bgs.ac.uk/digimap67518/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&LAYERS=GBR_BGS_625k_Bedrock_Lithology&STYLES=&CRS=EPSG:3857&BBOX={bbox-epsg-3857}&WIDTH=512&HEIGHT=512&FORMAT=image/png&TRANSPARENT=true"
+      ],
+      tileSize: 256,
+      attribution: "BGS © UKRI"
+    },
+    hillshade: {
+      type: "raster-dem",
+      url: "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
+      tileSize: 256,
+      encoding: "terrarium"
+    }
+  },
+  layers: [
+    { id: "osm-base", type: "raster", source: "osm", paint: { "raster-opacity": 0.15, "raster-saturation": -0.8, "raster-brightness-max": 0.6 } },
+    { id: "terrain-hillshade", type: "hillshade", source: "hillshade",
+      paint: { "hillshade-illumination-direction": 315, "hillshade-exaggeration": 0.3,
+        "hillshade-shadow-color": "rgba(0,0,0,0.4)", "hillshade-highlight-color": "rgba(200,220,210,0.15)" } },
+    { id: "geology-overlay", type: "raster", source: "geology_wms", paint: { "raster-opacity": 0.45 }, layout: { visibility: "visible" } }
+  ],
+  glyphs: "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf"
+};
+
+// ── Radon Potential Heatmap (generated from lithology) ──
+function generateRadonGridData() {
+  const features = [];
+  const step = 5;
+  for (let lat = -60; lat <= 70; lat += step) {
+    for (let lng = -180; lng <= 180; lng += step) {
+      const lith = getLithologyAtPoint(lng, lat);
+      const act = DoseCore.lithology_to_activities(lith);
+      const grp = DoseCore.geogenic_radon_potential(act.A_Ra226, lith, 5000, 0);
+      features.push({
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [lng, lat] },
+        properties: { grp, lithology: lith }
+      });
+    }
+  }
+  return { type: "FeatureCollection", features };
+}
+
+// ── Fault Lines (simplified major global faults) ──
+const GLOBAL_FAULTS = {
+  type: "FeatureCollection",
+  features: [
+    { type: "Feature", properties: { name: "San Andreas", type: "transform" },
+      geometry: { type: "LineString", coordinates: [[-121.5,34],[-118,34.5],[-115.5,33]] } },
+    { type: "Feature", properties: { name: "Alpine Fault", type: "transform" },
+      geometry: { type: "LineString", coordinates: [[167,-44],[171,-42],[173,-41]] } },
+    { type: "Feature", properties: { name: "Great Glen Fault", type: "strike-slip" },
+      geometry: { type: "LineString", coordinates: [[-5.5,56],[-4.5,57],[-3.5,58.5]] } },
+    { type: "Feature", properties: { name: "North Anatolian", type: "strike-slip" },
+      geometry: { type: "LineString", coordinates: [[26,40.5],[30,40.8],[36,40.5],[42,40]] } },
+    { type: "Feature", properties: { name: "Himalayan Front", type: "thrust" },
+      geometry: { type: "LineString", coordinates: [[73,28],[78,29],[83,28],[88,27],[92,28]] } },
+    { type: "Feature", properties: { name: "East African Rift", type: "normal" },
+      geometry: { type: "LineString", coordinates: [[30,-5],[32,0],[35,3],[38,8],[42,12]] } },
+    { type: "Feature", properties: { name: "Andean Thrust", type: "thrust" },
+      geometry: { type: "LineString", coordinates: [[-72,-40],[-70,-35],[-69,-28],[-71,-20],[-75,-15],[-78,-5]] } },
+    { type: "Feature", properties: { name: "Mid-Atlantic Ridge", type: "rift" },
+      geometry: { type: "LineString", coordinates: [[-30,0],[-28,15],[-25,30],[-22,45],[-18,55],[-15,63]] } },
+    { type: "Feature", properties: { name: "Japan Trench", type: "subduction" },
+      geometry: { type: "LineString", coordinates: [[142,35],[144,38],[145,40],[146,43]] } },
+    { type: "Feature", properties: { name: "Iceland Rift", type: "rift" },
+      geometry: { type: "LineString", coordinates: [[-22,63.5],[-19,64],[-17,65],[-16,66]] } }
+  ]
+};
+
+// ── Initialise Map ──
+function initMap() {
+  map = new maplibregl.Map({
+    container: "map",
+    style: MAP_STYLE,
+    center: [-8, 53],
+    zoom: 6,
+    minZoom: 2,
+    maxZoom: 18,
+    pitch: 0,
+    attributionControl: false
+  });
+
+  map.addControl(new maplibregl.NavigationControl({ showCompass: true }), "bottom-right");
+  map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
+
+  map.on("load", () => {
+    // Add fault lines source + layer
+    map.addSource("faults", { type: "geojson", data: GLOBAL_FAULTS });
+    map.addLayer({
+      id: "fault-lines", type: "line", source: "faults",
+      paint: {
+        "line-color": ["match", ["get", "type"],
+          "transform", "#ef4444", "strike-slip", "#f97316",
+          "thrust", "#eab308", "normal", "#8b5cf6",
+          "rift", "#3b82f6", "subduction", "#ec4899", "#ef4444"],
+        "line-width": 2.5, "line-dasharray": [4, 2], "line-opacity": 0.8
+      }
+    });
+
+    // Radon potential heatmap layer
+    map.addSource("radon-heatmap", { type: "geojson", data: generateRadonGridData() });
+    map.addLayer({
+      id: "radon-heat", type: "heatmap", source: "radon-heatmap", maxzoom: 10,
+      paint: {
+        "heatmap-weight": ["interpolate", ["linear"], ["get", "grp"], 0, 0, 5, 1],
+        "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 1, 10, 3],
+        "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"],
+          0, "rgba(0,0,0,0)", 0.2, "rgba(34,197,94,0.3)", 0.4, "rgba(245,158,11,0.4)",
+          0.6, "rgba(249,115,22,0.5)", 0.8, "rgba(239,68,68,0.6)", 1, "rgba(185,28,28,0.7)"],
+        "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 20, 10, 50],
+        "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 5, 0.8, 10, 0.4]
+      }
+    });
+
+    // Dose heatmap layer (hidden by default)
+    map.addLayer({
+      id: "dose-heat", type: "heatmap", source: "radon-heatmap", maxzoom: 10,
+      layout: { visibility: "none" },
+      paint: {
+        "heatmap-weight": ["interpolate", ["linear"], ["get", "grp"], 0, 0, 5, 1],
+        "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 0.5, 10, 2],
+        "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"],
+          0, "rgba(0,0,0,0)", 0.25, "rgba(34,197,94,0.3)", 0.5, "rgba(245,158,11,0.4)",
+          0.75, "rgba(239,68,68,0.5)", 1, "rgba(127,29,29,0.6)"],
+        "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 25, 10, 60],
+        "heatmap-opacity": 0.7
+      }
+    });
+
+    // Draw layer
+    map.addSource("draw-polygon", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({
+      id: "draw-fill", type: "fill", source: "draw-polygon",
+      paint: { "fill-color": "#5ad1c5", "fill-opacity": 0.15 }
+    });
+    map.addLayer({
+      id: "draw-outline", type: "line", source: "draw-polygon",
+      paint: { "line-color": "#5ad1c5", "line-width": 2, "line-dasharray": [3, 2] }
+    });
+
+    // Draw points source
+    map.addSource("draw-points", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({
+      id: "draw-points-circle", type: "circle", source: "draw-points",
+      paint: { "circle-radius": 5, "circle-color": "#5ad1c5", "circle-stroke-color": "#fff", "circle-stroke-width": 2 }
+    });
+
+    // Sentinel-2 placeholder (tile server requires auth, use open alternative)
+    // Using Sentinel-2 cloudless mosaic tiles from EOX
+    try {
+      map.addSource("sentinel2", {
+        type: "raster",
+        tiles: ["https://tiles.maps.eox.at/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS=s2cloudless-2024&STYLES=&SRS=EPSG:3857&BBOX={bbox-epsg-3857}&WIDTH=512&HEIGHT=512&FORMAT=image/jpeg"],
+        tileSize: 256,
+        attribution: "Sentinel-2 cloudless © EOX"
+      });
+      map.addLayer({
+        id: "sentinel2-overlay", type: "raster", source: "sentinel2",
+        layout: { visibility: "none" },
+        paint: { "raster-opacity": 0.5 }
+      });
+    } catch(e) { console.warn("Sentinel-2 tiles unavailable:", e); }
+
+    // Analysis polygon source
+    map.addSource("analysis-polygon", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addLayer({
+      id: "analysis-fill", type: "fill", source: "analysis-polygon",
+      paint: { "fill-color": ["get", "riskColor"], "fill-opacity": 0.35 }
+    });
+    map.addLayer({
+      id: "analysis-outline", type: "line", source: "analysis-polygon",
+      paint: { "line-color": ["get", "riskColor"], "line-width": 3 }
+    });
+
+    document.getElementById("loader").classList.add("hide");
+  });
+
+  // Mouse move → status bar
+  map.on("mousemove", (e) => {
+    document.getElementById("sLat").textContent = e.lngLat.lat.toFixed(4);
+    document.getElementById("sLng").textContent = e.lngLat.lng.toFixed(4);
+    const lith = getLithologyAtPoint(e.lngLat.lng, e.lngLat.lat);
+    const act = DoseCore.lithology_to_activities(lith);
+    document.getElementById("sLith").textContent = act.label || lith;
+  });
+
+  map.on("zoom", () => {
+    document.getElementById("sZoom").textContent = map.getZoom().toFixed(1);
+  });
+
+  // Map click handlers
+  map.on("click", handleMapClick);
+}
+
+// ── Map Click Handler ──
+function handleMapClick(e) {
+  if (mode === "point") {
+    const lng = e.lngLat.lng, lat = e.lngLat.lat;
+    if (pointMarker) pointMarker.remove();
+    pointMarker = new maplibregl.Marker({ color: "#5ad1c5" }).setLngLat([lng, lat]).addTo(map);
+    analysePoint(lng, lat);
+  } else if (mode === "draw") {
+    const lng = e.lngLat.lng, lat = e.lngLat.lat;
+    drawPoints.push([lng, lat]);
+    updateDrawPolygon();
+  }
+}
+
+// ── Drawing ──
+function updateDrawPolygon() {
+  const src = map.getSource("draw-points");
+  if (!src) return;
+  src.setData({
+    type: "FeatureCollection",
+    features: drawPoints.map(p => ({
+      type: "Feature",
+      geometry: { type: "Point", coordinates: p },
+      properties: {}
+    }))
+  });
+
+  if (drawPoints.length >= 3) {
+    const coords = [...drawPoints, drawPoints[0]]; // close the polygon
+    map.getSource("draw-polygon").setData({
+      type: "FeatureCollection",
+      features: [{ type: "Feature", geometry: { type: "Polygon", [Symbol.iterator]() {} , coordinates: [coords] }, properties: {} }]
+    });
+  }
+}
+
+function clearDrawing() {
+  drawPoints = [];
+  if (map.getSource("draw-polygon")) map.getSource("draw-polygon").setData({ type: "FeatureCollection", features: [] });
+  if (map.getSource("draw-points")) map.getSource("draw-points").setData({ type: "FeatureCollection", features: [] });
+  if (map.getSource("analysis-polygon")) map.getSource("analysis-polygon").setData({ type: "FeatureCollection", features: [] });
+}
+
+// ── Point Analysis ──
+function analysePoint(lng, lat) {
+  const lithology = getLithologyAtPoint(lng, lat);
+  // Estimate distance to nearest fault
+  let minFaultDist = 10000;
+  GLOBAL_FAULTS.features.forEach(f => {
+    const coords = f.geometry.coordinates;
+    for (let i = 0; i < coords.length; i++) {
+      const d = haversine(lat, lng, coords[i][1], coords[i][0]);
+      if (d < minFaultDist) minFaultDist = d;
+    }
+  });
+
+  const result = DoseCore.polygon_dose_fingerprint({
+    lithology, dist_fault_m: minFaultDist, lineament_density: 0.3
+  });
+
+  updateResults(result, { lng, lat, lithology });
+}
+
+// ── Region Analysis ──
+function analyseRegion() {
+  if (mode === "draw" && drawPoints.length >= 3) {
+    // Analyse centroid of drawn polygon
+    let cx = 0, cy = 0;
+    drawPoints.forEach(p => { cx += p[0]; cy += p[1]; });
+    cx /= drawPoints.length; cy /= drawPoints.length;
+    analysePoint(cx, cy);
+
+    // Color the polygon by risk
+    const lithology = getLithologyAtPoint(cx, cy);
+    const result = DoseCore.polygon_dose_fingerprint({ lithology });
+    const riskColor = result.risk.tier === "GREEN" ? "#22c55e" : result.risk.tier === "AMBER" ? "#f59e0b" : "#ef4444";
+    if (map.getSource("analysis-polygon")) {
+      map.getSource("analysis-polygon").setData({
+        type: "FeatureCollection",
+        features: [{
+          type: "Feature",
+          geometry: { type: "Polygon", coordinates: [[...drawPoints, drawPoints[0]]] },
+          properties: { riskColor }
+        }]
+      });
+    }
+  } else if (mode === "point" && pointMarker) {
+    const ll = pointMarker.getLngLat();
+    analysePoint(ll.lng, ll.lat);
+  } else {
+    // Default: analyse center of map view
+    const center = map.getCenter();
+    analysePoint(center.lng, center.lat);
+  }
+}
+
+// ── Haversine Distance (m) ──
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// ── Update UI with Results ──
+function updateResults(result, meta = {}) {
+  currentResult = result;
+  const { arms, activities, indices, risk, provenance, confidence, lithology_label } = result;
+
+  // Risk badge
+  const badge = document.getElementById("riskBadge");
+  badge.textContent = risk.tier;
+  badge.className = `risk-badge risk-badge--${risk.tier.toLowerCase()}`;
+
+  // Dose values
+  document.getElementById("totalDose").textContent = arms.total.toFixed(2);
+  document.getElementById("totalDose").style.color = risk.tier === "GREEN" ? "var(--green)" : risk.tier === "AMBER" ? "var(--amber)" : "var(--red)";
+  document.getElementById("radonDose").textContent = arms.radon.toFixed(2);
+  document.getElementById("thoronDose").textContent = arms.thoron.toFixed(2);
+  document.getElementById("gammaDose").textContent = arms.gamma.toFixed(2);
+
+  // Status text
+  const dominant = arms.radon >= arms.thoron && arms.radon >= arms.gamma ? "Radon-dominated" :
+                    arms.thoron >= arms.gamma ? "Thoron-dominated" : "Gamma-dominated";
+  document.getElementById("doseStatus").textContent = `${dominant} · ${lithology_label}`;
+  document.getElementById("doseStatus").style.color = risk.tier === "GREEN" ? "var(--green)" : risk.tier === "AMBER" ? "var(--amber)" : "var(--red)";
+
+  // Activity indices
+  document.getElementById("idxGammaRate").textContent = `${indices.gamma_rate.toFixed(1)} nGy/h`;
+  document.getElementById("idxGammaRate").style.color = indices.gamma_rate >= 59 ? "var(--amber)" : "var(--green)";
+  document.getElementById("idxRaeq").textContent = `${indices.raeq.toFixed(1)} Bq/kg`;
+  document.getElementById("idxRaeq").style.color = indices.raeq >= 370 ? "var(--amber)" : "var(--green)";
+  document.getElementById("idxGammaAct").textContent = indices.I_gamma.toFixed(3);
+  document.getElementById("idxGammaAct").style.color = indices.I_gamma >= 1 ? "var(--red)" : "var(--green)";
+  document.getElementById("idxRadon").textContent = `${indices.indoor_Rn.toFixed(0)} Bq/m³`;
+  document.getElementById("idxRadon").style.color = indices.indoor_Rn >= 300 ? "var(--red)" : indices.indoor_Rn >= 100 ? "var(--amber)" : "var(--green)";
+  document.getElementById("idxELCR").textContent = (indices.ELCR * 1e3).toFixed(3) + " × 10⁻³";
+
+  // Provenance
+  const provBody = document.getElementById("provBody");
+  provBody.innerHTML = "";
+  const provEntries = [
+    { param: "A<sub>Ra-226</sub>", key: "A_Ra226", val: activities.A_Ra226.toFixed(1) },
+    { param: "A<sub>Th-232</sub>", key: "A_Th232", val: activities.A_Th232.toFixed(1) },
+    { param: "A<sub>K-40</sub>", key: "A_K40", val: activities.A_K40.toFixed(1) },
+    { param: "C<sub>Rn</sub> indoor", key: "C_Rn", val: indices.indoor_Rn.toFixed(0) + " Bq/m³" },
+    { param: "C<sub>Tn</sub> indoor", key: "C_Tn", val: "geogenic" }
+  ];
+  provEntries.forEach(e => {
+    const p = provenance[e.key];
+    const srcClass = p.source === "measured" ? "src--measured" : "src--prior";
+    const srcLabel = p.source === "measured" ? "MEASURED" : p.source === "geogenic" ? "GEOGENIC" : "PRIOR";
+    provBody.innerHTML += `<tr><td>${e.param}</td><td><span class="src ${srcClass}">${srcLabel}</span></td><td style="color:var(--muted)">${p.method}</td></tr>`;
+  });
+
+  // Confidence
+  document.getElementById("confidencePill").textContent = confidence + "%";
+  document.getElementById("confFill").style.width = confidence + "%";
+  document.getElementById("confFill").style.background = confidence >= 60 ? "var(--green)" : confidence >= 30 ? "var(--amber)" : "var(--red)";
+  document.getElementById("confPct").textContent = confidence + "%";
+
+  // Render triangle
+  renderTriangle(arms);
+
+  // Update status bar lithology
+  if (meta.lithology) {
+    document.getElementById("sLith").textContent = lithology_label;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// D3 Triangle Renderer — VisQuill-style dose fingerprint
+// ════════════════════════════════════════════════════════════════════════════
+function renderTriangle(arms) {
+  const svg = d3.select("#triangle-svg");
+  svg.selectAll("*").remove();
+
+  const W = 340, H = 300;
+  const margin = { top: 30, bottom: 20, left: 10, right: 10 };
+  const cx = W / 2, cy = H * 0.55;
+  const R = Math.min(W - margin.left - margin.right, H - margin.top - margin.bottom) * 0.42;
+
+  // Triangle vertices
+  const vertices = [
+    { label: "RADON", angle: -Math.PI / 2, color: "#f97316", value: arms.radon },
+    { label: "GAMMA", angle: Math.PI / 6, color: "#3b82f6", value: arms.gamma },
+    { label: "THORON", angle: (5 * Math.PI) / 6, color: "#a855f7", value: arms.thoron }
+  ];
+
+  const maxVal = Math.max(arms.radon, arms.thoron, arms.gamma, 0.1);
+
+  vertices.forEach(v => {
+    v.x = cx + R * Math.cos(v.angle);
+    v.y = cy - R * Math.sin(v.angle);
+    v.nx = cx + (R + 24) * Math.cos(v.angle);
+    v.ny = cy - (R + 24) * Math.sin(v.angle);
+  });
+
+  // Background concentric triangle grid
+  const gridGroup = svg.append("g").attr("class", "grid");
+  for (let frac = 0.2; frac <= 1.0; frac += 0.2) {
+    const pts = vertices.map(v => {
+      const dx = cx + (R * frac) * Math.cos(v.angle);
+      const dy = cy - (R * frac) * Math.sin(v.angle);
+      return [dx, dy];
+    });
+    gridGroup.append("polygon")
+      .attr("points", pts.map(p => p.join(",")).join(" "))
+      .attr("fill", "none")
+      .attr("stroke", "rgba(255,255,255,0.06)")
+      .attr("stroke-width", 1);
+    // Grid label
+    if (frac < 1.0) {
+      gridGroup.append("text")
+        .attr("x", vertices[0].x + (cx - vertices[0].x) * (1 - frac))
+        .attr("y", vertices[0].y + (cy - vertices[0].y) * (1 - frac) - 4)
+        .attr("text-anchor", "middle")
+        .attr("fill", "rgba(255,255,255,0.2)")
+        .attr("font-size", "8px")
+        .attr("font-family", "var(--mono)")
+        .text((frac * 100).toFixed(0) + "%");
+    }
+  }
+
+  // Outer triangle outline
+  gridGroup.append("polygon")
+    .attr("points", vertices.map(v => [v.x, v.y].join(",")).join(" "))
+    .attr("fill", "none")
+    .attr("stroke", "rgba(255,255,255,0.15)")
+    .attr("stroke-width", 1.5);
+
+  // Data polygon (normalized)
+  const dataPoints = vertices.map(v => {
+    const frac = Math.min(v.value / maxVal, 1);
+    return [cx + (R * frac) * Math.cos(v.angle), cy - (R * frac) * Math.sin(v.angle)];
+  });
+
+  // Determine dominant source for fill
+  const dominant = arms.radon >= arms.thoron && arms.radon >= arms.gamma ? "radon" :
+                    arms.thoron >= arms.gamma ? "thoron" : "gamma";
+  const dominantColor = dominant === "radon" ? "#f97316" : dominant === "thoron" ? "#a855f7" : "#3b82f6";
+
+  // Gradient definition
+  const defs = svg.append("defs");
+  const grad = defs.append("linearGradient").attr("id", "triangleGrad").attr("x1", "0%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%");
+  grad.append("stop").attr("offset", "0%").attr("stop-color", dominantColor).attr("stop-opacity", 0.35);
+  grad.append("stop").attr("offset", "100%").attr("stop-color", dominantColor).attr("stop-opacity", 0.08);
+
+  // Filled data polygon
+  const dataGroup = svg.append("g").attr("class", "data");
+  dataGroup.append("polygon")
+    .attr("points", dataPoints.map(p => p.join(",")).join(" "))
+    .attr("fill", "url(#triangleGrad)")
+    .attr("stroke", dominantColor)
+    .attr("stroke-width", 2)
+    .attr("stroke-opacity", 0.8)
+    .style("filter", "drop-shadow(0 0 8px " + dominantColor + "40)");
+
+  // Data point circles
+  dataPoints.forEach((p, i) => {
+    dataGroup.append("circle")
+      .attr("cx", p[0]).attr("cy", p[1]).attr("r", 5)
+      .attr("fill", vertices[i].color).attr("stroke", "#fff").attr("stroke-width", 1.5);
+  });
+
+  // Axis lines from center to vertices
+  vertices.forEach(v => {
+    gridGroup.append("line")
+      .attr("x1", cx).attr("y1", cy).attr("x2", v.x).attr("y2", v.y)
+      .attr("stroke", "rgba(255,255,255,0.08)").attr("stroke-width", 1).attr("stroke-dasharray", "3,3");
+  });
+
+  // Labels
+  const labels = svg.append("g").attr("class", "labels");
+  vertices.forEach(v => {
+    const anchor = v.label === "RADON" ? "middle" : v.label === "GAMMA" ? "start" : "end";
+    const labelG = labels.append("g");
+
+    // Icon dot
+    labelG.append("circle")
+      .attr("cx", v.nx - (v.label === "RADON" ? 0 : v.label === "GAMMA" ? -12 : 12))
+      .attr("cy", v.ny - 12)
+      .attr("r", 4)
+      .attr("fill", v.color);
+
+    labelG.append("text")
+      .attr("x", v.nx + (v.label === "RADON" ? 0 : v.label === "GAMMA" ? 6 : -6))
+      .attr("y", v.ny - 8)
+      .attr("text-anchor", anchor)
+      .attr("fill", v.color)
+      .attr("font-size", "10px")
+      .attr("font-weight", "700")
+      .attr("letter-spacing", "1px")
+      .text(v.label);
+
+    labelG.append("text")
+      .attr("x", v.nx + (v.label === "RADON" ? 0 : v.label === "GAMMA" ? 6 : -6))
+      .attr("y", v.ny + 6)
+      .attr("text-anchor", anchor)
+      .attr("fill", "#fff")
+      .attr("font-size", "13px")
+      .attr("font-weight", "700")
+      .attr("font-family", "var(--mono)")
+      .text(v.value.toFixed(2) + " mSv/yr");
+  });
+
+  // Center label
+  const total = arms.total;
+  labels.append("circle").attr("cx", cx).attr("cy", cy).attr("r", 3).attr("fill", "rgba(255,255,255,0.3)");
+  labels.append("text")
+    .attr("x", cx).attr("y", cy + 20)
+    .attr("text-anchor", "middle")
+    .attr("fill", "rgba(255,255,255,0.5)")
+    .attr("font-size", "9px")
+    .attr("font-family", "var(--mono)")
+    .text("Total: " + total.toFixed(2) + " mSv/yr");
+
+  // UNSCEAR reference circle
+  const refR = R * (2.2 / maxVal);
+  if (refR > 5) {
+    gridGroup.append("circle")
+      .attr("cx", cx).attr("cy", cy).attr("r", refR)
+      .attr("fill", "none")
+      .attr("stroke", "rgba(34,197,94,0.3)")
+      .attr("stroke-width", 1)
+      .attr("stroke-dasharray", "4,3");
+    gridGroup.append("text")
+      .attr("x", cx + refR + 4).attr("y", cy - 2)
+      .attr("fill", "rgba(34,197,94,0.5)")
+      .attr("font-size", "8px")
+      .attr("font-family", "var(--mono)")
+      .text("2.2 avg");
+  }
+}
+
+// ── UI Event Handlers ──
+function initUI() {
+  // Mode selector
+  document.querySelectorAll("#modeSeg button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#modeSeg button").forEach(b => b.classList.remove("on"));
+      btn.classList.add("on");
+      mode = btn.dataset.mode;
+      document.getElementById("drawHint").classList.toggle("show", mode === "draw");
+      if (mode !== "draw") clearDrawing();
+      if (mode !== "point" && pointMarker) { pointMarker.remove(); pointMarker = null; }
+      map.getCanvas().style.cursor = mode === "draw" ? "crosshair" : mode === "point" ? "crosshair" : "";
+    });
+  });
+
+  // Double-click to close polygon
+  map && map.on("dblclick", (e) => {
+    if (mode === "draw" && drawPoints.length >= 3) {
+      e.preventDefault();
+      analyseRegion();
+    }
+  });
+
+  // Analyse button
+  document.getElementById("btnAnalyze").addEventListener("click", analyseRegion);
+
+  // Reset
+  document.getElementById("btnReset").addEventListener("click", () => {
+    map.flyTo({ center: [-8, 53], zoom: 6, pitch: 0 });
+    clearDrawing();
+    if (pointMarker) { pointMarker.remove(); pointMarker = null; }
+  });
+
+  // Info modal
+  document.getElementById("btnInfo").addEventListener("click", () => {
+    document.getElementById("infoModal").classList.add("show");
+  });
+  document.getElementById("closeModal").addEventListener("click", () => {
+    document.getElementById("infoModal").classList.remove("show");
+  });
+  document.getElementById("infoModal").addEventListener("click", (e) => {
+    if (e.target === document.getElementById("infoModal"))
+      document.getElementById("infoModal").classList.remove("show");
+  });
+
+  // Layer toggles
+  const layerToggles = {
+    togGeology: () => {
+      geologyVisible = !geologyVisible;
+      if (map.getLayer("geology-overlay"))
+        map.setLayoutProperty("geology-overlay", "visibility", geologyVisible ? "visible" : "none");
+    },
+    togFaults: () => {
+      faultsVisible = !faultsVisible;
+      if (map.getLayer("fault-lines"))
+        map.setLayoutProperty("fault-lines", "visibility", faultsVisible ? "visible" : "none");
+    },
+    togRadon: () => {
+      radonVisible = !radonVisible;
+      if (map.getLayer("radon-heat"))
+        map.setLayoutProperty("radon-heat", "visibility", radonVisible ? "visible" : "none");
+    },
+    togDose: () => {
+      const el = document.getElementById("togDose");
+      const on = el.classList.toggle("on");
+      if (map.getLayer("dose-heat"))
+        map.setLayoutProperty("dose-heat", "visibility", on ? "visible" : "none");
+    },
+    togSentinel: () => {
+      const el = document.getElementById("togSentinel");
+      const on = el.classList.toggle("on");
+      if (map.getLayer("sentinel2-overlay"))
+        map.setLayoutProperty("sentinel2-overlay", "visibility", on ? "visible" : "none");
+    }
+  };
+
+  Object.entries(layerToggles).forEach(([id, fn]) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("click", () => { el.classList.toggle("on"); fn(); });
+    const parent = el?.closest(".layer-item");
+    if (parent) parent.addEventListener("click", (e) => {
+      if (e.target === el) return;
+      el.click();
+    });
+  });
+
+  // Preset locations
+  document.querySelectorAll(".preset").forEach(el => {
+    el.addEventListener("click", () => {
+      const lat = +el.dataset.lat, lng = +el.dataset.lng, zoom = +el.dataset.zoom;
+      map.flyTo({ center: [lng, lat], zoom, essential: true });
+      // Auto-analyse after fly
+      setTimeout(() => analysePoint(lng, lat), 1500);
+    });
+  });
+
+  // Search (Nominatim)
+  const searchInput = document.getElementById("searchInput");
+  const doSearch = () => {
+    const q = searchInput.value.trim();
+    if (!q) return;
+    // Check for coordinates
+    const coordMatch = q.match(/^(-?\d+\.?\d*)\s*[,\s]\s*(-?\d+\.?\d*)$/);
+    if (coordMatch) {
+      const lat = parseFloat(coordMatch[1]), lng = parseFloat(coordMatch[2]);
+      map.flyTo({ center: [lng, lat], zoom: 10 });
+      setTimeout(() => analysePoint(lng, lat), 1000);
+      return;
+    }
+    // Nominatim geocode
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.length > 0) {
+          const { lat, lon } = data[0];
+          map.flyTo({ center: [+lon, +lat], zoom: 10 });
+          setTimeout(() => analysePoint(+lon, +lat), 1000);
+        }
+      })
+      .catch(() => {});
+  };
+  document.getElementById("btnSearch").addEventListener("click", doSearch);
+  searchInput.addEventListener("keydown", (e) => { if (e.key === "Enter") doSearch(); });
+
+  // ESC to close modal
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") document.getElementById("infoModal").classList.remove("show");
+  });
+}
+
+// ── Boot ──
+document.addEventListener("DOMContentLoaded", () => {
+  initMap();
+  initUI();
+  // Auto-analyse world average after load
+  setTimeout(() => {
+    const result = DoseCore.polygon_dose_fingerprint({ lithology: "world_average_soil" });
+    updateResults(result, { lithology: "world_average_soil" });
+  }, 2000);
+});
+
+})();
+</script>
+</body>
+</html>
