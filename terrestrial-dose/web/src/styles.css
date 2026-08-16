@@ -1,6 +1,6 @@
 /**
- * Terrestrial Dose Indicator — Stylesheet
- * Silicon Valley-grade dark theme with satellite base
+ * Terrestrial Dose Indicator — Stylesheet v3
+ * Silicon Valley-grade dark theme with VisQuill hover behaviour
  */
 
 :root {
@@ -24,11 +24,7 @@
   --font-mono: 'JetBrains Mono', monospace;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
   height: 100%;
@@ -43,11 +39,7 @@ html, body {
 #root { height: 100%; }
 
 /* ── App layout ── */
-.app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
+.app { display: flex; flex-direction: column; height: 100vh; }
 
 /* ── Top bar ── */
 .topbar {
@@ -157,7 +149,8 @@ html, body {
 
 .topbar-right { display: flex; align-items: center; }
 
-/* ── Preset dropdown ── */
+.preset-wrapper { position: relative; }
+
 .preset-dropdown {
   position: absolute;
   top: 100%;
@@ -168,7 +161,9 @@ html, body {
   border-radius: 8px;
   padding: 4px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  min-width: 220px;
+  min-width: 260px;
+  max-height: 400px;
+  overflow-y: auto;
   z-index: 200;
 }
 
@@ -192,20 +187,12 @@ html, body {
 }
 
 /* ── Main area ── */
-.main {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
+.main { display: flex; flex: 1; overflow: hidden; }
 
-.map-area {
-  flex: 1;
-  position: relative;
-  min-width: 0;
-}
+.map-area { flex: 1; position: relative; min-width: 0; }
 
 .panel-area {
-  width: 400px;
+  width: 420px;
   flex-shrink: 0;
   background: var(--bg-panel);
   border-left: 1px solid var(--border);
@@ -214,10 +201,7 @@ html, body {
 }
 
 /* ── Map ── */
-.map-container {
-  width: 100%;
-  height: 100%;
-}
+.map-container { width: 100%; height: 100%; }
 
 .map-container .maplibregl-map { font-family: var(--font-sans) !important; }
 
@@ -258,9 +242,7 @@ html, body {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── Dose marker ── */
-.dose-marker {
-  pointer-events: none;
-}
+.dose-marker { pointer-events: none; }
 
 .dose-marker-dot {
   width: 16px;
@@ -286,7 +268,6 @@ html, body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  animation: pulse-ring 2s ease-out infinite;
 }
 
 .dose-marker.active .dose-marker-pulse { animation: pulse-ring 2s ease-out infinite; }
@@ -322,10 +303,8 @@ html, body {
   backdrop-filter: blur(8px);
 }
 
-.map-control-btn:hover {
-  color: var(--accent);
-  border-color: var(--accent);
-}
+.map-control-btn:hover { color: var(--accent); border-color: var(--accent); }
+.map-control-btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
 
 /* ── Panel ── */
 .panel-empty {
@@ -355,6 +334,41 @@ html, body {
 }
 
 .panel { padding: 0; }
+
+/* Hover state */
+.panel-hover {
+  border-top: 2px solid var(--accent);
+}
+
+.hover-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: var(--accent-dim);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+}
+
+.hover-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: hover-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes hover-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* Locked state */
+.panel-locked {
+  border-top: 2px solid transparent;
+}
 
 .panel-header {
   padding: 16px 20px 12px;
@@ -393,7 +407,7 @@ html, body {
   box-shadow: 0 0 8px currentColor;
 }
 
-.risk-badge-text { display: flex; flex-direction: column; gap: 2px; }
+.risk-badge-text { display: flex; flex-direction: column; gap: 2px; flex: 1; }
 
 .risk-tier {
   font-size: 13px;
@@ -402,6 +416,21 @@ html, body {
 }
 
 .risk-detail { font-size: 11px; color: var(--text-muted); }
+
+.risk-badge-vs {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.vs-label { font-size: 9px; color: var(--text-muted); letter-spacing: 0.5px; }
+
+.vs-value {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 800;
+}
 
 /* ── Triangle ── */
 .panel-triangle {
@@ -434,11 +463,7 @@ html, body {
 }
 
 /* ── Dose breakdown ── */
-.panel-arms {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.panel-arms { display: flex; flex-direction: column; gap: 6px; }
 
 .arm-row {
   display: flex;
@@ -449,17 +474,9 @@ html, body {
   background: var(--bg-card);
 }
 
-.arm-row.arm-total {
-  background: var(--bg-elevated);
-  margin-top: 4px;
-}
+.arm-row.arm-total { background: var(--bg-elevated); margin-top: 4px; }
 
-.arm-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
+.arm-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
 .arm-label { font-size: 12px; color: var(--text-secondary); flex: 1; }
 .arm-total .arm-label { font-weight: 700; color: var(--text-primary); }
@@ -479,25 +496,40 @@ html, body {
 }
 
 .ai-explanation {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-sentence {
   font-size: 12px;
-  line-height: 1.7;
+  line-height: 1.65;
   color: var(--text-secondary);
   letter-spacing: 0.2px;
 }
 
-/* ── Comparison ── */
-.comparison-chart {
+.ai-meta {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  gap: 16px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
 }
 
-.comparison-row {
+.ai-meta-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+  font-size: 10px;
 }
 
+.ai-meta-label { color: var(--text-muted); }
+.ai-meta-value { font-family: var(--font-mono); font-weight: 700; }
+
+/* ── Comparison ── */
+.comparison-chart { display: flex; flex-direction: column; gap: 8px; }
+
+.comparison-row { display: flex; align-items: center; gap: 8px; }
 .comparison-row.compact { padding: 2px 0; }
 
 .comparison-label {
@@ -608,10 +640,7 @@ html, body {
 /* ── Confidence meter ── */
 .confidence-meter { display: flex; flex-direction: column; gap: 6px; }
 
-.confidence-bars {
-  display: flex;
-  gap: 3px;
-}
+.confidence-bars { display: flex; gap: 3px; }
 
 .confidence-bar {
   height: 8px;
@@ -620,10 +649,7 @@ html, body {
   transition: background 0.3s;
 }
 
-.confidence-text {
-  font-size: 11px;
-  font-weight: 500;
-}
+.confidence-text { font-size: 11px; font-weight: 500; }
 
 .panel-resolution {
   font-size: 10px;
@@ -699,6 +725,20 @@ html, body {
 .prov-tag.prior { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); }
 
 .prov-text { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
+
+/* ── Standards ── */
+.standards-list { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.standard-tag {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
 
 /* ── Status bar ── */
 .statusbar {
