@@ -7,321 +7,627 @@
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0f1117;color:#e6ebf5;font-family:'Inter',system-ui,sans-serif;height:100vh;overflow:hidden}
+body{background:#0a0e1a;color:#e6ebf5;font-family:Inter,system-ui,-apple-system,sans-serif;height:100vh;overflow:hidden;font-size:13px}
+.app{display:flex;height:100vh;width:100vw}
+.map-pane{flex:1.5;position:relative;min-width:0}
+.report-pane{flex:1;min-width:380px;max-width:520px;background:#111726;border-left:1px solid #243049;overflow-y:auto;padding:16px 18px}
 
-.header{position:fixed;top:0;left:0;right:0;height:48px;background:#1a1d26;border-bottom:1px solid #2a2d36;
-  display:flex;align-items:center;padding:0 16px;z-index:100;gap:12px}
-.header h1{font-size:15px;font-weight:700;color:#3b82f6;white-space:nowrap}
-.search-box{flex:1;max-width:320px;position:relative}
-.search-box input{width:100%;background:#0f1117;border:1px solid #2a2d36;border-radius:6px;padding:6px 30px 6px 10px;
-  color:#e6ebf5;font-size:13px}
-.search-box input:focus{outline:none;border-color:#3b82f6}
-.search-box button{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;
-  color:#8b97b0;cursor:pointer;font-size:14px}
-.status-bar{font-size:11px;color:#8b97b0;white-space:nowrap}
-.spinner{display:inline-block;width:12px;height:12px;border:2px solid #3b82f633;border-top-color:#3b82f6;
-  border-radius:50%;animation:spin 0.8s linear infinite;margin-left:6px;vertical-align:middle}
-@keyframes spin{to{transform:rotate(360deg)}}
+/* MAP OVERLAYS */
+.map-search{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:10;width:320px}
+.map-search input{width:100%;background:#111726ee;border:1px solid #243049;border-radius:8px;padding:8px 12px;color:#e6ebf5;font-size:13px;outline:none}
+.map-search input:focus{border-color:#3b82f6}
+.map-search input::placeholder{color:#8b97b0}
+.search-msg{font-size:11px;color:#8b97b0;margin-top:4px;text-align:center;min-height:16px}
 
-#map{position:fixed;top:48px;left:0;right:0;bottom:280px}
+.basemap-toggle{position:absolute;top:12px;left:12px;z-index:10;display:flex;gap:2px;background:#111726ee;border-radius:8px;border:1px solid #243049;overflow:hidden}
+.basemap-toggle button{background:none;border:none;color:#8b97b0;padding:6px 10px;font-size:11px;cursor:pointer;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.basemap-toggle button.active{background:#3b82f6;color:#fff}
 
-.bottom-panel{position:fixed;bottom:0;left:0;right:0;height:280px;background:#1a1d26;
-  border-top:1px solid #2a2d36;display:flex;z-index:100}
+.badges{position:absolute;bottom:12px;left:12px;z-index:10;display:flex;gap:6px;align-items:center}
+.badge{background:#111726ee;border:1px solid #243049;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:600;letter-spacing:.3px}
+.badge-green{color:#22c55e;border-color:#22c55e44}
 
-.data-sources{flex:1;overflow-y:auto;padding:10px;font-size:11px}
-.data-sources h3{font-size:12px;color:#3b82f6;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
-.ds-table{width:100%;border-collapse:collapse}
-.ds-table th{text-align:left;color:#8b97b0;font-weight:500;padding:3px 6px;border-bottom:1px solid #2a2d36}
-.ds-table td{padding:3px 6px;border-bottom:1px solid #1f2230}
-.ds-ok{color:#22c55e} .ds-prior{color:#f59e0b} .ds-miss{color:#ef4444}
+.pin-overlay{position:absolute;top:60px;left:50%;transform:translateX(-50%);z-index:10;background:#f59e0b22;border:1px solid #f59e0b66;color:#f59e0b;padding:4px 12px;border-radius:6px;font-size:11px;font-weight:600;display:none}
 
-.dose-panel{flex:0 0 380px;border-left:1px solid #2a2d36;padding:10px;overflow-y:auto}
-.dose-panel h3{font-size:12px;color:#3b82f6;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
-.risk-badge{display:inline-block;padding:3px 12px;border-radius:12px;font-size:11px;font-weight:700}
+/* CURSOR TRIANGLE */
+.cursor-tri{position:fixed;z-index:9999;pointer-events:none;opacity:0;transition:opacity 150ms;width:48px;height:48px}
+.cursor-tri.visible{opacity:1}
+.cursor-tri svg{width:48px;height:48px}
+
+/* RISK CHOROPLETH */
+#choropleth-source{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5}
+
+/* REPORT PANEL */
+.report-pane h2{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:#8b97b0;margin-bottom:8px;font-weight:600}
+.report-pane h3{font-size:12px;color:#e6ebf5;margin-bottom:6px;font-weight:600}
+.card{background:#161e30;border:1px solid #243049;border-radius:12px;padding:14px 16px;margin-bottom:14px}
+
+.empty-state{display:flex;align-items:center;justify-content:center;height:100%;text-align:center;color:#8b97b0;font-size:14px;line-height:1.6}
+
+.risk-pill{display:inline-block;padding:4px 14px;border-radius:14px;font-size:12px;font-weight:700;margin-right:8px}
 .risk-GREEN{background:#22c55e22;color:#22c55e;border:1px solid #22c55e44}
 .risk-AMBER{background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44}
 .risk-RED{background:#ef444422;color:#ef4444;border:1px solid #ef444444}
-.summary-row{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
-.summary-row .label{color:#8b97b0}
-.summary-row .value{font-weight:600}
-.short-report{margin-top:8px;font-size:11px;color:#8b97b0;line-height:1.5}
-.short-report p{margin-bottom:3px}
-.conf-bar{height:6px;background:#243049;border-radius:3px;margin:4px 0}
-.conf-fill{height:100%;border-radius:3px}
-.source-tag{display:inline-block;font-size:9px;padding:1px 6px;border-radius:4px;margin:1px;
-  background:#243049;color:#8b97b0}
-.source-tag.measured{background:#22c55e22;color:#22c55e}
-.source-tag.prior{background:#f59e0b22;color:#f59e0b}
+.risk-INSUFFICIENT{background:#8b97b022;color:#8b97b0;border:1px solid #8b97b044}
+@keyframes pulse-border{0%,100%{border-color:transparent}50%{border-color:#3b82f6}}
+.updating .risk-pill{animation:pulse-border 1.2s ease infinite}
 
-.layer-panel{position:fixed;top:48px;right:8px;background:#1a1d26;border:1px solid #2a2d36;border-radius:8px;
-  padding:10px;z-index:100;max-height:calc(100vh - 340px);overflow-y:auto;width:260px;font-size:11px;display:none}
-.layer-panel h3{font-size:11px;color:#3b82f6;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
-.layer-item{display:flex;align-items:center;gap:6px;padding:2px 0}
-.layer-item input[type=checkbox]{accent-color:#3b82f6}
-.layer-toggle-btn{position:fixed;top:56px;right:8px;background:#1a1d26;border:1px solid #2a2d36;
-  border-radius:6px;padding:6px 10px;color:#3b82f6;cursor:pointer;z-index:99;font-size:11px}
+.loc-header{font-size:12px;color:#8b97b0;margin-bottom:10px}
+
+.dose-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px}
+.dose-swatch{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.dose-label{color:#8b97b0;flex:1}
+.dose-value{font-weight:600;color:#e6ebf5}
+.dose-total{border-top:1px solid #243049;margin-top:4px;padding-top:6px;font-weight:700}
+
+.factor-row{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:11px;border-bottom:1px solid #24304911}
+.factor-name{color:#8b97b0;width:110px;flex-shrink:0}
+.factor-value{flex:1;color:#e6ebf5}
+.factor-dir{font-weight:700;width:20px;text-align:center}
+.dir-up{color:#f59e0b}.dir-down{color:#22c55e}.dir-neutral{color:#8b97b0}.dir-varies{color:#3b82f6}
+
+.conf-bar{height:6px;background:#243049;border-radius:3px;overflow:hidden;margin:6px 0}
+.conf-fill{height:100%;border-radius:3px;transition:width 300ms ease}
+.conf-text{font-size:11px;color:#8b97b0}
+
+.source-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;margin:2px;background:#22c55e22;color:#22c55e;font-weight:600}
+
+.provenance{font-size:10px;color:#8b97b0;line-height:1.5;margin-top:8px}
+.provenance strong{color:#3b82f6;font-weight:600}
+
+.why-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.dot-amber{background:#f59e0b}.dot-green{background:#22c55e}.dot-blue{background:#3b82f6}
+
+.error-banner{background:#ef444422;border:1px solid #ef444466;color:#ef4444;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:10px;display:none}
+.water-banner{background:#3b82f622;border:1px solid #3b82f666;color:#3b82f6;padding:12px;border-radius:8px;text-align:center;font-size:13px;margin-bottom:10px}
 </style>
 </head>
 <body>
+<div class="app">
+  <!-- LEFT: MAP -->
+  <div class="map-pane" id="mapPane">
+    <div id="map" style="width:100%;height:100%"></div>
 
-<div class="header">
-  <h1>🇮🇪 Irish Terrestrial Dose</h1>
-  <div class="search-box">
-    <input id="searchInput" placeholder="Search town or Eircode...">
-    <button id="searchBtn">🔍</button>
-  </div>
-  <div class="status-bar" id="statusCoords">Click map to analyse</div>
-</div>
+    <div class="basemap-toggle">
+      <button id="btnSat" class="active">Satellite</button>
+      <button id="btnBing">Bing</button>
+      <button id="btnStreets">Streets</button>
+    </div>
 
-<div id="map"></div>
+    <div class="map-search">
+      <input id="searchInput" placeholder="Search town or Eircode&hellip;">
+      <div class="search-msg" id="searchMsg"></div>
+    </div>
 
-<button class="layer-toggle-btn" id="layerToggleBtn">☰ Layers</button>
-<div class="layer-panel" id="layerPanel">
-  <h3>WMS Overlays</h3>
-  <div id="layerList"></div>
-</div>
+    <div class="pin-overlay" id="pinOverlay">📌 Pinned &mdash; click to unpin</div>
 
-<div class="bottom-panel">
-  <div class="data-sources">
-    <h3>Data Sources & Provenance</h3>
-    <div id="dsContent">
-      <p style="color:#8b97b0;font-size:11px">Click any point in Ireland to query the backend API and see data source status.</p>
+    <div class="badges" id="badges">
+      <span class="badge" id="badgeCell"></span>
+      <span class="badge badge-green" id="badgeTellus"></span>
+      <span class="badge badge-green" id="badgeEPA"></span>
     </div>
   </div>
-  <div class="dose-panel">
-    <h3>Dose Analysis</h3>
-    <div id="doseContent">
-      <p style="color:#8b97b0;font-size:11px">Dose results will appear here after clicking the map.</p>
-    </div>
+
+  <!-- RIGHT: REPORT -->
+  <div class="report-pane" id="reportPane">
+    <div class="empty-state" id="emptyState">Hover the map of Ireland to see the dose assessment.</div>
+    <div id="reportContent" style="display:none"></div>
   </div>
+</div>
+
+<!-- CURSOR TRIANGLE -->
+<div class="cursor-tri" id="cursorTri">
+  <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <polygon id="triFill" points="24,6 6,40 42,40" fill="#3b82f608" stroke="none"/>
+    <line id="armRn" x1="24" y1="24" x2="24" y2="8" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
+    <line id="armTn" x1="24" y1="24" x2="10" y2="38" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
+    <line id="armGm" x1="24" y1="24" x2="38" y2="38" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="24" cy="24" r="3" fill="#e6ebf5"/>
+  </svg>
 </div>
 
 <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 <script>
-
-// ═════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
 // CONFIGURATION
-// ═════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
 
-// Backend API URL — change this to your deployed backend
-const API_BASE = "http://localhost:8000";
+const API_BASE = location.hostname === "localhost" || location.hostname === "127.0.0.1"
+  ? "http://localhost:8000"
+  : (new URLSearchParams(location.search).get("api") || "http://localhost:8000");
 
-// WMS overlay sources (for map display only — dose comes from API)
-const WMS_LAYERS = [
-  { id: "bedrock", name: "GSI Bedrock 1:100k", group: "GSI",
-    url: "https://gsi.geodata.gov.ie/server/services/Bedrock/IE_GSI_Bedrock_Geology_Datasets_100K_IE26_ITM/MapServer/WMSServer",
-    layer: "IE_GSI_Bedrock_Geology_100K_IE26_ITM", color: "#e74c3c" },
-  { id: "quaternary", name: "GSI Quaternary", group: "GSI",
-    url: "https://gsi.geodata.gov.ie/server/services/Quaternary/IE_GSI_Quaternary_Sediments_50K_IE26_ITM/MapServer/WMSServer",
-    layer: "IE_GSI_Quaternary_Sediments_50K_IE26_ITM", color: "#f39c12" },
-  { id: "groundwater", name: "GSI Groundwater", group: "GSI",
-    url: "https://gsi.geodata.gov.ie/server/services/Groundwater/IE_GSI_Groundwater_Recharge_40K_IE26_ITM/MapServer/WMSServer",
-    layer: "IE_GSI_Groundwater_Recharge_40K_IE26_ITM", color: "#3498db" },
-  { id: "geochem", name: "GSI Geochemistry (La)", group: "GSI",
-    url: "https://gsi.geodata.gov.ie/server/services/Geochemistry/IE_GSI_Geochemistry_Stream_Sediment_C_250m_IE26_ITM_GRID/MapServer/WMSServer",
-    layer: "C_XRFS_Lanthanum_(La)_(mg_kg¯¹)52276", color: "#9b59b6" },
-  { id: "faults", name: "GSI Faults", group: "GSI",
-    url: "https://gsi.geodata.gov.ie/server/services/Bedrock/IE_GSI_Bedrock_Geology_Datasets_100K_IE26_ITM/MapServer/WMSServer",
-    layer: "IE_GSI_Geological_Lines_100K_IE26_ITM", color: "#e67e22" },
-  { id: "radon", name: "EPA Radon Risk", group: "EPA",
-    url: "http://gis.epa.ie/geoserver/EPA/wms",
-    layer: "EPA:RadonRiskMapofIreland", color: "#e74c3c" },
-  { id: "soils", name: "Teagasc Soils", group: "Teagasc",
-    url: "http://gis.epa.ie/geoserver/EPA/wms",
-    layer: "EPA:SOIL_SISNationalSoils", color: "#27ae60" },
-];
-
-const RC = { GREEN: "#22c55e", AMBER: "#f59e0b", RED: "#ef4444" };
 const IE = { minLat: 51.4, maxLat: 55.4, minLon: -10.6, maxLon: -5.3 };
+const COLORS = { GREEN: "#22c55e", AMBER: "#f59e0b", RED: "#ef4444", INSUFFICIENT: "#8b97b0" };
+const BING_KEY = ""; // Set via ?bing_key=... or leave empty
 
-// ═════════════════════════════════════════════════════════════════════════════
-// MAP INITIALIZATION
-// ═════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════
+
+let lastDose = null;       // last successful API response
+let isPinned = false;
+let pinnedCoord = null;
+let pendingAbort = null;
+let debounceTimer = null;
+let cursorOverMap = false;
+let currentBasemap = "satellite";
+
+// ═══════════════════════════════════════════════════════════════════════
+// MAP SETUP
+// ═══════════════════════════════════════════════════════════════════════
 
 const map = new maplibregl.Map({
   container: "map",
-  center: [-8.5, 53.3], zoom: 7,
+  center: [-8.5, 53.3],
+  zoom: 7,
+  minZoom: 5,
+  maxZoom: 18,
   maxBounds: [[-10.7, 51.3], [-5.2, 55.5]],
   style: {
     version: 8,
     sources: {
       "esri-imagery": { type: "raster", tiles: [
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-      ], tileSize: 256 },
-      "esri-labels": { type: "raster", tiles: [
-        "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-      ], tileSize: 256 },
+      ], tileSize: 256, attribution: "Esri" },
+      "osm-streets": { type: "raster", tiles: [
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+      ], tileSize: 256, attribution: "OSM" },
     },
     layers: [
-      { id: "satellite", type: "raster", source: "esri-imagery" },
-      { id: "labels", type: "raster", source: "esri-labels" },
+      { id: "layer-satellite", type: "raster", source: "esri-imagery" },
+      { id: "layer-streets", type: "raster", source: "osm-streets", layout: { visibility: "none" } },
     ],
   },
 });
 map.addControl(new maplibregl.NavigationControl(), "top-right");
 
-// Add WMS overlay layers
-let wmsIdx = 0;
-WMS_LAYERS.forEach(src => {
-  const sourceId = `wms-${src.id}`;
-  const layerId = `wms-layer-${src.id}`;
-  try {
-    map.addSource(sourceId, {
-      type: "raster",
-      tiles: [`${src.url}?service=WMS&version=1.3.0&request=GetMap&layers=${encodeURIComponent(src.layer)}&crs=EPSG:3857&bbox={bbox-epsg-3857}&width=256&height=256&format=image/png&transparent=true`],
-      tileSize: 256,
-    });
-    map.addLayer({ id: layerId, type: "raster", source: sourceId, paint: { "raster-opacity": 0.5 } });
-    map.setLayoutProperty(layerId, "visibility", "none"); // off by default
-    src._layerId = layerId;
-  } catch (e) { console.warn(`Failed to add WMS ${src.name}:`, e); }
-});
-
-// Populate layer toggle panel
-const layerList = document.getElementById("layerList");
-const groups = {};
-WMS_LAYERS.forEach(s => { if (!groups[s.group]) groups[s.group] = []; groups[s.group].push(s); });
-Object.entries(groups).forEach(([group, sources]) => {
-  layerList.innerHTML += `<div style="margin-bottom:8px">
-    <div style="font-size:10px;color:#8b97b0;font-weight:600;text-transform:uppercase;margin-bottom:3px">${group}</div>
-    ${sources.map(s => `<label class="layer-item"><input type="checkbox" data-layer="${s.id}"><span>${s.name}</span></label>`).join('')}
-  </div>`;
-});
-
-document.getElementById("layerToggleBtn").addEventListener("click", () => {
-  const p = document.getElementById("layerPanel");
-  p.style.display = p.style.display === "none" ? "block" : "none";
-});
-layerList.addEventListener("change", e => {
-  if (e.target.type === "checkbox") {
-    const src = WMS_LAYERS.find(s => s.id === e.target.dataset.layer);
-    if (src && src._layerId) {
-      map.setLayoutProperty(src._layerId, "visibility", e.target.checked ? "visible" : "none");
-    }
-  }
-});
-
-// ═════════════════════════════════════════════════════════════════════════════
-// API INTERACTION
-// ═════════════════════════════════════════════════════════════════════════════
-
-let loading = false;
-
-async function queryDose(lat, lon) {
-  if (loading) return;
-  loading = true;
-  const status = document.getElementById("statusCoords");
-  status.innerHTML = `Querying backend for ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°W <span class="spinner"></span>`;
-
-  try {
-    const resp = await fetch(`${API_BASE}/dose?lat=${lat}&lon=${lon}`);
-    if (!resp.ok) throw new Error(`API error: ${resp.status}`);
-    const data = await resp.json();
-    renderDose(data);
-    renderSources(data);
-    status.textContent = `${lat.toFixed(4)}°N, ${lon.toFixed(4)}°W — ${data.risk.tier} — ${data.total_terrestrial_mSv_yr.toFixed(2)} mSv/yr`;
-  } catch (err) {
-    status.textContent = `Error: ${err.message}`;
-    document.getElementById("doseContent").innerHTML = `<p style="color:#ef4444">Backend API error: ${err.message}. Is the backend running at ${API_BASE}?</p>`;
-  }
-  loading = false;
-}
-
-function renderDose(d) {
-  const c = RC[d.risk.tier] || "#22c55e";
-  const confColor = d.confidence.score >= 75 ? "#22c55e" : d.confidence.score >= 50 ? "#f59e0b" : "#ef4444";
-
-  document.getElementById("doseContent").innerHTML = `
-    <div class="summary-row"><span class="label">Location</span><span class="value">${d.lat.toFixed(4)}°N, ${d.lon.toFixed(4)}°W</span></div>
-    <div class="summary-row"><span class="label">Cell</span><span class="value">${d.cell_m}m</span></div>
-    <div class="summary-row"><span class="label">Risk</span><span class="risk-badge risk-${d.risk.tier}">${d.risk.tier}</span></div>
-    <div class="summary-row"><span class="label">Total Dose</span><span class="value" style="color:${c};font-size:16px">${d.total_terrestrial_mSv_yr.toFixed(2)} mSv/yr</span></div>
-    <div class="summary-row"><span class="label">vs UNSCEAR</span><span class="value">${(d.total_terrestrial_mSv_yr / 2.2).toFixed(1)}× world avg</span></div>
-    <hr style="border:none;border-top:1px solid #243049;margin:6px 0">
-    <div class="summary-row"><span class="label">Radon</span><span class="value">${d.arms_mSv_yr.radon.toFixed(2)} mSv/yr</span></div>
-    <div class="summary-row"><span class="label">Thoron</span><span class="value">${d.arms_mSv_yr.thoron.toFixed(2)} mSv/yr</span></div>
-    <div class="summary-row"><span class="label">Gamma</span><span class="value">${d.arms_mSv_yr.gamma.toFixed(2)} mSv/yr</span></div>
-    <hr style="border:none;border-top:1px solid #243049;margin:6px 0">
-    <div class="summary-row"><span class="label">Indoor Rn</span><span class="value">${d.radon_Bq_m3.toFixed(0)} Bq/m³ ${d.radon_Bq_m3 >= 200 ? '⚠' : ''}</span></div>
-    <div class="summary-row"><span class="label">Ra-eq</span><span class="value">${d.ra_eq_Bq_kg.toFixed(0)} Bq/kg ${d.ra_eq_Bq_kg >= 370 ? '⚠' : ''}</span></div>
-    <div class="summary-row"><span class="label">Gamma rate</span><span class="value">${d.gamma_rate_nGy_h.toFixed(0)} nGy/h</span></div>
-    <div class="summary-row"><span class="label">Season</span><span class="value">${d.season}</span></div>
-    <hr style="border:none;border-top:1px solid #243049;margin:6px 0">
-    <div class="summary-row"><span class="label">Confidence</span><span class="value" style="color:${confColor}">${d.confidence.level} (${d.confidence.score}%)</span></div>
-    <div class="conf-bar"><div class="conf-fill" style="width:${d.confidence.score}%;background:${confColor}"></div></div>
-    <div class="summary-row"><span class="label">Reason</span><span class="value">${d.confidence.reason}</span></div>
-    <hr style="border:none;border-top:1px solid #243049;margin:6px 0">
-    <div class="short-report">${d.report_short.map(l => `<p>${l}</p>`).join('')}</div>
-    <hr style="border:none;border-top:1px solid #243049;margin:6px 0">
-    <div style="font-size:10px;color:#8b97b0">
-      <div style="margin-bottom:4px;font-weight:600;color:#3b82f6">Provenance</div>
-      ${d.provenance.map(p => `<div>→ ${p}</div>`).join('')}
-    </div>
-    <hr style="border:none;border-top:1px solid #243049;margin:6px 0">
-    <div style="font-size:10px;color:#8b97b0">
-      <div style="margin-bottom:4px;font-weight:600;color:#3b82f6">Standards</div>
-      <div>GREEN: ≤ 2.2 mSv/yr (≤ world avg)</div>
-      <div>AMBER: 2.2–6.6 mSv/yr (1–3× avg)</div>
-      <div>RED: > 6.6 mSv/yr or Rn ≥ 200 Bq/m³</div>
-      <div style="margin-top:4px;opacity:0.6">Irish 200 Bq/m³ action level · EU BSS 2013/59/Euratom</div>
-    </div>
-  `;
-}
-
-function renderSources(d) {
-  const ds = d.data_sources || {};
-  const html = Object.entries(ds).map(([key, src]) => {
-    const isMeasured = src.includes("raster") || src.includes("measured") || src.includes("EPA") || src.includes("Tellus");
-    const isPrior = src.includes("prior") || src.includes("model") || src.includes("GRP");
-    const cls = isMeasured ? "ds-ok" : isPrior ? "ds-prior" : "ds-miss";
-    const icon = isMeasured ? "✓" : isPrior ? "~" : "✗";
-    return `<tr><td>${key}</td><td class="${cls}">${icon} ${src}</td></tr>`;
-  }).join('');
-
-  document.getElementById("dsContent").innerHTML = `
-    <table class="ds-table">
-      <thead><tr><th>Parameter</th><th>Source</th></tr></thead>
-      <tbody>${html}</tbody>
-    </table>
-    <div style="margin-top:8px;font-size:10px;color:#8b97b0">
-      <span class="source-tag measured">✓ Raster/WMS</span>
-      <span class="source-tag prior">~ Prior/Model</span>
-      <span class="source-tag" style="color:#ef4444">✗ Missing</span>
-    </div>
-  `;
-}
-
-// ═════════════════════════════════════════════════════════════════════════════
-// EVENT HANDLERS
-// ═════════════════════════════════════════════════════════════════════════════
-
-map.on("click", e => {
-  const { lat, lng } = e.lngLat;
-  if (lat < 51.4 || lat > 55.4 || lng < -10.6 || lng > -5.3) {
-    document.getElementById("statusCoords").textContent = "Outside Ireland";
+// Bing layer (only activates if key provided)
+let bingEnabled = false;
+function activateBing() {
+  const key = BING_KEY || new URLSearchParams(location.search).get("bing_key");
+  if (!key) {
+    alert("Bing Maps key not configured. Set BING_MAPS_KEY or add ?bing_key=... to the URL.");
     return;
   }
-  queryDose(lat, lng);
-});
+  if (!bingEnabled) {
+    map.addSource("bing-aerial", { type: "raster", tiles: [
+      `https://ecn.t${Math.floor(Math.random()*4)+1}.tiles.virtualearth.net/tiles/a{q}.jpeg?g=587&key=${key}`
+    ], tileSize: 256 });
+    map.addLayer({ id: "layer-bing", type: "raster", source: "bing-aerial", layout: { visibility: "none" } });
+    bingEnabled = true;
+  }
+}
 
-document.getElementById("searchBtn").addEventListener("click", async () => {
-  const q = document.getElementById("searchInput").value.trim();
+// Basemap toggle
+function setBasemap(which) {
+  document.querySelectorAll(".basemap-toggle button").forEach(b => b.classList.remove("active"));
+  map.setLayoutProperty("layer-satellite", "visibility", which === "satellite" ? "visible" : "none");
+  map.setLayoutProperty("layer-streets", "visibility", which === "streets" ? "visible" : "none");
+  if (bingEnabled) map.setLayoutProperty("layer-bing", "visibility", which === "bing" ? "visible" : "none");
+  currentBasemap = which;
+  document.getElementById(which === "satellite" ? "btnSat" : which === "bing" ? "btnBing" : "btnStreets").classList.add("active");
+}
+document.getElementById("btnSat").onclick = () => setBasemap("satellite");
+document.getElementById("btnBing").onclick = () => { activateBing(); setBasemap("bing"); };
+document.getElementById("btnStreets").onclick = () => setBasemap("streets");
+
+// ═══════════════════════════════════════════════════════════════════════
+// RISK CHOROPLETH OVERLAY (zoom < 10)
+// ═══════════════════════════════════════════════════════════════════════
+
+let choroplethLoaded = false;
+let choroplethTimer = null;
+
+function updateChoropleth() {
+  if (map.getZoom() >= 10) {
+    if (map.getLayer("choropleth-fill")) map.setLayoutProperty("choropleth-fill", "visibility", "none");
+    return;
+  }
+  if (choroplethTimer) clearTimeout(choroplethTimer);
+  choroplethTimer = setTimeout(fetchChoropleth, 500);
+}
+
+async function fetchChoropleth() {
+  const b = map.getBounds();
+  try {
+    const resp = await fetch(`${API_BASE}/dose/bbox?lat_min=${b.getSouth()}&lat_max=${b.getNorth()}&lon_min=${b.getWest()}&lon_max=${b.getEast()}&step_km=5`);
+    if (!resp.ok) return;
+    const data = await resp.json();
+    if (!data.grid || !data.grid.length) return;
+
+    const features = data.grid.filter(d => d.risk && d.risk.tier !== "INSUFFICIENT DATA").map(d => ({
+      type: "Feature",
+      properties: { tier: d.risk.tier, dose: d.total_terrestrial_mSv_yr || 0 },
+      geometry: {
+        type: "Polygon",
+        coordinates: [[
+          [d.lon - 0.02, d.lat - 0.02],
+          [d.lon + 0.02, d.lat - 0.02],
+          [d.lon + 0.02, d.lat + 0.02],
+          [d.lon - 0.02, d.lat + 0.02],
+          [d.lon - 0.02, d.lat - 0.02],
+        ]]
+      }
+    }));
+
+    const geojson = { type: "FeatureCollection", features };
+
+    if (map.getSource("choropleth")) {
+      map.getSource("choropleth").setData(geojson);
+    } else {
+      map.addSource("choropleth", { type: "geojson", data: geojson });
+      map.addLayer({
+        id: "choropleth-fill", type: "fill", source: "choropleth",
+        paint: {
+          "fill-color": [
+            "case",
+            ["==", ["get", "tier"], "RED"], "rgba(239,68,68,0.30)",
+            ["==", ["get", "tier"], "AMBER"], "rgba(245,158,11,0.25)",
+            "rgba(34,197,94,0.25)"
+          ],
+          "fill-opacity": 1
+        }
+      });
+    }
+    if (map.getLayer("choropleth-fill")) map.setLayoutProperty("choropleth-fill", "visibility", "visible");
+    choroplethLoaded = true;
+  } catch (e) { /* silent: choropleth is optional overlay */ }
+}
+
+map.on("moveend", updateChoropleth);
+map.on("zoomend", updateChoropleth);
+
+// ═══════════════════════════════════════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════════════════════════════════════
+
+document.getElementById("searchInput").addEventListener("keydown", async (e) => {
+  if (e.key !== "Enter") return;
+  const q = e.target.value.trim();
   if (!q) return;
+  const msg = document.getElementById("searchMsg");
+  msg.textContent = "Searching\u2026";
   try {
     const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q + ", Ireland")}&limit=1`);
     const data = await resp.json();
-    if (data && data[0]) {
-      const lat = parseFloat(data[0].lat), lon = parseFloat(data[0].lon);
-      if (lat >= 51.4 && lat <= 55.4 && lon >= -10.6 && lon <= -5.3) {
-        map.flyTo({ center: [lon, lat], zoom: 14, essential: true });
-        setTimeout(() => queryDose(lat, lon), 1000);
-      } else { alert("Location outside Ireland."); }
+    if (!data || !data.length) { msg.textContent = "Location not found"; return; }
+    const lat = parseFloat(data[0].lat), lon = parseFloat(data[0].lon);
+    if (lat < IE.minLat || lat > IE.maxLat || lon < IE.minLon || lon > IE.maxLon) {
+      msg.textContent = "Location not in Ireland"; return;
     }
-  } catch (err) { console.error("Search failed:", err); }
+    msg.textContent = data[0].display_name || "";
+    map.flyTo({ center: [lon, lat], zoom: 13, essential: true });
+    setTimeout(() => queryDose(lat, lon), 800);
+  } catch (err) { msg.textContent = "Search failed"; }
 });
 
-document.getElementById("searchInput").addEventListener("keydown", e => {
-  if (e.key === "Enter") document.getElementById("searchBtn").click();
+// ═══════════════════════════════════════════════════════════════════════
+// CURSOR TRIANGLE
+// ═══════════════════════════════════════════════════════════════════════
+
+const cursorTri = document.getElementById("cursorTri");
+const armRn = document.getElementById("armRn");
+const armTn = document.getElementById("armTn");
+const armGm = document.getElementById("armGm");
+const triFill = document.getElementById("triFill");
+const cx = 24, cy = 24, MAX_ARM = 18;
+
+function updateTriangleArms(d) {
+  if (!d || !d.arms_mSv_yr) return;
+  const vals = {
+    rn: d.arms_mSv_yr.radon || 0,
+    tn: d.arms_mSv_yr.thoron || 0,
+    gm: d.arms_mSv_yr.gamma || 0,
+  };
+  const maxV = Math.max(vals.rn, vals.tn, vals.gm, 0.001);
+  const scale = MAX_ARM / maxV;
+
+  const rnLen = vals.rn * scale;
+  const tnLen = vals.tn * scale;
+  const gmLen = vals.gm * scale;
+
+  // Arm 1 (up, 270deg): radon
+  const rnX = cx + rnLen * Math.cos(-Math.PI / 2);
+  const rnY = cy + rnLen * Math.sin(-Math.PI / 2);
+  armRn.setAttribute("x2", rnX); armRn.setAttribute("y2", rnY);
+
+  // Arm 2 (lower-left, 150deg): thoron
+  const tnX = cx + tnLen * Math.cos(150 * Math.PI / 180);
+  const tnY = cy + tnLen * Math.sin(150 * Math.PI / 180);
+  armTn.setAttribute("x2", tnX); armTn.setAttribute("y2", tnY);
+
+  // Arm 3 (lower-right, 30deg): gamma
+  const gmX = cx + gmLen * Math.cos(30 * Math.PI / 180);
+  const gmY = cy + gmLen * Math.sin(30 * Math.PI / 180);
+  armGm.setAttribute("x2", gmX); armGm.setAttribute("y2", gmY);
+
+  triFill.setAttribute("points", `${rnX},${rnY} ${tnX},${tnY} ${gmX},${gmY}`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// MAP INTERACTION: hover + click-to-pin
+// ═══════════════════════════════════════════════════════════════════════
+
+const mapEl = document.getElementById("map");
+mapEl.addEventListener("mousemove", (e) => {
+  cursorOverMap = true;
+  cursorTri.style.left = (e.clientX - 24) + "px";
+  cursorTri.style.top = (e.clientY - 24) + "px";
+  cursorTri.classList.add("visible");
+
+  if (isPinned) return;
+
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    const coord = map.unproject([e.clientX - mapEl.getBoundingClientRect().left, e.clientY - mapEl.getBoundingClientRect().top]);
+    if (coord.lat >= IE.minLat && coord.lat <= IE.maxLat && coord.lng >= IE.minLon && coord.lng <= IE.maxLon) {
+      queryDose(coord.lat, coord.lng);
+    }
+  }, 100);
+});
+
+mapEl.addEventListener("mouseleave", () => {
+  cursorOverMap = false;
+  cursorTri.classList.remove("visible");
+});
+
+// Click-to-pin
+map.on("click", (e) => {
+  if (isPinned) {
+    isPinned = false;
+    pinnedCoord = null;
+    document.getElementById("pinOverlay").style.display = "none";
+  } else {
+    isPinned = true;
+    pinnedCoord = { lat: e.lngLat.lat, lon: e.lngLat.lng };
+    document.getElementById("pinOverlay").style.display = "block";
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// API QUERY
+// ═══════════════════════════════════════════════════════════════════════
+
+async function queryDose(lat, lon) {
+  if (pendingAbort) pendingAbort.abort();
+  pendingAbort = new AbortController();
+
+  try {
+    const resp = await fetch(`${API_BASE}/dose?lat=${lat}&lon=${lon}`, { signal: pendingAbort.signal });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+      showError(err.detail || err.error || "API error");
+      return;
+    }
+    const data = await resp.json();
+    lastDose = data;
+    updateTriangleArms(data);
+    renderReport(data);
+    updateBadges(data);
+  } catch (e) {
+    if (e.name !== "AbortError") showError(e.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// BADGES (bottom-left)
+// ═══════════════════════════════════════════════════════════════════════
+
+function updateBadges(d) {
+  const cell = document.getElementById("badgeCell");
+  const tellus = document.getElementById("badgeTellus");
+  const epa = document.getElementById("badgeEPA");
+
+  cell.textContent = d.cell_m ? `Cell: ${d.cell_m}m` : "";
+  cell.style.display = d.cell_m ? "" : "none";
+
+  tellus.textContent = d.tellus_available ? "\u2713 Tellus" : "";
+  tellus.style.display = d.tellus_available ? "" : "none";
+
+  epa.textContent = d.epa_radon_available ? "\u2713 EPA radon" : "";
+  epa.style.display = d.epa_radon_available ? "" : "none";
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ERROR STATE
+// ═══════════════════════════════════════════════════════════════════════
+
+function showError(msg) {
+  document.getElementById("emptyState").style.display = "none";
+  const rc = document.getElementById("reportContent");
+  rc.style.display = "block";
+  // Preserve existing report if any, add error banner at top
+  let banner = document.getElementById("errorBanner");
+  if (!banner) {
+    banner = document.createElement("div");
+    banner.id = "errorBanner";
+    banner.className = "error-banner";
+    rc.prepend(banner);
+  }
+  banner.textContent = `Data unavailable: ${msg}`;
+  banner.style.display = "block";
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// REPORT PANEL RENDER
+// ═══════════════════════════════════════════════════════════════════════
+
+function renderReport(d) {
+  document.getElementById("emptyState").style.display = "none";
+  const rc = document.getElementById("reportContent");
+  rc.style.display = "block";
+
+  // Remove stale error
+  const eb = document.getElementById("errorBanner");
+  if (eb) eb.remove();
+
+  // Water body state
+  if (d.is_water) {
+    rc.innerHTML = `<div class="water-banner">Water body &mdash; no terrestrial dose assessment</div>`;
+    return;
+  }
+
+  const tier = d.risk?.tier || "INSUFFICIENT";
+  const tierColor = COLORS[tier] || COLORS.INSUFFICIENT;
+
+  // ── Build fingerprint triangle SVG ──
+  const arms = d.arms_mSv_yr || {};
+  const rnV = arms.radon || 0;
+  const tnV = arms.thoron || 0;
+  const gmV = arms.gamma || 0;
+  const maxV = Math.max(rnV, tnV, gmV, 0.001);
+  const s = 85 / maxV;
+  const fcx = 100, fcy = 100;
+
+  const rnX = fcx, rnY = fcy - rnV * s;
+  const tnX = fcx - tnV * s * Math.cos(Math.PI / 6), tnY = fcy + tnV * s * 0.5;
+  const gmX = fcx + gmV * s * Math.cos(Math.PI / 6), gmY = fcy + gmV * s * 0.5;
+
+  const fprintSVG = `<svg width="200" height="200" viewBox="0 0 200 200" style="display:block;margin:0 auto 8px">
+    <polygon points="${rnX},${rnY} ${tnX},${tnY} ${gmX},${gmY}" fill="#3b82f608" stroke="#243049" stroke-width="0.5"/>
+    <line x1="${fcx}" y1="${fcy}" x2="${rnX}" y2="${rnY}" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="${fcx}" y1="${fcy}" x2="${tnX}" y2="${tnY}" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="${fcx}" y1="${fcy}" x2="${gmX}" y2="${gmY}" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="${fcx}" cy="${fcy}" r="3" fill="#e6ebf5"/>
+    <text x="${rnX}" y="${rnY - 6}" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="600">Radon ${rnV !== null ? rnV.toFixed(3) : "N/A"}</text>
+    <text x="${tnX - 4}" y="${tnY + 14}" text-anchor="end" fill="#f97316" font-size="10" font-weight="600">Thoron ${tnV !== null ? tnV.toFixed(3) : "N/A"}</text>
+    <text x="${gmX + 4}" y="${gmY + 14}" text-anchor="start" fill="#22c55e" font-size="10" font-weight="600">Gamma ${gmV !== null ? gmV.toFixed(3) : "N/A"}</text>
+  </svg>`;
+
+  // ── Why this dose? bullets ──
+  const whyLines = [];
+  const total = d.total_terrestrial_mSv_yr || 0;
+  if (total > 0) {
+    if (rnV > 0) {
+      const pct = (rnV / total * 100).toFixed(0);
+      whyLines.push({ text: `Radon is ${pct}% of total dose (${rnV.toFixed(3)} mSv/yr)`, dot: "amber" });
+    }
+    if (gmV > 0) {
+      const pct = (gmV / total * 100).toFixed(0);
+      whyLines.push({ text: `Gamma contributes ${pct}% (${gmV.toFixed(3)} mSv/yr)`, dot: "blue" });
+    }
+    if (tnV > 0) {
+      const pct = (tnV / total * 100).toFixed(0);
+      whyLines.push({ text: `Thoron contributes ${pct}% (${tnV.toFixed(3)} mSv/yr)`, dot: "amber" });
+    }
+  }
+  if (d.report_short) {
+    d.report_short.forEach(line => {
+      if (line.includes("EXCEEDS") || line.includes("Missing") || line.includes("No direct"))
+        whyLines.push({ text: line, dot: "amber" });
+      else if (line.includes("below") || line.includes("All dose"))
+        whyLines.push({ text: line, dot: "green" });
+      else
+        whyLines.push({ text: line, dot: "blue" });
+    });
+  }
+
+  // ── Factors table ──
+  let factorsHTML = "";
+  if (d.factors) {
+    d.factors.forEach(f => {
+      const val = f.value === null || f.value === undefined ? "No data" :
+                  f.value === "no data" ? "No data available for this layer" :
+                  typeof f.value === "number" ? f.value.toLocaleString() : f.value;
+      const dirClass = f.direction === "up" ? "dir-up" : f.direction === "down" ? "dir-down" : f.direction === "varies" ? "dir-varies" : "dir-neutral";
+      const dirArrow = f.direction === "up" ? "\u2191" : f.direction === "down" ? "\u2193" : f.direction === "varies" ? "\u2194" : "\u2192";
+      const noDataStyle = val === "No data" || val === "No data available for this layer" ? "color:#8b97b0;font-style:italic" : "";
+      factorsHTML += `<div class="factor-row">
+        <span class="factor-name">${f.name}</span>
+        <span class="factor-value" style="${noDataStyle}">${val} ${f.unit ? `<span style="color:#8b97b0">${f.unit}</span>` : ""}</span>
+        <span class="factor-dir ${dirClass}">${dirArrow}</span>
+      </div>`;
+    });
+  }
+
+  // ── Confidence ──
+  const conf = d.confidence || {};
+  const confColor = conf.score >= 75 ? "#22c55e" : conf.score >= 40 ? "#f59e0b" : "#ef4444";
+
+  // ── Source badges ──
+  let srcBadges = "";
+  if (d.tellus_available) srcBadges += `<span class="source-badge">\u2713 Tellus measured K/U/Th</span>`;
+  if (d.epa_radon_available) srcBadges += `<span class="source-badge">\u2713 EPA radon map</span>`;
+
+  // ── Provenance footer ──
+  const provLines = [
+    "Standards: UNSCEAR 2000 (dose coefficients), UNSCEAR 2006 (radon DCC), ICRP 103 (occupancy)",
+    "Irish action level: 200 Bq/m\u00b3 (Building Regulations 1997, SI 496)",
+    "EU BSS 2013/59/Euratom reference"
+  ];
+  if (d.provenance) {
+    d.provenance.forEach(p => provLines.push(p));
+  }
+
+  // ── Derivation strings ──
+  let derivHTML = "";
+  if (d.derivation && Object.keys(d.derivation).length > 0) {
+    derivHTML = `<div style="margin-top:10px"><strong style="color:#3b82f6;font-size:10px">Derivations:</strong>`;
+    Object.entries(d.derivation).forEach(([k, v]) => {
+      derivHTML += `<div style="font-size:10px;color:#8b97b0;margin-left:4px">${k}: ${v}</div>`;
+    });
+    derivHTML += `</div>`;
+  }
+
+  // ── Assemble ──
+  const pinned = isPinned ? `<div style="color:#f59e0b;font-size:11px;margin-bottom:6px">📌 Pinned &mdash; click map to unpin</div>` : "";
+
+  rc.innerHTML = `
+    ${pinned}
+    <div class="loc-header">${d.lat.toFixed(4)}&deg; N, ${d.lon.toFixed(4)}&deg; W &middot; Cell ${d.cell_m}m</div>
+
+    <div class="card updating" id="riskCard">
+      <span class="risk-pill risk-${tier}">${tier === "INSUFFICIENT DATA" ? "INSUFFICIENT DATA" : tier + " &mdash; " + (d.risk?.label || "")}</span>
+      ${d.total_terrestrial_mSv_yr !== null ? `<span style="font-size:16px;font-weight:700;color:${tierColor}">${d.total_terrestrial_mSv_yr.toFixed(3)} mSv/yr</span>` : `<span style="color:#8b97b0">No total computed</span>`}
+    </div>
+
+    <div class="card">
+      <h2>Dose Fingerprint</h2>
+      ${d.total_terrestrial_mSv_yr !== null ? fprintSVG : `<div style="text-align:center;color:#8b97b0;padding:20px">No dose data available</div>`}
+      <div class="dose-row"><div class="dose-swatch" style="background:#3b82f6"></div><span class="dose-label">Radon</span><span class="dose-value">${arms.radon !== null ? arms.radon.toFixed(3) + " mSv/yr" : "No data"}</span></div>
+      <div class="dose-row"><div class="dose-swatch" style="background:#f97316"></div><span class="dose-label">Thoron</span><span class="dose-value">${arms.thoron !== null ? arms.thoron.toFixed(3) + " mSv/yr" : "No data"}</span></div>
+      <div class="dose-row"><div class="dose-swatch" style="background:#22c55e"></div><span class="dose-label">Gamma</span><span class="dose-value">${arms.gamma !== null ? arms.gamma.toFixed(3) + " mSv/yr" : "No data"}</span></div>
+      <div class="dose-row dose-total"><span class="dose-label">Total</span><span class="dose-value" style="color:${tierColor}">${d.total_terrestrial_mSv_yr !== null ? d.total_terrestrial_mSv_yr.toFixed(3) + " mSv/yr" : "No data"}</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Why this dose?</h2>
+      ${whyLines.length ? whyLines.map(l => `<div style="font-size:11px;line-height:1.6;margin-bottom:3px"><span class="why-dot dot-${l.dot}"></span>${l.text}</div>`).join("") : `<div style="color:#8b97b0;font-size:11px">Insufficient data to explain</div>`}
+    </div>
+
+    <div class="card">
+      <h2>Factors at this point</h2>
+      ${factorsHTML || `<div style="color:#8b97b0;font-size:11px">No factors available</div>`}
+    </div>
+
+    <div class="card">
+      <h2>Confidence</h2>
+      <div class="conf-bar"><div class="conf-fill" style="width:${conf.score || 0}%;background:${confColor}"></div></div>
+      <div class="conf-text">${conf.level || "unknown"} (${conf.score || 0}%) &mdash; ${conf.reason || "no data"}</div>
+    </div>
+
+    ${srcBadges ? `<div class="card" style="padding:8px 12px">${srcBadges}</div>` : ""}
+
+    <div class="card provenance">
+      ${provLines.map(l => `<div>${l}</div>`).join("")}
+      ${derivHTML}
+      ${d.missing_layers && d.missing_layers.length ? `<div style="margin-top:6px;color:#f59e0b">Missing layers: ${d.missing_layers.join(", ")}</div>` : ""}
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════
+
+// Check backend health on load
+fetch(`${API_BASE}/health`).then(r => r.json()).then(h => {
+  const loaded = Object.values(h.layers_loaded || {}).filter(Boolean).length;
+  const total = Object.keys(h.layers_loaded || {}).length;
+  document.getElementById("searchMsg").textContent = `Backend: ${loaded}/${total} layers loaded`;
+  setTimeout(() => { document.getElementById("searchMsg").textContent = ""; }, 4000);
+}).catch(() => {
+  document.getElementById("searchMsg").textContent = `Backend not reachable at ${API_BASE}`;
 });
 
 </script>
