@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Irish Terrestrial Dose Indicator — v3.0</title>
+<title>Irish Terrestrial Dose Indicator</title>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0f1117;color:#e6ebf5;font-family:'Inter',system-ui,sans-serif;height:100vh;overflow:hidden}
 
-/* ── HEADER ── */
 .header{position:fixed;top:0;left:0;right:0;height:48px;background:#1a1d26;border-bottom:1px solid #2a2d36;
   display:flex;align-items:center;padding:0 16px;z-index:100;gap:12px}
 .header h1{font-size:15px;font-weight:700;color:#3b82f6;white-space:nowrap}
@@ -20,59 +19,47 @@ body{background:#0f1117;color:#e6ebf5;font-family:'Inter',system-ui,sans-serif;h
 .search-box button{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;
   color:#8b97b0;cursor:pointer;font-size:14px}
 .status-bar{font-size:11px;color:#8b97b0;white-space:nowrap}
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid #3b82f633;border-top-color:#3b82f6;
+  border-radius:50%;animation:spin 0.8s linear infinite;margin-left:6px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── MAP ── */
-#map{position:fixed;top:48px;left:0;right:0;bottom:260px}
+#map{position:fixed;top:48px;left:0;right:0;bottom:280px}
 
-/* ── BOTTOM PANEL ── */
-.bottom-panel{position:fixed;bottom:0;left:0;right:0;height:260px;background:#1a1d26;
+.bottom-panel{position:fixed;bottom:0;left:0;right:0;height:280px;background:#1a1d26;
   border-top:1px solid #2a2d36;display:flex;z-index:100}
 
-/* Left: data source table */
 .data-sources{flex:1;overflow-y:auto;padding:10px;font-size:11px}
 .data-sources h3{font-size:12px;color:#3b82f6;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
 .ds-table{width:100%;border-collapse:collapse}
 .ds-table th{text-align:left;color:#8b97b0;font-weight:500;padding:3px 6px;border-bottom:1px solid #2a2d36}
 .ds-table td{padding:3px 6px;border-bottom:1px solid #1f2230}
-.ds-table .status-ok{color:#22c55e}
-.ds-table .status-err{color:#ef4444}
-.ds-table .status-dl{color:#f59e0b}
+.ds-ok{color:#22c55e} .ds-prior{color:#f59e0b} .ds-miss{color:#ef4444}
 
-/* Right: dose summary */
-.dose-summary{flex:0 0 340px;border-left:1px solid #2a2d36;padding:10px;overflow-y:auto}
-.dose-summary h3{font-size:12px;color:#3b82f6;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
-.summary-row{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
-.summary-row .label{color:#8b97b0}
-.summary-row .value{font-weight:600}
-.risk-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700}
+.dose-panel{flex:0 0 380px;border-left:1px solid #2a2d36;padding:10px;overflow-y:auto}
+.dose-panel h3{font-size:12px;color:#3b82f6;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.risk-badge{display:inline-block;padding:3px 12px;border-radius:12px;font-size:11px;font-weight:700}
 .risk-GREEN{background:#22c55e22;color:#22c55e;border:1px solid #22c55e44}
 .risk-AMBER{background:#f59e0b22;color:#f59e0b;border:1px solid #f59e0b44}
 .risk-RED{background:#ef444422;color:#ef4444;border:1px solid #ef444444}
+.summary-row{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
+.summary-row .label{color:#8b97b0}
+.summary-row .value{font-weight:600}
 .short-report{margin-top:8px;font-size:11px;color:#8b97b0;line-height:1.5}
 .short-report p{margin-bottom:3px}
+.conf-bar{height:6px;background:#243049;border-radius:3px;margin:4px 0}
+.conf-fill{height:100%;border-radius:3px}
+.source-tag{display:inline-block;font-size:9px;padding:1px 6px;border-radius:4px;margin:1px;
+  background:#243049;color:#8b97b0}
+.source-tag.measured{background:#22c55e22;color:#22c55e}
+.source-tag.prior{background:#f59e0b22;color:#f59e0b}
 
-/* ── TOOLTIP ── */
-.tooltip{position:fixed;background:#1a1d26;border:1px solid #3b82f6;border-radius:8px;padding:8px 12px;
-  pointer-events:none;z-index:200;font-size:11px;max-width:240px;display:none}
-.tooltip .tt-total{font-size:16px;font-weight:700}
-.tooltip .tt-tier{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:600;margin-top:4px}
-
-/* ── LAYER TOGGLE ── */
 .layer-panel{position:fixed;top:48px;right:8px;background:#1a1d26;border:1px solid #2a2d36;border-radius:8px;
-  padding:10px;z-index:100;max-height:calc(100vh - 320px);overflow-y:auto;width:260px;font-size:11px}
+  padding:10px;z-index:100;max-height:calc(100vh - 340px);overflow-y:auto;width:260px;font-size:11px;display:none}
 .layer-panel h3{font-size:11px;color:#3b82f6;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
-.layer-group{margin-bottom:8px}
-.layer-group-title{font-size:10px;color:#8b97b0;font-weight:600;margin-bottom:3px;text-transform:uppercase}
-.layer-item{display:flex;align-items:center;gap:6px;padding:2px 0;cursor:pointer}
+.layer-item{display:flex;align-items:center;gap:6px;padding:2px 0}
 .layer-item input[type=checkbox]{accent-color:#3b82f6}
-.layer-item span{color:#e6ebf5}
 .layer-toggle-btn{position:fixed;top:56px;right:8px;background:#1a1d26;border:1px solid #2a2d36;
   border-radius:6px;padding:6px 10px;color:#3b82f6;cursor:pointer;z-index:99;font-size:11px}
-
-/* ── SPINNER ── */
-.spinner{display:inline-block;width:12px;height:12px;border:2px solid #3b82f633;border-top-color:#3b82f6;
-  border-radius:50%;animation:spin 0.8s linear infinite;margin-left:6px;vertical-align:middle}
-@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -83,411 +70,69 @@ body{background:#0f1117;color:#e6ebf5;font-family:'Inter',system-ui,sans-serif;h
     <input id="searchInput" placeholder="Search town or Eircode...">
     <button id="searchBtn">🔍</button>
   </div>
-  <div class="status-bar" id="statusCoords">Hover map to analyse</div>
+  <div class="status-bar" id="statusCoords">Click map to analyse</div>
 </div>
 
 <div id="map"></div>
 
 <button class="layer-toggle-btn" id="layerToggleBtn">☰ Layers</button>
-<div class="layer-panel" id="layerPanel" style="display:none">
-  <h3>WMS Data Layers</h3>
+<div class="layer-panel" id="layerPanel">
+  <h3>WMS Overlays</h3>
   <div id="layerList"></div>
 </div>
 
-<div class="tooltip" id="tooltip"></div>
-
 <div class="bottom-panel">
   <div class="data-sources">
-    <h3>Data Sources (21)</h3>
-    <table class="ds-table">
-      <thead><tr><th>#</th><th>Source</th><th>Type</th><th>Status</th></tr></thead>
-      <tbody id="dsTableBody"></tbody>
-    </table>
+    <h3>Data Sources & Provenance</h3>
+    <div id="dsContent">
+      <p style="color:#8b97b0;font-size:11px">Click any point in Ireland to query the backend API and see data source status.</p>
+    </div>
   </div>
-  <div class="dose-summary">
+  <div class="dose-panel">
     <h3>Dose Analysis</h3>
-    <div id="summaryContent">
-      <p style="color:#8b97b0;font-size:12px;margin-top:20px">Click any point in Ireland to see dose estimate</p>
+    <div id="doseContent">
+      <p style="color:#8b97b0;font-size:11px">Dose results will appear here after clicking the map.</p>
     </div>
   </div>
 </div>
 
 <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 <script>
+
 // ═════════════════════════════════════════════════════════════════════════════
-// DATA SOURCE REGISTRY — 21 sources
+// CONFIGURATION
 // ═════════════════════════════════════════════════════════════════════════════
 
-const DATA_SOURCES = [
-  { id: 1, name: "GSI Bedrock Geology (1:100k)", type: "WMS", status: "ok",
-    wms: "https://gsi.geodata.gov.ie/server/services/Bedrock/IE_GSI_Bedrock_Geology_Datasets_100K_IE26_ITM/MapServer/WMSServer",
-    layers: ["IE_GSI_Bedrock_Geology_100K_IE26_ITM"],
-    infoLayers: ["IE_GSI_Bedrock_Geology_100K_IE26_ITM"],
-    color: "#e74c3c", group: "GSI", doseRole: "lithology" },
-  { id: 2, name: "GSI Quaternary Deposits", type: "WMS", status: "ok",
-    wms: "https://gsi.geodata.gov.ie/server/services/Quaternary/IE_GSI_Quaternary_Sediments_50K_IE26_ITM/MapServer/WMSServer",
-    layers: ["IE_GSI_Quaternary_Sediments_50K_IE26_ITM"],
-    infoLayers: ["IE_GSI_Quaternary_Sediments_50K_IE26_ITM"],
-    color: "#f39c12", group: "GSI", doseRole: "cover" },
-  { id: 3, name: "GSI Groundwater & Aquifers", type: "WMS", status: "ok",
-    wms: "https://gsi.geodata.gov.ie/server/services/Groundwater/IE_GSI_Groundwater_Recharge_40K_IE26_ITM/MapServer/WMSServer",
-    layers: ["IE_GSI_Groundwater_Recharge_40K_IE26_ITM"],
-    color: "#3498db", group: "GSI", doseRole: "none" },
-  { id: 4, name: "GSI Geochemistry (Tellus stream sediments)", type: "WMS", status: "ok",
-    wms: "https://gsi.geodata.gov.ie/server/services/Geochemistry/IE_GSI_Geochemistry_Stream_Sediment_C_250m_IE26_ITM_GRID/MapServer/WMSServer",
-    layers: ["C_XRFS_Lanthanum_(La)_(mg_kg¯¹)52276"],
-    infoLayers: ["C_XRFS_Lanthanum_(La)_(mg_kg¯¹)52276"],
-    color: "#9b59b6", group: "GSI", doseRole: "geochem" },
-  { id: 5, name: "GSI Geophysics (Tellus K/U/Th)", type: "WMS", status: "err",
-    wms: "https://gsi.geodata.gov.ie/server/services/Geophysics/IE_GSI_Tellus_Airborne_Geophysical_Survey_Total_Count_IE26_ITM/MapServer/WMSServer",
-    layers: [], color: "#1abc9c", group: "GSI", doseRole: "radiometric",
-    note: "Service returning 499 — use lithology prior" },
-  { id: 6, name: "GSI Faults & Lineaments", type: "WMS", status: "ok",
-    wms: "https://gsi.geodata.gov.ie/server/services/Bedrock/IE_GSI_Bedrock_Geology_Datasets_100K_IE26_ITM/MapServer/WMSServer",
-    layers: ["IE_GSI_Geological_Lines_100K_IE26_ITM"],
-    color: "#e67e22", group: "GSI", doseRole: "faults" },
-  { id: 7, name: "EPA Radon Risk Map", type: "WMS", status: "ok",
-    wms: "http://gis.epa.ie/geoserver/EPA/wms",
-    layers: ["EPA:RadonRiskMapofIreland"],
-    infoLayers: ["EPA:RadonRiskMapofIreland"],
-    color: "#e74c3c", group: "EPA", doseRole: "radon" },
-  { id: 8, name: "EPA Radiation Monitoring", type: "WMS", status: "err",
-    note: "No public WMS endpoint found", color: "#c0392b", group: "EPA", doseRole: "none" },
-  { id: 9, name: "Teagasc Irish Soil Information System", type: "WMS", status: "ok",
-    wms: "http://gis.epa.ie/geoserver/EPA/wms",
-    layers: ["EPA:SOIL_SISNationalSoils"],
-    infoLayers: ["EPA:SOIL_SISNationalSoils"],
-    color: "#27ae60", group: "Teagasc", doseRole: "soil" },
-  { id: 10, name: "Sentinel-2 (Copernicus OGC)", type: "WMS", status: "err",
-    note: "Requires Copernicus Data Space instance ID — use basemap",
-    color: "#2980b9", group: "Copernicus", doseRole: "none" },
-  { id: 11, name: "Sentinel-1 (Copernicus OGC)", type: "WMS", status: "err",
-    note: "Requires Copernicus Data Space instance ID",
-    color: "#2980b9", group: "Copernicus", doseRole: "none" },
-  { id: 12, name: "EU-DEM (Copernicus WMS)", type: "WMS", status: "err",
-    note: "EEA service returning HTML error page",
-    color: "#8e44ad", group: "Copernicus", doseRole: "none" },
-  { id: 13, name: "Corine Land Cover (Copernicus)", type: "WMS", status: "err",
-    note: "EEA service returning HTML error page",
-    color: "#8e44ad", group: "Copernicus", doseRole: "landcover" },
-  { id: 14, name: "SoilGrids 2.0 (ISRIC)", type: "WCS", status: "err",
-    note: "WCS API — not displayable as WMS overlay without proxy",
-    color: "#16a085", group: "ISRIC", doseRole: "soil" },
-  { id: 15, name: "EMAG2 Magnetic Anomaly (NOAA)", type: "WMS", status: "err",
-    note: "NOAA WMS — use for geophysical context",
-    color: "#d35400", group: "NOAA", doseRole: "magnetics" },
-  { id: 16, name: "ERA5 Reanalysis", type: "Download", status: "dl",
-    note: "cdsapi Python download only — NetCDF/GRIB", group: "ECMWF", doseRole: "climate" },
-  { id: 17, name: "ESA CCI Soil Moisture", type: "Download", status: "dl",
-    note: "File download only — NetCDF", group: "ESA", doseRole: "moisture" },
-  { id: 18, name: "WGM Gravity (BGI)", type: "Download", status: "dl",
-    note: "File download only — GeoTIFF", group: "BGI", doseRole: "gravity" },
-  { id: 19, name: "Eurostat GEOSTAT Population", type: "Download", status: "dl",
-    note: "File download only — CSV/GeoTIFF", group: "Eurostat", doseRole: "population" },
-  { id: 20, name: "GEM Global Active Faults", type: "Download", status: "dl",
-    note: "GitHub download only — Shapefile/GeoJSON", group: "GEM", doseRole: "faults" },
-  { id: 21, name: "Copernicus GLO-30 DEM", type: "Download", status: "dl",
-    note: "File download only — GeoTIFF", group: "Copernicus", doseRole: "elevation" },
+// Backend API URL — change this to your deployed backend
+const API_BASE = "http://localhost:8000";
+
+// WMS overlay sources (for map display only — dose comes from API)
+const WMS_LAYERS = [
+  { id: "bedrock", name: "GSI Bedrock 1:100k", group: "GSI",
+    url: "https://gsi.geodata.gov.ie/server/services/Bedrock/IE_GSI_Bedrock_Geology_Datasets_100K_IE26_ITM/MapServer/WMSServer",
+    layer: "IE_GSI_Bedrock_Geology_100K_IE26_ITM", color: "#e74c3c" },
+  { id: "quaternary", name: "GSI Quaternary", group: "GSI",
+    url: "https://gsi.geodata.gov.ie/server/services/Quaternary/IE_GSI_Quaternary_Sediments_50K_IE26_ITM/MapServer/WMSServer",
+    layer: "IE_GSI_Quaternary_Sediments_50K_IE26_ITM", color: "#f39c12" },
+  { id: "groundwater", name: "GSI Groundwater", group: "GSI",
+    url: "https://gsi.geodata.gov.ie/server/services/Groundwater/IE_GSI_Groundwater_Recharge_40K_IE26_ITM/MapServer/WMSServer",
+    layer: "IE_GSI_Groundwater_Recharge_40K_IE26_ITM", color: "#3498db" },
+  { id: "geochem", name: "GSI Geochemistry (La)", group: "GSI",
+    url: "https://gsi.geodata.gov.ie/server/services/Geochemistry/IE_GSI_Geochemistry_Stream_Sediment_C_250m_IE26_ITM_GRID/MapServer/WMSServer",
+    layer: "C_XRFS_Lanthanum_(La)_(mg_kg¯¹)52276", color: "#9b59b6" },
+  { id: "faults", name: "GSI Faults", group: "GSI",
+    url: "https://gsi.geodata.gov.ie/server/services/Bedrock/IE_GSI_Bedrock_Geology_Datasets_100K_IE26_ITM/MapServer/WMSServer",
+    layer: "IE_GSI_Geological_Lines_100K_IE26_ITM", color: "#e67e22" },
+  { id: "radon", name: "EPA Radon Risk", group: "EPA",
+    url: "http://gis.epa.ie/geoserver/EPA/wms",
+    layer: "EPA:RadonRiskMapofIreland", color: "#e74c3c" },
+  { id: "soils", name: "Teagasc Soils", group: "Teagasc",
+    url: "http://gis.epa.ie/geoserver/EPA/wms",
+    layer: "EPA:SOIL_SISNationalSoils", color: "#27ae60" },
 ];
 
-
-// ═════════════════════════════════════════════════════════════════════════════
-// DOSE CALCULATION CORE (matching dose_calculation_core.py exactly)
-// ═════════════════════════════════════════════════════════════════════════════
-
-const IRISH_RN_ACTION = 200;
-const WORLD_AVG = 2.2;
-const RADON_IRISH_FACTOR = 6.7 / IRISH_RN_ACTION;
-
-// Lithology activity lookup (Bq/kg) — matches Python LA dict exactly
-const LA = {
-  Pa:[60,80,1200], Pi:[30,40,800], Pb:[12,18,300], Vb:[15,20,350],
-  Vi:[25,35,700], Va:[50,70,1100], Mt:[45,55,850], Py:[40,45,700],
-  Ss:[35,35,400], Sm:[35,40,500], Sc:[20,12,90], Sb:[25,30,600],
-  Ev:[12,8,120], Su:[30,35,450], Wa:[0,0,0], Ice:[0,0,0],
-  granite:[60,80,1200], limestone:[20,12,90], world_average_soil:[35,30,420],
-  monazite_bearing:[100,800,300], carbonatite:[500,400,800],
-};
-const LF = {
-  Pa:1.3, Pi:1.0, Pb:0.6, Vb:0.7, Vi:0.9, Va:1.2, Mt:1.2, Py:1.1,
-  Ss:1.4, Sm:1.2, Sc:0.7, Sb:1.0, Ev:0.4, Su:1.5, Wa:0, Ice:0,
-  granite:1.3, limestone:0.7, world_average_soil:1.0, monazite_bearing:2.0, carbonatite:1.8,
-};
-const GN = {
-  Pa:"acid plutonic (granite)", Pi:"intermediate plutonic", Pb:"basic plutonic (gabbro)",
-  Vb:"basic volcanic (basalt)", Vi:"intermediate volcanic", Va:"acid volcanic (rhyolite)",
-  Mt:"metamorphic", Py:"pyroclastic", Ss:"siliciclastic sedimentary", Sm:"mixed sedimentary",
-  Sc:"carbonate sedimentary (limestone)", Sb:"sedimentary breccia", Ev:"evaporite",
-  Su:"unconsolidated sediments", Wa:"water", Ice:"ice/snow",
-};
-
-function doseFingerprint({ lithology, eU, eTh, K_pct, C_Rn, permeability, dist_fault, lineament }) {
-  const prior = LA[lithology] || LA.world_average_soil;
-  const lf = LF[lithology] ?? 1.0;
-  let A_Ra = prior[0], A_Th = prior[1], A_K = prior[2];
-  const prov = [];
-  if (eU != null) { A_Ra = eU * 12.22; prov.push("A_Ra226: measured (Tellus)"); }
-  if (eTh != null) { A_Th = eTh * 4.06; prov.push("A_Th232: measured (Tellus)"); }
-  if (K_pct != null) { A_K = K_pct * 313; prov.push("A_K40: measured (Tellus)"); }
-  if (prov.length === 0) prov.push("lithology prior (GSI Bedrock 1:100k)");
-
-  const gr = 0.462 * A_Ra + 0.604 * A_Th + 0.041 * A_K;
-  const eG = gr * 8760 * 0.8 * 0.7 * 1e-6;
-
-  let C_Rn_used = C_Rn;
-  if (C_Rn_used == null) {
-    const perm = permeability ?? 1e-13, df = dist_fault ?? 1000, lin = lineament ?? 0.5;
-    const grp = (A_Ra / 50) * Math.sqrt(perm / 1e-13) * (1 + 0.3 * Math.max(0, 1 - df / 2000)) * (1 + 0.2 * Math.min(1, lin / 2)) * lf;
-    C_Rn_used = grp * 50;
-    prov.push("radon: GRP model estimate");
-  } else {
-    prov.push("radon: EPA risk map");
-  }
-  const eRn = C_Rn_used * RADON_IRISH_FACTOR;
-
-  const gtp = A_Th * 0.3 * 2.0 * lf;
-  const eTn = gtp * 0.02 * 40 * 7000 * 1e-6;
-  prov.push("thoron: derived from Th-232 activity + lithology factor");
-
-  const raeq = A_Ra + 1.43 * A_Th + 0.077 * A_K;
-  const eTotal = eG + eRn + eTn;
-
-  let tier = eTotal <= 2.2 ? 'GREEN' : eTotal <= 6.6 ? 'AMBER' : 'RED';
-  const flags = [];
-  if (C_Rn_used >= IRISH_RN_ACTION) { flags.push(`RADON ≥${IRISH_RN_ACTION} Bq/m³`); tier = 'RED'; }
-  else if (C_Rn_used >= 100) { flags.push("RADON ≥100 WHO"); if (tier === 'GREEN') tier = 'AMBER'; }
-  if (raeq >= 370) { flags.push("Ra-eq ≥370"); if (tier !== 'RED') tier = 'RED'; }
-  if (gr >= 1000) { flags.push("Gamma ≥1000 nGy/h"); tier = 'RED'; }
-
-  return {
-    arms: { radon: eRn, thoron: eTn, gamma: eG },
-    total: eTotal, gr, raeq, C_Rn: C_Rn_used,
-    activities: { Ra: A_Ra, Th: A_Th, K: A_K },
-    risk: { tier, flags }, prov, lithology, lithName: GN[lithology] || lithology
-  };
-}
-
-
-// ═════════════════════════════════════════════════════════════════════════════
-// WMS GetFeatureInfo QUERY ENGINE
-// ═════════════════════════════════════════════════════════════════════════════
-
-// Ireland bounding box
-const IE = { minLat: 51.4, maxLat: 55.4, minLon: -10.6, maxLon: -5.3 };
-
-function isIreland(lat, lon) {
-  return lat >= IE.minLat && lat <= IE.maxLat && lon >= IE.minLon && lon <= IE.maxLon;
-}
-
-async function queryWMS(source, lat, lon) {
-  if (!source.wms || !source.infoLayers || source.infoLayers.length === 0) return null;
-  const layer = source.infoLayers[0];
-  // WMS GetFeatureInfo — 1x1 pixel at the point
-  const bbox = `${lon - 0.005},${lat - 0.005},${lon + 0.005},${lat + 0.005}`;
-  const url = `${source.wms}?service=WMS&version=1.3.0&request=GetFeatureInfo` +
-    `&layers=${encodeURIComponent(layer)}&query_layers=${encodeURIComponent(layer)}` +
-    `&crs=EPSG:4326&bbox=${bbox}&width=1&height=1&i=0&j=0` +
-    `&info_format=application/json&feature_count=5`;
-
-  try {
-    const resp = await fetch(url, { signal: AbortSignal.timeout(8000) });
-    if (!resp.ok) return { error: `HTTP ${resp.status}`, source: source.id };
-    const text = await resp.text();
-    try {
-      const json = JSON.parse(text);
-      return { data: json, source: source.id };
-    } catch {
-      return { data: text, source: source.id, format: 'text' };
-    }
-  } catch (e) {
-    return { error: e.message, source: source.id };
-  }
-}
-
-function parseBedrockResponse(resp) {
-  if (!resp || !resp.data || resp.error) return null;
-  try {
-    const features = resp.data.features || [];
-    if (features.length === 0) return null;
-    const props = features[0].properties || {};
-    // Return the rock unit name and lithology
-    return {
-      rockUnit: props.ROCKUNIT || props.RockUnit || props.UNIT_NAME || props.DESCRIPTN || "Unknown",
-      lithCode: props.LITH_CODE || props.LITHCODE || null,
-      age: props.YOUNGER_AGE || props.OLDER_AGE || props.AGE || null,
-      description: props.DESCRIPTN || props.DESCRIPTION || null,
-    };
-  } catch { return null; }
-}
-
-function parseRadonResponse(resp) {
-  if (!resp || !resp.data || resp.error) return null;
-  try {
-    const features = resp.data.features || [];
-    if (features.length === 0) return null;
-    const props = features[0].properties || {};
-    // EPA radon risk zones: "High", "Moderate", "Low", etc.
-    return {
-      riskZone: props.Radon_Risk || props.RADON_RISK || props.risk || props.RISK || props.Zone || "Unknown",
-      pctHigh: props.PERCENTAGE || props.pct_high || null,
-    };
-  } catch { return null; }
-}
-
-function parseSoilResponse(resp) {
-  if (!resp || !resp.data || resp.error) return null;
-  try {
-    const features = resp.data.features || [];
-    if (features.length === 0) return null;
-    const props = features[0].properties || {};
-    return {
-      soilType: props.SOIL_TYPE || props.SoilType || props.NAME || "Unknown",
-      drainage: props.DRAINAGE || props.Drainage || null,
-      permeability: props.PERMEABIL || props.Permeability || null,
-    };
-  } catch { return null; }
-}
-
-function parseQuaternaryResponse(resp) {
-  if (!resp || !resp.data || resp.error) return null;
-  try {
-    const features = resp.data.features || [];
-    if (features.length === 0) return null;
-    const props = features[0].properties || {};
-    return {
-      depositType: props.DEPOSIT || props.Deposit || props.SED_TYPE || "Unknown",
-      description: props.DESCRIPTN || props.DESCRIPTION || null,
-    };
-  } catch { return null; }
-}
-
-function parseGeochemResponse(resp) {
-  if (!resp || !resp.data || resp.error) return null;
-  try {
-    const features = resp.data.features || [];
-    if (features.length === 0) return null;
-    const props = features[0].properties || {};
-    return props;
-  } catch { return null; }
-}
-
-// Map lithology description to dose calculation code
-function mapLithToCode(bedrockData, quaternaryData) {
-  if (!bedrockData && !quaternaryData) return "world_average_soil";
-
-  // Check if quaternary cover dominates
-  if (quaternaryData && quaternaryData.depositType) {
-    const dep = quaternaryData.depositType.toLowerCase();
-    if (dep.includes("peat") || dep.includes("alluvium") || dep.includes("sand") || dep.includes("gravel")) return "Su";
-    if (dep.includes("till") || dep.includes("boulder clay") || dep.includes("glacial")) return "Su";
-  }
-
-  if (bedrockData && bedrockData.rockUnit) {
-    const unit = bedrockData.rockUnit.toLowerCase();
-    const desc = (bedrockData.description || "").toLowerCase();
-    const lith = (bedrockData.lithCode || "").toLowerCase();
-
-    // Granite / acid plutonic
-    if (unit.includes("granite") || desc.includes("granite") || lith.includes("granite")) return "Pa";
-    if (unit.includes("granodiorite") || desc.includes("granodiorite")) return "Pa";
-    if (unit.includes("tonalite") || desc.includes("tonalite")) return "Pi";
-
-    // Limestone / carbonate
-    if (unit.includes("limestone") || desc.includes("limestone") || lith.includes("limestone")) return "Sc";
-    if (unit.includes("dolomite") || desc.includes("dolomite")) return "Sc";
-    if (unit.includes("chalk") || desc.includes("chalk")) return "Sc";
-
-    // Sandstone
-    if (unit.includes("sandstone") || desc.includes("sandstone") || lith.includes("sandstone")) return "Ss";
-    if (unit.includes("conglomerate") || desc.includes("conglomerate")) return "Sb";
-
-    // Basalt / volcanic
-    if (unit.includes("basalt") || desc.includes("basalt") || lith.includes("basalt")) return "Vb";
-    if (unit.includes("rhyolite") || desc.includes("rhyolite")) return "Va";
-    if (unit.includes("tuff") || desc.includes("tuff") || lith.includes("tuff")) return "Py";
-
-    // Metamorphic
-    if (unit.includes("schist") || desc.includes("schist") || unit.includes("gneiss") || desc.includes("gneiss")) return "Mt";
-    if (unit.includes("quartzite") || desc.includes("quartzite")) return "Mt";
-    if (unit.includes("slate") || desc.includes("slate") || unit.includes("phyllite")) return "Mt";
-
-    // Shale / mudstone
-    if (unit.includes("shale") || desc.includes("shale") || unit.includes("mudstone")) return "Sm";
-    if (unit.includes("siltstone") || desc.includes("siltstone")) return "Sm";
-
-    // Gabbro / basic plutonic
-    if (unit.includes("gabbro") || desc.includes("gabbro")) return "Pb";
-    if (unit.includes("dolerite") || desc.includes("dolerite") || unit.includes("diorite")) return "Pi";
-
-    // Evaporite
-    if (unit.includes("evaporite") || desc.includes("evaporite") || unit.includes("halite")) return "Ev";
-
-    // Unconsolidated
-    if (unit.includes("peat") || desc.includes("peat")) return "Su";
-    if (unit.includes("drift") || desc.includes("drift") || unit.includes("alluvium")) return "Su";
-  }
-
-  return "world_average_soil";
-}
-
-// Map EPA radon zone to estimated indoor radon (Bq/m³)
-function radonZoneToEstimate(zoneData) {
-  if (!zoneData || !zoneData.riskZone) return null;
-  const zone = zoneData.riskZone.toLowerCase();
-  if (zone.includes("high")) return 300;    // High risk zone — above Irish action level
-  if (zone.includes("moderate")) return 150; // Moderate risk
-  if (zone.includes("low")) return 50;       // Low risk
-  return 100; // Default for unknown zone
-}
-
-
-// ═════════════════════════════════════════════════════════════════════════════
-// UI SETUP
-// ═════════════════════════════════════════════════════════════════════════════
-
 const RC = { GREEN: "#22c55e", AMBER: "#f59e0b", RED: "#ef4444" };
-
-// Populate data source table
-function populateDataTable() {
-  const tbody = document.getElementById("dsTableBody");
-  DATA_SOURCES.forEach(s => {
-    const statusClass = s.status === 'ok' ? 'status-ok' : s.status === 'err' ? 'status-err' : 'status-dl';
-    const statusText = s.status === 'ok' ? '✓ Connected' : s.status === 'err' ? `✗ ${s.note || 'Unavailable'}` : '⬇ Download only';
-    tbody.innerHTML += `<tr>
-      <td>${s.id}</td><td>${s.name}</td><td>${s.type}</td>
-      <td class="${statusClass}">${statusText}</td>
-    </tr>`;
-  });
-}
-populateDataTable();
-
-// Populate layer toggle
-function populateLayerPanel() {
-  const list = document.getElementById("layerList");
-  const groups = {};
-  DATA_SOURCES.filter(s => s.status === 'ok' && s.layers && s.layers.length > 0).forEach(s => {
-    if (!groups[s.group]) groups[s.group] = [];
-    groups[s.group].push(s);
-  });
-  Object.entries(groups).forEach(([group, sources]) => {
-    list.innerHTML += `<div class="layer-group">
-      <div class="layer-group-title">${group}</div>
-      ${sources.map(s => `
-        <label class="layer-item">
-          <input type="checkbox" data-source-id="${s.id}" checked>
-          <span>${s.name}</span>
-        </label>
-      `).join('')}
-    </div>`;
-  });
-}
-populateLayerPanel();
-
-// Layer toggle button
-document.getElementById("layerToggleBtn").addEventListener("click", () => {
-  const panel = document.getElementById("layerPanel");
-  panel.style.display = panel.style.display === "none" ? "block" : "none";
-});
+const IE = { minLat: 51.4, maxLat: 55.4, minLon: -10.6, maxLon: -5.3 };
 
 // ═════════════════════════════════════════════════════════════════════════════
 // MAP INITIALIZATION
@@ -495,18 +140,17 @@ document.getElementById("layerToggleBtn").addEventListener("click", () => {
 
 const map = new maplibregl.Map({
   container: "map",
-  center: [-8.5, 53.3],
-  zoom: 7,
+  center: [-8.5, 53.3], zoom: 7,
   maxBounds: [[-10.7, 51.3], [-5.2, 55.5]],
   style: {
     version: 8,
     sources: {
       "esri-imagery": { type: "raster", tiles: [
         "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-      ], tileSize: 256, attribution: "© Esri" },
+      ], tileSize: 256 },
       "esri-labels": { type: "raster", tiles: [
         "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-      ], tileSize: 256, attribution: "© Esri" },
+      ], tileSize: 256 },
     },
     layers: [
       { id: "satellite", type: "raster", source: "esri-imagery" },
@@ -514,180 +158,152 @@ const map = new maplibregl.Map({
     ],
   },
 });
-
 map.addControl(new maplibregl.NavigationControl(), "top-right");
 
-// Add WMS layers as raster sources
-let wmsLayerIndex = 0;
-DATA_SOURCES.filter(s => s.status === 'ok' && s.layers && s.layers.length > 0).forEach(source => {
-  source.layers.forEach(layerName => {
-    const sourceId = `wms-${source.id}-${wmsLayerIndex}`;
-    const layerId = `wms-layer-${source.id}-${wmsLayerIndex}`;
-    wmsLayerIndex++;
-
-    try {
-      map.addSource(sourceId, {
-        type: "raster",
-        tiles: [
-          `${source.wms}?service=WMS&version=1.3.0&request=GetMap` +
-          `&layers=${encodeURIComponent(layerName)}` +
-          `&crs=EPSG:3857&bbox={bbox-epsg-3857}` +
-          `&width=256&height=256&format=image/png&transparent=true`
-        ],
-        tileSize: 256,
-      });
-
-      map.addLayer({
-        id: layerId,
-        type: "raster",
-        source: sourceId,
-        paint: { "raster-opacity": 0.6 },
-      });
-
-      source._layerId = layerId;
-      source._sourceId = sourceId;
-    } catch (e) {
-      console.warn(`Failed to add WMS layer for ${source.name}:`, e);
-    }
-  });
+// Add WMS overlay layers
+let wmsIdx = 0;
+WMS_LAYERS.forEach(src => {
+  const sourceId = `wms-${src.id}`;
+  const layerId = `wms-layer-${src.id}`;
+  try {
+    map.addSource(sourceId, {
+      type: "raster",
+      tiles: [`${src.url}?service=WMS&version=1.3.0&request=GetMap&layers=${encodeURIComponent(src.layer)}&crs=EPSG:3857&bbox={bbox-epsg-3857}&width=256&height=256&format=image/png&transparent=true`],
+      tileSize: 256,
+    });
+    map.addLayer({ id: layerId, type: "raster", source: sourceId, paint: { "raster-opacity": 0.5 } });
+    map.setLayoutProperty(layerId, "visibility", "none"); // off by default
+    src._layerId = layerId;
+  } catch (e) { console.warn(`Failed to add WMS ${src.name}:`, e); }
 });
 
-// Layer visibility toggle
-document.getElementById("layerList").addEventListener("change", (e) => {
+// Populate layer toggle panel
+const layerList = document.getElementById("layerList");
+const groups = {};
+WMS_LAYERS.forEach(s => { if (!groups[s.group]) groups[s.group] = []; groups[s.group].push(s); });
+Object.entries(groups).forEach(([group, sources]) => {
+  layerList.innerHTML += `<div style="margin-bottom:8px">
+    <div style="font-size:10px;color:#8b97b0;font-weight:600;text-transform:uppercase;margin-bottom:3px">${group}</div>
+    ${sources.map(s => `<label class="layer-item"><input type="checkbox" data-layer="${s.id}"><span>${s.name}</span></label>`).join('')}
+  </div>`;
+});
+
+document.getElementById("layerToggleBtn").addEventListener("click", () => {
+  const p = document.getElementById("layerPanel");
+  p.style.display = p.style.display === "none" ? "block" : "none";
+});
+layerList.addEventListener("change", e => {
   if (e.target.type === "checkbox") {
-    const sourceId = parseInt(e.target.dataset.sourceId);
-    const source = DATA_SOURCES.find(s => s.id === sourceId);
-    if (source && source._layerId) {
-      map.setLayoutProperty(source._layerId, "visibility", e.target.checked ? "visible" : "none");
+    const src = WMS_LAYERS.find(s => s.id === e.target.dataset.layer);
+    if (src && src._layerId) {
+      map.setLayoutProperty(src._layerId, "visibility", e.target.checked ? "visible" : "none");
     }
   }
 });
 
-
 // ═════════════════════════════════════════════════════════════════════════════
-// CLICK HANDLER — Query all WMS services + calculate dose
+// API INTERACTION
 // ═════════════════════════════════════════════════════════════════════════════
 
-let analysing = false;
+let loading = false;
 
-async function analysePoint(lat, lon) {
-  if (analysing) return;
-  analysing = true;
+async function queryDose(lat, lon) {
+  if (loading) return;
+  loading = true;
+  const status = document.getElementById("statusCoords");
+  status.innerHTML = `Querying backend for ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°W <span class="spinner"></span>`;
 
-  const statusEl = document.getElementById("statusCoords");
-  statusEl.innerHTML = `Querying WMS services for ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°W <span class="spinner"></span>`;
-
-  // Query all active WMS services in parallel
-  const activeSources = DATA_SOURCES.filter(s => s.status === 'ok' && s.infoLayers && s.infoLayers.length > 0);
-  const queries = activeSources.map(s => queryWMS(s, lat, lon));
-  const results = await Promise.all(queries);
-
-  // Parse results
-  const bedrockData = parseBedrockResponse(results.find(r => r && r.source === 1));
-  const quaternaryData = parseQuaternaryResponse(results.find(r => r && r.source === 2));
-  const radonData = parseRadonResponse(results.find(r => r && r.source === 7));
-  const soilData = parseSoilResponse(results.find(r => r && r.source === 9));
-  const geochemData = parseGeochemResponse(results.find(r => r && r.source === 4));
-
-  // Determine lithology code from actual WMS data
-  const lithCode = mapLithToCode(bedrockData, quaternaryData);
-
-  // Get radon estimate from EPA data
-  const rnEst = radonZoneToEstimate(radonData);
-
-  // Get permeability from soil data
-  let permEst = 1e-13; // default
-  if (soilData) {
-    const perm = (soilData.permeability || soilData.drainage || "").toLowerCase();
-    if (perm.includes("high") || perm.includes("well")) permEst = 1e-12;
-    else if (perm.includes("low") || perm.includes("poor")) permEst = 1e-14;
-    else if (perm.includes("moderate") || perm.includes("imperfect")) permEst = 1e-13;
+  try {
+    const resp = await fetch(`${API_BASE}/dose?lat=${lat}&lon=${lon}`);
+    if (!resp.ok) throw new Error(`API error: ${resp.status}`);
+    const data = await resp.json();
+    renderDose(data);
+    renderSources(data);
+    status.textContent = `${lat.toFixed(4)}°N, ${lon.toFixed(4)}°W — ${data.risk.tier} — ${data.total_terrestrial_mSv_yr.toFixed(2)} mSv/yr`;
+  } catch (err) {
+    status.textContent = `Error: ${err.message}`;
+    document.getElementById("doseContent").innerHTML = `<p style="color:#ef4444">Backend API error: ${err.message}. Is the backend running at ${API_BASE}?</p>`;
   }
-
-  // Calculate dose from real data
-  const fp = doseFingerprint({
-    lithology: lithCode,
-    C_Rn: rnEst,
-    permeability: permEst,
-    dist_fault: 1000, // Default — faults layer doesn't return distance
-    lineament: 0.5,
-  });
-
-  // Store query results for provenance
-  fp._rawData = {
-    bedrock: bedrockData,
-    quaternary: quaternaryData,
-    radon: radonData,
-    soil: soilData,
-    geochem: geochemData,
-    queryResults: results,
-  };
-
-  // Update UI
-  updateTooltip(fp, lat, lon);
-  updateSummary(fp, lat, lon, bedrockData, radonData, soilData, geochemData);
-
-  statusEl.textContent = `${lat.toFixed(4)}°N, ${lon.toFixed(4)}°W — Analysis complete`;
-  analysing = false;
-  return fp;
+  loading = false;
 }
 
-function updateTooltip(fp, lat, lon) {
-  const tt = document.getElementById("tooltip");
-  const c = RC[fp.risk.tier] || "#22c55e";
-  tt.style.display = "block";
-  tt.style.left = (event ? event.clientX + 15 : 200) + "px";
-  tt.style.top = (event ? event.clientY - 10 : 200) + "px";
-  tt.innerHTML = `
-    <div class="tt-total" style="color:${c}">${fp.total.toFixed(2)} mSv/yr</div>
-    <div class="tt-tier" style="background:${c}">${fp.risk.tier}</div>
-    <div style="margin-top:4px;color:#8b97b0">${fp.lithName}</div>
-    <div style="color:#8b97b0">Rn: ${fp.arms.radon.toFixed(2)} Tn: ${fp.arms.thoron.toFixed(2)} γ: ${fp.arms.gamma.toFixed(2)}</div>
-  `;
-}
+function renderDose(d) {
+  const c = RC[d.risk.tier] || "#22c55e";
+  const confColor = d.confidence.score >= 75 ? "#22c55e" : d.confidence.score >= 50 ? "#f59e0b" : "#ef4444";
 
-function updateSummary(fp, lat, lon, bedrock, radon, soil, geochem) {
-  const c = RC[fp.risk.tier];
-  const content = document.getElementById("summaryContent");
-  const dom = fp.arms.radon >= fp.arms.thoron && fp.arms.radon >= fp.arms.gamma ? "radon" :
-              fp.arms.thoron >= fp.arms.gamma ? "thoron" : "gamma";
-  const share = (fp.arms[dom] / fp.total * 100);
-
-  content.innerHTML = `
-    <div class="summary-row"><span class="label">Location</span><span class="value">${lat.toFixed(4)}°N, ${lon.toFixed(4)}°W</span></div>
-    <div class="summary-row"><span class="label">Risk</span><span class="risk-badge risk-${fp.risk.tier}">${fp.risk.tier}</span></div>
-    <div class="summary-row"><span class="label">Total Dose</span><span class="value" style="color:${c}">${fp.total.toFixed(2)} mSv/yr</span></div>
-    <div class="summary-row"><span class="label">Radon</span><span class="value">${fp.arms.radon.toFixed(2)} mSv/yr</span></div>
-    <div class="summary-row"><span class="label">Thoron</span><span class="value">${fp.arms.thoron.toFixed(2)} mSv/yr</span></div>
-    <div class="summary-row"><span class="label">Gamma</span><span class="value">${fp.arms.gamma.toFixed(2)} mSv/yr</span></div>
-    <div class="summary-row"><span class="label">Indoor Rn</span><span class="value">${fp.C_Rn.toFixed(0)} Bq/m³ ${fp.C_Rn >= 200 ? '⚠' : ''}</span></div>
-    <div class="summary-row"><span class="label">Ra-eq</span><span class="value">${fp.raeq.toFixed(0)} Bq/kg ${fp.raeq >= 370 ? '⚠' : ''}</span></div>
-    <div class="summary-row"><span class="label">Lithology</span><span class="value">${fp.lithCode} (${fp.lithName})</span></div>
-    <div class="summary-row"><span class="label">vs UNSCEAR</span><span class="value">${(fp.total / 2.2).toFixed(1)}× world avg</span></div>
-    <div class="short-report">
-      <p><b>1.</b> ${dom.charAt(0).toUpperCase() + dom.slice(1)} is ${share.toFixed(0)}% of total dose (${fp.arms[dom].toFixed(2)} mSv/yr).</p>
-      <p><b>2.</b> Total terrestrial dose: ${fp.total.toFixed(2)} mSv/yr — <span style="color:${c}">${fp.risk.tier}</span>.</p>
-      <p><b>3.</b> Lithology: ${fp.lithCode} (${fp.lithName}). Ra=${fp.activities.Ra.toFixed(0)}, Th=${fp.activities.Th.toFixed(0)}, K=${fp.activities.K.toFixed(0)} Bq/kg.</p>
-      <p><b>4.</b> Indoor radon: ${fp.C_Rn.toFixed(0)} Bq/m³${fp.C_Rn >= 200 ? ' — ⚠ EXCEEDS Irish 200 Bq/m³ action level' : ''}.</p>
-      <p><b>5.</b> ${(fp.total / 2.2).toFixed(1)}× UNSCEAR world average (2.2 mSv/yr).</p>
-      <p><b>6.</b> Ra-eq: ${fp.raeq.toFixed(0)} Bq/kg${fp.raeq >= 370 ? ' — ⚠ exceeds 370 threshold' : ''}.</p>
-      <p><b>7.</b> Data: ${bedrock ? `GSI Bedrock: ${bedrock.rockUnit}` : 'Lithology prior'}${radon ? `, EPA Radon: ${radon.riskZone}` : ''}${soil ? `, Teagasc Soil: ${soil.soilType}` : ''}.</p>
-      <p><b>8.</b> Cell: 100m · ${fp.prov.join(' · ')}.</p>
+  document.getElementById("doseContent").innerHTML = `
+    <div class="summary-row"><span class="label">Location</span><span class="value">${d.lat.toFixed(4)}°N, ${d.lon.toFixed(4)}°W</span></div>
+    <div class="summary-row"><span class="label">Cell</span><span class="value">${d.cell_m}m</span></div>
+    <div class="summary-row"><span class="label">Risk</span><span class="risk-badge risk-${d.risk.tier}">${d.risk.tier}</span></div>
+    <div class="summary-row"><span class="label">Total Dose</span><span class="value" style="color:${c};font-size:16px">${d.total_terrestrial_mSv_yr.toFixed(2)} mSv/yr</span></div>
+    <div class="summary-row"><span class="label">vs UNSCEAR</span><span class="value">${(d.total_terrestrial_mSv_yr / 2.2).toFixed(1)}× world avg</span></div>
+    <hr style="border:none;border-top:1px solid #243049;margin:6px 0">
+    <div class="summary-row"><span class="label">Radon</span><span class="value">${d.arms_mSv_yr.radon.toFixed(2)} mSv/yr</span></div>
+    <div class="summary-row"><span class="label">Thoron</span><span class="value">${d.arms_mSv_yr.thoron.toFixed(2)} mSv/yr</span></div>
+    <div class="summary-row"><span class="label">Gamma</span><span class="value">${d.arms_mSv_yr.gamma.toFixed(2)} mSv/yr</span></div>
+    <hr style="border:none;border-top:1px solid #243049;margin:6px 0">
+    <div class="summary-row"><span class="label">Indoor Rn</span><span class="value">${d.radon_Bq_m3.toFixed(0)} Bq/m³ ${d.radon_Bq_m3 >= 200 ? '⚠' : ''}</span></div>
+    <div class="summary-row"><span class="label">Ra-eq</span><span class="value">${d.ra_eq_Bq_kg.toFixed(0)} Bq/kg ${d.ra_eq_Bq_kg >= 370 ? '⚠' : ''}</span></div>
+    <div class="summary-row"><span class="label">Gamma rate</span><span class="value">${d.gamma_rate_nGy_h.toFixed(0)} nGy/h</span></div>
+    <div class="summary-row"><span class="label">Season</span><span class="value">${d.season}</span></div>
+    <hr style="border:none;border-top:1px solid #243049;margin:6px 0">
+    <div class="summary-row"><span class="label">Confidence</span><span class="value" style="color:${confColor}">${d.confidence.level} (${d.confidence.score}%)</span></div>
+    <div class="conf-bar"><div class="conf-fill" style="width:${d.confidence.score}%;background:${confColor}"></div></div>
+    <div class="summary-row"><span class="label">Reason</span><span class="value">${d.confidence.reason}</span></div>
+    <hr style="border:none;border-top:1px solid #243049;margin:6px 0">
+    <div class="short-report">${d.report_short.map(l => `<p>${l}</p>`).join('')}</div>
+    <hr style="border:none;border-top:1px solid #243049;margin:6px 0">
+    <div style="font-size:10px;color:#8b97b0">
+      <div style="margin-bottom:4px;font-weight:600;color:#3b82f6">Provenance</div>
+      ${d.provenance.map(p => `<div>→ ${p}</div>`).join('')}
+    </div>
+    <hr style="border:none;border-top:1px solid #243049;margin:6px 0">
+    <div style="font-size:10px;color:#8b97b0">
+      <div style="margin-bottom:4px;font-weight:600;color:#3b82f6">Standards</div>
+      <div>GREEN: ≤ 2.2 mSv/yr (≤ world avg)</div>
+      <div>AMBER: 2.2–6.6 mSv/yr (1–3× avg)</div>
+      <div>RED: > 6.6 mSv/yr or Rn ≥ 200 Bq/m³</div>
+      <div style="margin-top:4px;opacity:0.6">Irish 200 Bq/m³ action level · EU BSS 2013/59/Euratom</div>
     </div>
   `;
 }
 
-// Map click handler
-map.on("click", async (e) => {
+function renderSources(d) {
+  const ds = d.data_sources || {};
+  const html = Object.entries(ds).map(([key, src]) => {
+    const isMeasured = src.includes("raster") || src.includes("measured") || src.includes("EPA") || src.includes("Tellus");
+    const isPrior = src.includes("prior") || src.includes("model") || src.includes("GRP");
+    const cls = isMeasured ? "ds-ok" : isPrior ? "ds-prior" : "ds-miss";
+    const icon = isMeasured ? "✓" : isPrior ? "~" : "✗";
+    return `<tr><td>${key}</td><td class="${cls}">${icon} ${src}</td></tr>`;
+  }).join('');
+
+  document.getElementById("dsContent").innerHTML = `
+    <table class="ds-table">
+      <thead><tr><th>Parameter</th><th>Source</th></tr></thead>
+      <tbody>${html}</tbody>
+    </table>
+    <div style="margin-top:8px;font-size:10px;color:#8b97b0">
+      <span class="source-tag measured">✓ Raster/WMS</span>
+      <span class="source-tag prior">~ Prior/Model</span>
+      <span class="source-tag" style="color:#ef4444">✗ Missing</span>
+    </div>
+  `;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// EVENT HANDLERS
+// ═════════════════════════════════════════════════════════════════════════════
+
+map.on("click", e => {
   const { lat, lng } = e.lngLat;
-  if (!isIreland(lat, lng)) {
+  if (lat < 51.4 || lat > 55.4 || lng < -10.6 || lng > -5.3) {
     document.getElementById("statusCoords").textContent = "Outside Ireland";
     return;
   }
-  await analysePoint(lat, lng);
+  queryDose(lat, lng);
 });
 
-// Search handler
 document.getElementById("searchBtn").addEventListener("click", async () => {
   const q = document.getElementById("searchInput").value.trim();
   if (!q) return;
@@ -696,23 +312,16 @@ document.getElementById("searchBtn").addEventListener("click", async () => {
     const data = await resp.json();
     if (data && data[0]) {
       const lat = parseFloat(data[0].lat), lon = parseFloat(data[0].lon);
-      if (isIreland(lat, lon)) {
+      if (lat >= 51.4 && lat <= 55.4 && lon >= -10.6 && lon <= -5.3) {
         map.flyTo({ center: [lon, lat], zoom: 14, essential: true });
-        setTimeout(() => analysePoint(lat, lon), 1000);
-      } else {
-        alert("Location outside Ireland.");
-      }
+        setTimeout(() => queryDose(lat, lon), 1000);
+      } else { alert("Location outside Ireland."); }
     }
   } catch (err) { console.error("Search failed:", err); }
 });
 
-document.getElementById("searchInput").addEventListener("keydown", (e) => {
+document.getElementById("searchInput").addEventListener("keydown", e => {
   if (e.key === "Enter") document.getElementById("searchBtn").click();
-});
-
-// Close tooltip on map move
-map.on("movestart", () => {
-  document.getElementById("tooltip").style.display = "none";
 });
 
 </script>
