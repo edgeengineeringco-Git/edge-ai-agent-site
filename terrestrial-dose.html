@@ -469,7 +469,7 @@ function getLithLabel(lith){
 // ══════════════════════════════════════════════════════════════════
 // SECTION 3: AI EXPLANATION GENERATOR
 // ══════════════════════════════════════════════════════════════════
-function explainWhy(data){
+function explainWhy(data){try{
   const{arms,total,lithLabel:ll='',acts,idx,risk:rk}=data;const lithLabel=ll;
   const entries=[{n:'radon',v:arms.radon},{n:'thoron',v:arms.thoron},{n:'gamma',v:arms.gamma}];
   const dom=entries.reduce((a,b)=>a.v>b.v?a:b);
@@ -498,6 +498,7 @@ function explainWhy(data){
   // Confidence
   if(data.conf<30)out.push('This estimate is based on geology-prior modelling (GLiM ~1.5 km resolution). No direct measurements at this exact location. Ground-truth survey data would significantly improve confidence.');
   return out;
+}catch(ex){return["<b>Analysis unavailable</b> — "+(ex.message||"unknown error")];}
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -630,7 +631,7 @@ function updateZoom(){
 // ══════════════════════════════════════════════════════════════════
 // SECTION 6: ANALYSIS CARD RENDERER
 // ══════════════════════════════════════════════════════════════════
-function renderPanel(data,locName){
+function renderPanel(data,locName){try{
   document.getElementById('p-empty').style.display='none';
   const el=document.getElementById('p-results');
   el.style.display='block';
@@ -837,6 +838,8 @@ const PRESETS=[
   {n:'Helsinki, Finland',lat:60.17,lon:24.94},
 ];
 
+}catch(ex){document.getElementById("p-results").innerHTML="<div class=card><h3>Error</h3><p>"+(ex.message||"unknown")+"</p></div>";document.getElementById("p-empty").style.display="none";document.getElementById("p-results").style.display="block";}
+}
 function initSearch(){
   const input=document.getElementById('search-input');
   const dd=document.getElementById('search-dd');
