@@ -470,7 +470,7 @@ function getLithLabel(lith){
 // SECTION 3: AI EXPLANATION GENERATOR
 // ══════════════════════════════════════════════════════════════════
 function explainWhy(data){
-  const{arms,total,lithLabel,acts,idx,risk:rk}=data;
+  const{arms,total,lithLabel:ll='',acts,idx,risk:rk}=data;const lithLabel=ll;
   const entries=[{n:'radon',v:arms.radon},{n:'thoron',v:arms.thoron},{n:'gamma',v:arms.gamma}];
   const dom=entries.reduce((a,b)=>a.v>b.v?a:b);
   const pct=total>0?(dom.v/total*100).toFixed(0):'0';
@@ -634,7 +634,7 @@ function renderPanel(data,locName){
   document.getElementById('p-empty').style.display='none';
   const el=document.getElementById('p-results');
   el.style.display='block';
-  const{arms,total,gRate,acts,idx,risk:rk,conf,lithLabel,prov,lat,lon}=data;
+  const{arms,total,gRate,acts,idx,risk:rk,conf,lithLabel:ll2='',prov,lat,lon}=data;const lithLabel=ll2;
   const col=RC[rk.tier]||'#4fd1c5';
   const badgeClass=rk.tier==='RED'?'background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.35)'
     :rk.tier==='AMBER'?'background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.35)'
