@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Irish Terrestrial Dose Indicator</title>
+<script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
+<link href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0f19; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  .app { display: flex; flex-direction: column; width: 100%; height: 100%; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 52px; background: rgba(11,15,25,0.9); border-bottom: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(10px); z-index: 10; }
+  .topbar-brand { display: flex; align-items: center; gap: 10px; }
+  .topbar-logo { color: #22c55e; font-size: 20px; }
+  .topbar-title { font-size: 16px; font-weight: 700; letter-spacing: 0.3px; }
+  .topbar-subtitle { font-size: 12px; opacity: 0.6; font-weight: 400; margin-left: 8px; }
+  .topbar-controls { display: flex; align-items: center; gap: 10px; }
+  .search-box { display: flex; align-items: center; background: rgba(255,255,255,0.06); border-radius: 6px; padding: 0 8px; height: 32px; }
+  .search-box input { background: transparent; border: none; color: #e2e8f0; font-size: 13px; outline: none; width: 160px; }
+  .search-box input::placeholder { color: rgba(255,255,255,0.3); }
+  .search-box button { background: transparent; border: none; color: rgba(255,255,255,0.5); cursor: pointer; display: flex; align-items: center; padding: 2px; }
+  .preset-select { background: rgba(255,255,255,0.06); border: none; color: #e2e8f0; font-size: 13px; padding: 0 8px; height: 32px; border-radius: 6px; outline: none; cursor: pointer; }
+  .main { display: flex; flex: 1; overflow: hidden; position: relative; }
+  .map-pane { flex: 1; position: relative; }
+  .map-canvas { width: 100%; height: 100%; }
+  .panel-pane { width: 380px; background: rgba(11,15,25,0.95); border-left: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(10px); overflow-y: auto; transition: transform 0.3s ease; position: absolute; right: 0; top: 0; bottom: 0; z-index: 20; transform: translateX(100%); }
+  .panel-pane.visible { transform: translateX(0); }
+  .panel-toggle { position: absolute; right: 16px; top: 16px; z-index: 15; background: rgba(11,15,25,0.9); border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; backdrop-filter: blur(10px); }
+  .floating-triangle { position: absolute; pointer-events: none; transform: translate(-50%, -50%); z-index: 5; }
+  .triangle-tooltip { background: rgba(11,15,25,0.9); border: 1px solid; border-radius: 6px; padding: 6px 10px; text-align: center; margin-top: 4px; backdrop-filter: blur(4px); }
+  .triangle-total { font-size: 14px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .triangle-tier { display: inline-block; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-top: 4px; letter-spacing: 0.5px; }
+  .panel { padding: 20px; }
+  .panel-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .panel-title { font-size: 18px; font-weight: 700; }
+  .panel-subtitle { font-size: 12px; opacity: 0.5; }
+  .panel-close { background: transparent; border: none; color: rgba(255,255,255,0.5); cursor: pointer; padding: 4px; }
+  .risk-badge { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; border: 1px solid; margin-bottom: 16px; }
+  .risk-tier { color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 4px; letter-spacing: 0.5px; }
+  .risk-total { font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .risk-vs { font-size: 12px; opacity: 0.6; margin-left: auto; }
+  .dose-bars { margin-bottom: 20px; }
+  .dose-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .dose-bar-label { width: 50px; font-size: 12px; opacity: 0.7; }
+  .dose-bar-track { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+  .dose-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+  .dose-bar-value { width: 50px; text-align: right; font-size: 13px; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+  .panel-section { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .panel-section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.5; margin-bottom: 10px; }
+  .why-item { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.5; margin-bottom: 8px; }
+  .why-bullet { width: 6px; height: 6px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+  .comp-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .comp-label { width: 90px; font-size: 12px; opacity: 0.7; }
+  .comp-track { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+  .comp-fill { height: 100%; border-radius: 3px; }
+  .comp-value { width: 50px; text-align: right; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+  .index-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .index-row { display: flex; justify-content: space-between; padding: 6px 10px; background: rgba(255,255,255,0.04); border-radius: 6px; font-size: 12px; }
+  .index-row.warning { background: rgba(239,68,68,0.1); }
+  .index-value.warning-text { color: #ef4444; font-weight: 600; }
+  .confidence-meter { margin-bottom: 8px; }
+  .confidence-track { height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+  .confidence-fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+  .confidence-labels { display: flex; justify-content: space-between; font-size: 11px; opacity: 0.5; margin-top: 4px; }
+  .confidence-score { font-weight: 700; }
+  .confidence-note { font-size: 12px; opacity: 0.6; line-height: 1.4; }
+  .panel-standards { border-bottom: none; }
+  .std-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; }
+  .std-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .std-dot.green { background: #22c55e; }
+  .std-dot.amber { background: #f59e0b; }
+  .std-dot.red { background: #ef4444; }
+  .panel-empty { display: flex; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 40px; }
+  .panel-hint { opacity: 0.5; }
+  .panel-hint-sub { font-size: 13px; margin-top: 8px; }
+  .map-loader { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0b0f19; z-index: 8; gap: 12px; }
+  .loader-spinner { width: 32px; height: 32px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #22c55e; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .map-statusbar { position: absolute; bottom: 0; left: 0; right: 0; height: 28px; background: rgba(11,15,25,0.8); display: flex; align-items: center; padding: 0 12px; font-size: 11px; opacity: 0.6; z-index: 5; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="topbar-logo">◈</span>
+      <h1 class="topbar-title">Irish-Dose</h1>
+      <span class="topbar-subtitle">Irish Terrestrial Dose Indicator</span>
+    </div>
+    <div class="topbar-controls">
+      <div class="search-box">
+        <input id="searchInput" type="text" placeholder="Search Ireland…">
+        <button id="searchBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+        </button>
+      </div>
+      <select id="presetSelect" class="preset-select">
+        <option value="" disabled selected>Jump to location…</option>
+        <option value="53.3498,-6.2603">Dublin</option>
+        <option value="51.8985,-8.4756">Cork</option>
+        <option value="53.2707,-9.0568">Galway</option>
+        <option value="52.6638,-8.6267">Limerick</option>
+        <option value="54.5973,-5.9301">Belfast</option>
+        <option value="52.98,-6.35">Wicklow Granite</option>
+        <option value="53.05,-9.15">Burren Limestone</option>
+        <option value="53.35,-9.55">Connemara</option>
+        <option value="54.95,-8.0">Donegal Granite</option>
+        <option value="52.06,-9.55">Kerry</option>
+      </select>
+    </div>
+  </header>
+  <main class="main">
+    <div class="map-pane">
+      <div id="map" class="map-canvas"></div>
+      <div id="triangle" class="floating-triangle" style="display:none;"></div>
+      <button id="panelToggle" class="panel-toggle" style="display:none;">📍 Pin report</button>
+      <div class="map-statusbar"><span id="statusCoords">Hover the map</span></div>
+    </div>
+    <div id="panelPane" class="panel-pane">
+      <div id="panelContent" class="panel-empty">
+        <div class="panel-hint">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+          </svg>
+          <p>Click anywhere on the map to pin a dose report</p>
+          <p class="panel-hint-sub">Hover to see the live triangle</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ═════════════════════════════════════════════════════════════════════════════
+// IRISH TERRESTRIAL DOSE INDICATOR — STANDALONE
+// ═════════════════════════════════════════════════════════════════════════════
+
+const WORLD_AVG_DOSE = 2.2;
+const HOURS_PER_YEAR = 8760;
+const SV_PER_NGY = 1e-6;
+const EU_TO_RA226 = 12.22;
+const ETH_TO_TH232 = 4.06;
+const K_PCT_TO_K40 = 313.0;
+const GAMMA_COEFF_RA = 0.462;
+const GAMMA_COEFF_TH = 0.604;
+const GAMMA_COEFF_K = 0.041;
+const IRISH_RN_ACTION = 200;
+const RADON_IRISH_FACTOR = 6.7 / 200.0;
+const Tn_EEC_RATIO = 0.02;
+const Tn_DCF = 40e-6 * 7000;
+
+const GLIM_MAP = {
+  Su: "alluvium", Ss: "sandstone", Sm: "siltstone", Sc: "limestone",
+  Sb: "marl", Ev: "dolomite", Pa: "granite", Pi: "granodiorite",
+  Pb: "gabbro", Va: "rhyolite", Vi: "andesite", Vb: "basalt",
+  Mt: "gneiss", Py: "tuff", Wa: "water", Ice: "ice",
+};
+
+const LITHOLOGY_ACTIVITIES = {
+  granite: { A_Ra226: 59, A_Th232: 64, A_K40: 1070, label: "Granite" },
+  granodiorite: { A_Ra226: 40, A_Th232: 50, A_K40: 900, label: "Granodiorite" },
+  diorite: { A_Ra226: 25, A_Th232: 30, A_K40: 550, label: "Diorite" },
+  gabbro: { A_Ra226: 12, A_Th232: 15, A_K40: 250, label: "Gabbro" },
+  peridotite: { A_Ra226: 3, A_Th232: 5, A_K40: 80, label: "Peridotite" },
+  pegmatite: { A_Ra226: 65, A_Th232: 80, A_K40: 1200, label: "Pegmatite" },
+  syenite: { A_Ra226: 45, A_Th232: 70, A_K40: 1100, label: "Syenite" },
+  rhyolite: { A_Ra226: 55, A_Th232: 60, A_K40: 1000, label: "Rhyolite" },
+  andesite: { A_Ra226: 30, A_Th232: 40, A_K40: 700, label: "Andesite" },
+  basalt: { A_Ra226: 15, A_Th232: 18, A_K40: 300, label: "Basalt" },
+  tuff: { A_Ra226: 30, A_Th232: 35, A_K40: 600, label: "Tuff" },
+  gneiss: { A_Ra226: 38, A_Th232: 45, A_K40: 850, label: "Gneiss" },
+  schist: { A_Ra226: 35, A_Th232: 42, A_K40: 750, label: "Schist" },
+  slate: { A_Ra226: 22, A_Th232: 28, A_K40: 480, label: "Slate" },
+  quartzite: { A_Ra226: 10, A_Th232: 8, A_K40: 150, label: "Quartzite" },
+  marble: { A_Ra226: 8, A_Th232: 5, A_K40: 80, label: "Marble" },
+  limestone: { A_Ra226: 12, A_Th232: 6, A_K40: 100, label: "Limestone" },
+  dolomite: { A_Ra226: 10, A_Th232: 5, A_K40: 80, label: "Dolomite" },
+  sandstone: { A_Ra226: 18, A_Th232: 22, A_K40: 350, label: "Sandstone" },
+  shale: { A_Ra226: 30, A_Th232: 35, A_K40: 580, label: "Shale" },
+  mudstone: { A_Ra226: 28, A_Th232: 32, A_K40: 520, label: "Mudstone" },
+  siltstone: { A_Ra226: 25, A_Th232: 30, A_K40: 480, label: "Siltstone" },
+  marl: { A_Ra226: 15, A_Th232: 10, A_K40: 200, label: "Marl" },
+  chalk: { A_Ra226: 8, A_Th232: 4, A_K40: 60, label: "Chalk" },
+  alluvium: { A_Ra226: 20, A_Th232: 25, A_K40: 400, label: "Alluvium" },
+  glacial_till: { A_Ra226: 18, A_Th232: 22, A_K40: 380, label: "Glacial Till" },
+  world_average_soil: { A_Ra226: 30, A_Th232: 30, A_K40: 400, label: "World Average Soil" },
+  water: { A_Ra226: 0, A_Th232: 0, A_K40: 0, label: "Water body" },
+  ice: { A_Ra226: 0, A_Th232: 0, A_K40: 0, label: "Ice" },
+};
+
+const LITHOLOGY_FACTOR = {
+  granite: 0.35, granodiorite: 0.30, diorite: 0.20, gabbro: 0.10,
+  peridotite: 0.05, pegmatite: 0.45, syenite: 0.30, rhyolite: 0.25,
+  andesite: 0.20, basalt: 0.15, tuff: 0.50, gneiss: 0.25, schist: 0.25,
+  slate: 0.15, quartzite: 0.10, marble: 0.20, limestone: 0.40, dolomite: 0.45,
+  sandstone: 0.70, shale: 0.20, mudstone: 0.18, siltstone: 0.30, marl: 0.35,
+  chalk: 0.50, alluvium: 0.75, glacial_till: 0.60, world_average_soil: 0.50,
+  water: 0.0, ice: 0.0,
+};
+
+function resolveLith(lith) {
+  if (LITHOLOGY_ACTIVITIES[lith]) return lith;
+  const key = GLIM_MAP[lith];
+  if (key && LITHOLOGY_ACTIVITIES[key]) return key;
+  const norm = lith.toLowerCase().replace(/[\s-]+/g, "_");
+  if (LITHOLOGY_ACTIVITIES[norm]) return norm;
+  const key2 = GLIM_MAP[norm];
+  if (key2 && LITHOLOGY_ACTIVITIES[key2]) return key2;
+  return "world_average_soil";
+}
+
+function lithologyToActivities(lithology) {
+  const key = resolveLith(lithology);
+  const e = LITHOLOGY_ACTIVITIES[key];
+  return { A_Ra226: e.A_Ra226, A_Th232: e.A_Th232, A_K40: e.A_K40 };
+}
+
+function lithologyFactor(lithology) {
+  return LITHOLOGY_FACTOR[resolveLith(lithology)] ?? 0.50;
+}
+
+function externalGammaDoseRate(a, b, c) {
+  return GAMMA_COEFF_RA * a + GAMMA_COEFF_TH * b + GAMMA_COEFF_K * c;
+}
+
+function annualExternalDose(a, b, c) {
+  const rate = externalGammaDoseRate(a, b, c);
+  return rate * HOURS_PER_YEAR * 0.8 * 0.7 * SV_PER_NGY;
+}
+
+function indoorRadonFromGeogenic(a, lith, dist, line, perm) {
+  const lf = lithologyFactor(lith);
+  const ff = Math.max(0.1, Math.exp(-dist / 3000));
+  const li = 1 + Math.min(line, 1.0) * 0.5;
+  const pf = perm != null ? 0.5 + Math.min(Math.max(perm, 0), 1) * 1.0 : 1.0;
+  const grp = (a / 30) * lf * ff * li * pf;
+  return grp * 60.0;
+}
+
+function radonInhalationDose(c) {
+  return c * (10.0 / 300.0);
+}
+
+function radonInhalationDoseIrish(c) {
+  return c * RADON_IRISH_FACTOR;
+}
+
+function geogenicThoronPotential(a, lith, perm) {
+  const lf = lithologyFactor(lith);
+  const emanation = 0.1 + lf * 0.25;
+  const pf = perm != null ? 0.5 + Math.min(Math.max(perm, 0), 1) * 1.0 : 1.0;
+  return (a / 30) * emanation / 0.630 * pf;
+}
+
+function thoronInhalationDose(a, lith, c, perm) {
+  if (c != null && c > 0) return c * Tn_EEC_RATIO * Tn_DCF;
+  const gtp = geogenicThoronPotential(a, lith, perm);
+  let dose = gtp * 1.0 * Tn_DCF;
+  if (a > 50) {
+    const enhancement = 1.0 + Math.pow((a - 50) / 50, 0.8);
+    dose *= enhancement;
+  }
+  return dose;
+}
+
+function radiumEquivalent(a, b, c) {
+  return a + (b * 10 / 7) + (c * 10 / 130);
+}
+
+function riskClassIrish(e, cRn, raeq, gammaRate) {
+  const rationale = [];
+  const flags = [];
+  let tier;
+  if (e <= 2.2) { tier = "GREEN"; rationale.push(e.toFixed(2) + " <= 2.2"); }
+  else if (e <= 6.6) { tier = "AMBER"; rationale.push(e.toFixed(2) + " 1-3x avg"); }
+  else { tier = "RED"; rationale.push(e.toFixed(2) + " > 3x avg"); }
+  if (cRn != null && cRn >= 200) { flags.push("RADON_ACTION: " + cRn.toFixed(0) + " >= Irish 200"); tier = "RED"; }
+  else if (cRn != null && cRn >= 100) { flags.push("RADON_ELEVATED: " + cRn.toFixed(0) + " >= WHO 100"); if (tier === "GREEN") tier = "AMBER"; }
+  if (raeq != null && raeq >= 370) { flags.push("RAEQ_HIGH: " + raeq.toFixed(0) + " >= 370"); if (tier !== "RED") tier = "RED"; }
+  if (gammaRate != null && gammaRate >= 1000) { flags.push("GAMMA_HIGH: " + gammaRate.toFixed(0) + " >= 1000"); tier = "RED"; }
+  return { tier, rationale, flags };
+}
+
+function polygonDoseFingerprint(opts = {}) {
+  const {
+    lithology = "world_average_soil", dist_fault_m = 5000, lineament_density = 0,
+    eU_ppm = null, eTh_ppm = null, K_pct = null, C_Rn = null, C_Tn = null, permeability = null
+  } = opts;
+  const act = lithologyToActivities(lithology);
+  let A_Ra = act.A_Ra226, A_Th = act.A_Th232, A_K = act.A_K40;
+  const provenance = [];
+  if (eU_ppm != null) { A_Ra = eU_ppm * EU_TO_RA226; provenance.push("A_Ra226: measured"); }
+  if (eTh_ppm != null) { A_Th = eTh_ppm * ETH_TO_TH232; provenance.push("A_Th232: measured"); }
+  if (K_pct != null) { A_K = K_pct * K_PCT_TO_K40; provenance.push("A_K40: measured"); }
+  const gammaRate = externalGammaDoseRate(A_Ra, A_Th, A_K);
+  const E_gamma = annualExternalDose(A_Ra, A_Th, A_K);
+  let indoorRn = C_Rn != null ? C_Rn : indoorRadonFromGeogenic(A_Ra, lithology, dist_fault_m, lineament_density, permeability);
+  const E_radon = radonInhalationDoseIrish(indoorRn);
+  let indoorTn = C_Tn != null ? C_Tn : geogenicThoronPotential(A_Th, lithology, permeability) * 1.0;
+  const E_thoron = thoronInhalationDose(A_Th, lithology, C_Tn, permeability);
+  const raeq = radiumEquivalent(A_Ra, A_Th, A_K);
+  const E_total = E_gamma + E_radon + E_thoron;
+  const risk = riskClassIrish(E_total, indoorRn, raeq, gammaRate);
+  const measuredParams = [eU_ppm, eTh_ppm, K_pct, C_Rn].filter(p => p != null).length;
+  const confidence = measuredParams > 0 ? Math.round((measuredParams / 4) * 100) : 20;
+  return {
+    arms_mSv_yr: { radon: +E_radon.toFixed(4), thoron: +E_thoron.toFixed(4), gamma: +E_gamma.toFixed(4) },
+    total_terrestrial_mSv_yr: +E_total.toFixed(4),
+    gamma_rate_nGy_h: +gammaRate.toFixed(1),
+    activities_Bq_kg: { A_Ra226: +A_Ra.toFixed(1), A_Th232: +A_Th.toFixed(1), A_K40: +A_K.toFixed(1) },
+    indices: { raeq: +raeq.toFixed(1), indoor_Rn: +indoorRn.toFixed(1) },
+    risk, provenance, confidence,
+    lithology: resolveLith(lithology),
+    lithology_label: LITHOLOGY_ACTIVITIES[resolveLith(lithology)].label,
+    radon_Bq_m3_est: +indoorRn.toFixed(1),
+  };
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// IRELAND GEOLOGY REGIONS
+// ═════════════════════════════════════════════════════════════════════════════
+
+const IRELAND_REGIONS = [
+  { name: "Leinster Granite (Wicklow)", glim: "Pa", coords: [-6.6, 52.7, -6.0, 53.1] },
+  { name: "Dublin Basin Carboniferous", glim: "Sc", coords: [-6.6, 53.1, -6.0, 53.5] },
+  { name: "Kildare Inlier Granite", glim: "Pi", coords: [-7.0, 52.9, -6.5, 53.2] },
+  { name: "Wexford Ordovician", glim: "Ss", coords: [-6.8, 52.1, -6.0, 52.5] },
+  { name: "Cork-Kerry Devonian Sandstone", glim: "Ss", coords: [-10.0, 51.4, -8.5, 52.0] },
+  { name: "Kerry Slates & Sandstones", glim: "Sm", coords: [-10.5, 51.7, -9.5, 52.3] },
+  { name: "Beara Peninsula Volcanics", glim: "Vi", coords: [-10.2, 51.5, -9.5, 51.9] },
+  { name: "Dingle Peninsula ORS", glim: "Ss", coords: [-10.6, 51.9, -9.8, 52.3] },
+  { name: "Connemara Metamorphic", glim: "Mt", coords: [-10.3, 53.2, -9.5, 53.6] },
+  { name: "Galway Granite", glim: "Pa", coords: [-10.2, 53.0, -9.5, 53.5] },
+  { name: "Burren Limestone", glim: "Sc", coords: [-9.4, 52.9, -8.8, 53.2] },
+  { name: "Aran Islands Limestone", glim: "Sc", coords: [-10.2, 53.0, -9.5, 53.2] },
+  { name: "Mayo Slates & Gneisses", glim: "Mt", coords: [-10.0, 53.5, -9.0, 54.2] },
+  { name: "Donegal Granite", glim: "Pa", coords: [-8.4, 54.6, -7.6, 55.3] },
+  { name: "Donegal Metasediments", glim: "Mt", coords: [-8.5, 54.5, -7.5, 55.3] },
+  { name: "Ulster Basalt (Antrim)", glim: "Vb", coords: [-7.0, 54.5, -5.5, 55.3] },
+  { name: "Mourne Mountains Granite", glim: "Pa", coords: [-6.2, 54.0, -5.8, 54.3] },
+  { name: "Irish Midlands Limestone", glim: "Sc", coords: [-8.5, 52.5, -6.5, 54.0] },
+  { name: "Longford-Down Inlier", glim: "Mt", coords: [-8.0, 53.5, -6.0, 54.5] },
+  { name: "Slieve Bloom Mountains", glim: "Ss", coords: [-7.8, 52.9, -7.3, 53.2] },
+  { name: "Clare Shales", glim: "Sm", coords: [-9.8, 52.5, -8.8, 53.0] },
+  { name: "Lough Gill Granites", glim: "Pa", coords: [-8.6, 54.1, -8.1, 54.4] },
+  { name: "Ox Mountains Inlier", glim: "Mt", coords: [-9.2, 53.9, -8.5, 54.3] },
+];
+
+function getLithologyAt(lon, lat) {
+  let best = null, bestArea = Infinity;
+  for (const r of IRELAND_REGIONS) {
+    const [minLon, minLat, maxLon, maxLat] = r.coords;
+    if (lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat) {
+      const area = (maxLon - minLon) * (maxLat - minLat);
+      if (area < bestArea) { bestArea = area; best = r; }
+    }
+  }
+  if (!best) {
+    if (lat >= 51.4 && lat <= 55.4 && lon >= -10.6 && lon <= -5.3) {
+      return { glim: "world_average_soil", label: "Irish Soil", region: "Ireland (unmapped)", meets_target: true };
+    }
+    return { glim: "world_average_soil", label: "World Average Soil", region: "Outside Ireland", meets_target: false };
+  }
+  return { glim: best.glim, label: best.name, region: best.name, meets_target: true };
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// TELLUS DEMO DATA (measurement-grade where available)
+// ═════════════════════════════════════════════════════════════════════════════
+
+function sampleTellus(lon, lat) {
+  if (-7.5 <= lon && lon <= -6.0 && 52.8 <= lat && lat <= 53.3) {
+    return { K_pct: 3.8, eU_ppm: 4.5, eTh_ppm: 18.2, C_Rn: 245 };
+  }
+  if (-9.5 <= lon && lon <= -8.8 && 52.9 <= lat && lat <= 53.2) {
+    return { K_pct: 0.4, eU_ppm: 0.8, eTh_ppm: 1.2, C_Rn: 35 };
+  }
+  if (-10.0 <= lon && lon <= -9.0 && 53.0 <= lat && lat <= 53.6) {
+    return { K_pct: 2.5, eU_ppm: 2.8, eTh_ppm: 10.5, C_Rn: null };
+  }
+  return { K_pct: null, eU_ppm: null, eTh_ppm: null, C_Rn: null };
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// UI RENDERING
+// ═════════════════════════════════════════════════════════════════════════════
+
+const RISK_COLORS = { GREEN: "#22c55e", AMBER: "#f59e0b", RED: "#ef4444" };
+const RISK_BG = { GREEN: "rgba(34,197,94,0.15)", AMBER: "rgba(245,158,11,0.15)", RED: "rgba(239,68,68,0.15)" };
+
+function buildTrianglePath(radon, thoron, gamma) {
+  const max = Math.max(radon, thoron, gamma, 0.5);
+  const scale = 50 / max;
+  const rY = -radon * scale;
+  const tX = -thoron * scale * 0.87;
+  const tY = thoron * scale * 0.5;
+  const gX = gamma * scale * 0.87;
+  const gY = gamma * scale * 0.5;
+  return `M 0 ${rY} L ${tX} ${tY} L ${gX} ${gY} Z`;
+}
+
+function renderTriangle(fp, pixel) {
+  const tri = document.getElementById("triangle");
+  if (!fp || !pixel) { tri.style.display = "none"; return; }
+  const arms = fp.arms_mSv_yr;
+  const total = fp.total_terrestrial_mSv_yr;
+  const tier = fp.risk.tier;
+  const color = RISK_COLORS[tier] || "#22c55e";
+  const max = Math.max(arms.radon, arms.thoron, arms.gamma, 0.5);
+  const scale = 50 / max;
+
+  tri.style.display = "block";
+  tri.style.left = pixel.x + "px";
+  tri.style.top = pixel.y + "px";
+  tri.innerHTML = `
+    <svg width="160" height="160" viewBox="-80 -80 160 160" style="overflow:visible">
+      <path d="${buildTrianglePath(arms.radon, arms.thoron, arms.gamma)}"
+        fill="${RISK_BG[tier]}" stroke="none" style="filter:blur(6px)"/>
+      <path d="${buildTrianglePath(arms.radon, arms.thoron, arms.gamma)}"
+        fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
+      <line x1="0" y1="0" x2="0" y2="${-arms.radon * scale}"
+        stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+      <line x1="0" y1="0" x2="${-arms.thoron * scale * 0.87}" y2="${arms.thoron * scale * 0.5}"
+        stroke="#f97316" stroke-width="3" stroke-linecap="round"/>
+      <line x1="0" y1="0" x2="${arms.gamma * scale * 0.87}" y2="${arms.gamma * scale * 0.5}"
+        stroke="#22c55e" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="0" cy="0" r="3" fill="${color}"/>
+      <text x="0" y="${-arms.radon * scale - 6}" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="bold">Rn</text>
+      <text x="${-arms.thoron * scale * 0.87 - 8}" y="${arms.thoron * scale * 0.5 + 10}" text-anchor="end" fill="#f97316" font-size="9" font-weight="bold">Tn</text>
+      <text x="${arms.gamma * scale * 0.87 + 8}" y="${arms.gamma * scale * 0.5 + 10}" text-anchor="start" fill="#22c55e" font-size="9" font-weight="bold">γ</text>
+    </svg>
+    <div class="triangle-tooltip" style="border-color:${color}">
+      <div class="triangle-total" style="color:${color}">${total.toFixed(2)} mSv/yr</div>
+      <div class="triangle-tier" style="background:${color}">${tier}</div>
+    </div>
+  `;
+}
+
+function renderPanel(data, name) {
+  const pane = document.getElementById("panelPane");
+  const content = document.getElementById("panelContent");
+  pane.classList.add("visible");
+  if (!data) return;
+
+  const arms = data.arms_mSv_yr;
+  const total = data.total_terrestrial_mSv_yr;
+  const acts = data.activities_Bq_kg;
+  const idx = data.indices;
+  const tier = data.risk.tier;
+  const tc = RISK_COLORS[tier];
+  const maxArm = Math.max(arms.radon, arms.thoron, arms.gamma);
+  const entries = [
+    { label: "Radon", value: arms.radon, color: "#3b82f6", pct: maxArm > 0 ? (arms.radon / maxArm) * 100 : 0 },
+    { label: "Thoron", value: arms.thoron, color: "#f97316", pct: maxArm > 0 ? (arms.thoron / maxArm) * 100 : 0 },
+    { label: "Gamma", value: arms.gamma, color: "#22c55e", pct: maxArm > 0 ? (arms.gamma / maxArm) * 100 : 0 },
+  ].sort((a, b) => b.value - a.value);
+
+  content.innerHTML = `
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">${name}</h2>
+          <span class="panel-subtitle">Irish Terrestrial Dose Estimate</span>
+        </div>
+        <button class="panel-close" onclick="closePanel()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="risk-badge" style="border-color:${tc}40;background:${tc}10">
+        <span class="risk-tier" style="background:${tc}">${tier}</span>
+        <span class="risk-total" style="color:${tc}">${total.toFixed(2)} mSv/yr</span>
+        <span class="risk-vs">${total > 2.2 ? (total / 2.2).toFixed(1) + "× UNSCEAR avg" : "≤ UNSCEAR avg"}</span>
+      </div>
+      <div class="dose-bars">
+        ${entries.map(e => `
+          <div class="dose-bar-row">
+            <span class="dose-bar-label">${e.label}</span>
+            <div class="dose-bar-track"><div class="dose-bar-fill" style="width:${e.pct}%;background:${e.color}"></div></div>
+            <span class="dose-bar-value" style="color:${e.color}">${e.value.toFixed(2)}</span>
+          </div>
+        `).join("")}
+      </div>
+      <div class="panel-section">
+        <h3 class="panel-section-title">Why this dose?</h3>
+        <div class="why-list">
+          ${data.risk.rationale.map(r => `
+            <div class="why-item"><span class="why-bullet" style="background:${tc}"></span><span>${r}</span></div>
+          `).join("")}
+          <div class="why-item"><span class="why-bullet" style="background:#5ad1c5"></span>
+            <span>Geology: ${data.lithology_label}. Activities: Ra-226=${acts.A_Ra226.toFixed(0)}, Th-232=${acts.A_Th232.toFixed(0)}, K-40=${acts.A_K40.toFixed(0)} Bq/kg.</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel-section">
+        <h3 class="panel-section-title">Comparison</h3>
+        <div class="comp-bar"><span class="comp-label">This location</span><div class="comp-track"><div class="comp-fill" style="width:${Math.min((total/8)*100,100)}%;background:${tc}"></div></div><span class="comp-value">${total.toFixed(2)}</span></div>
+        <div class="comp-bar"><span class="comp-label">UNSCEAR avg</span><div class="comp-track"><div class="comp-fill" style="width:${Math.min((2.2/8)*100,100)}%;background:#64748b"></div></div><span class="comp-value">2.20</span></div>
+        <div class="comp-bar"><span class="comp-label">Irish action</span><div class="comp-track"><div class="comp-fill" style="width:${Math.min((6.6/8)*100,100)}%;background:#64748b"></div></div><span class="comp-value">6.60</span></div>
+      </div>
+      <div class="panel-section">
+        <h3 class="panel-section-title">Indices</h3>
+        <div class="index-grid">
+          <div class="index-row ${idx.indoor_Rn >= IRISH_RN_ACTION ? 'warning' : ''}">
+            <span class="index-label">Indoor Rn</span>
+            <span class="index-value ${idx.indoor_Rn >= IRISH_RN_ACTION ? 'warning-text' : ''}">${idx.indoor_Rn.toFixed(0)} Bq/m³</span>
+          </div>
+          <div class="index-row"><span class="index-label">Ra-eq</span><span class="index-value">${idx.raeq.toFixed(0)} Bq/kg</span></div>
+        </div>
+      </div>
+      <div class="panel-section">
+        <h3 class="panel-section-title">Confidence</h3>
+        <div class="confidence-meter">
+          <div class="confidence-track"><div class="confidence-fill" style="width:${data.confidence}%;background:${data.confidence >= 60 ? '#22c55e' : data.confidence >= 30 ? '#f59e0b' : '#ef4444'}"></div></div>
+          <div class="confidence-labels"><span>Low</span><span class="confidence-score" style="color:${data.confidence >= 60 ? '#22c55e' : data.confidence >= 30 ? '#f59e0b' : '#ef4444'}">${data.confidence}%</span><span>High</span></div>
+        </div>
+        <p class="confidence-note">${data.confidence >= 60 ? "Direct measurement data available (Tellus / EPA)." : data.confidence >= 30 ? "Partial data — some measured, some estimated." : "Geology-prior estimate only."}</p>
+      </div>
+      <div class="panel-section panel-standards">
+        <div class="std-row"><span class="std-dot green"></span><span>Green: ≤ 2.2 mSv/yr</span></div>
+        <div class="std-row"><span class="std-dot amber"></span><span>Amber: 2.2–6.6 mSv/yr</span></div>
+        <div class="std-row"><span class="std-dot red"></span><span>Red: &gt; 6.6 mSv/yr or Rn ≥ ${IRISH_RN_ACTION}</span></div>
+        <div class="std-row" style="margin-top:8px;font-size:11px;opacity:0.7">Irish action level: ${IRISH_RN_ACTION} Bq/m³ (stricter than EU 300)</div>
+      </div>
+    </div>
+  `;
+}
+
+function closePanel() {
+  document.getElementById("panelPane").classList.remove("visible");
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// MAP INITIALISATION
+// ═════════════════════════════════════════════════════════════════════════════
+
+const map = new maplibregl.Map({
+  container: "map",
+  center: [-8.5, 53.3],
+  zoom: 7,
+  maxZoom: 18,
+  minZoom: 5,
+  maxBounds: [[-10.7, 51.3], [-5.2, 55.5]],
+  style: {
+    version: 8,
+    sources: {
+      "esri-imagery": { type: "raster", tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"], tileSize: 256, attribution: "© Esri" },
+      "esri-labels": { type: "raster", tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"], tileSize: 256, attribution: "© Esri" },
+    },
+    layers: [
+      { id: "satellite", type: "raster", source: "esri-imagery", minzoom: 0, maxzoom: 18 },
+      { id: "labels", type: "raster", source: "esri-labels", minzoom: 0, maxzoom: 18 },
+    ],
+  },
+});
+
+map.addControl(new maplibregl.ScaleControl({ maxWidth: 120 }), "bottom-left");
+map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+let hoverData = null;
+let hoverPixel = null;
+let pinnedData = null;
+let pinnedName = "";
+
+map.on("mousemove", (e) => {
+  const { lng, lat } = e.lngLat;
+  if (lat < 51.4 || lat > 55.4 || lng < -10.6 || lng > -5.3) {
+    hoverData = null;
+    renderTriangle(null, null);
+    document.getElementById("statusCoords").textContent = "Outside Ireland";
+    return;
+  }
+  const lith = getLithologyAt(lng, lat);
+  if (lith.glim === "water" || lith.glim === "Wa" || lith.glim === "Ice") {
+    hoverData = null;
+    renderTriangle(null, null);
+    return;
+  }
+  const tellus = sampleTellus(lng, lat);
+  const fp = polygonDoseFingerprint({
+    lithology: lith.glim, lat, lon: lng,
+    eU_ppm: tellus.eU_ppm, eTh_ppm: tellus.eTh_ppm, K_pct: tellus.K_pct,
+    C_Rn: tellus.C_Rn,
+  });
+  hoverData = fp;
+  hoverPixel = e.point;
+  renderTriangle(fp, e.point);
+  document.getElementById("statusCoords").textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} — ${lith.region}`;
+});
+
+map.on("click", (e) => {
+  const { lng, lat } = e.lngLat;
+  if (lat < 51.4 || lat > 55.4 || lng < -10.6 || lng > -5.3) return;
+  const lith = getLithologyAt(lng, lat);
+  if (lith.glim === "water" || lith.glim === "Wa" || lith.glim === "Ice") return;
+  const tellus = sampleTellus(lng, lat);
+  const fp = polygonDoseFingerprint({
+    lithology: lith.glim, lat, lon: lng,
+    eU_ppm: tellus.eU_ppm, eTh_ppm: tellus.eTh_ppm, K_pct: tellus.K_pct,
+    C_Rn: tellus.C_Rn,
+  });
+  pinnedData = fp;
+  pinnedName = lith.region;
+  renderPanel(fp, lith.region);
+});
+
+document.getElementById("presetSelect").addEventListener("change", (e) => {
+  const val = e.target.value;
+  if (!val) return;
+  const [lat, lon] = val.split(",").map(Number);
+  map.flyTo({ center: [lon, lat], zoom: 14, essential: true });
+  const lith = getLithologyAt(lon, lat);
+  const tellus = sampleTellus(lon, lat);
+  const fp = polygonDoseFingerprint({
+    lithology: lith.glim, lat, lon,
+    eU_ppm: tellus.eU_ppm, eTh_ppm: tellus.eTh_ppm, K_pct: tellus.K_pct,
+    C_Rn: tellus.C_Rn,
+  });
+  pinnedData = fp;
+  pinnedName = lith.region;
+  renderPanel(fp, lith.region);
+});
+
+document.getElementById("searchBtn").addEventListener("click", async () => {
+  const q = document.getElementById("searchInput").value.trim();
+  if (!q) return;
+  try {
+    const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q + ", Ireland")}&limit=1`);
+    const data = await resp.json();
+    if (data?.[0]) {
+      const lat = parseFloat(data[0].lat);
+      const lon = parseFloat(data[0].lon);
+      if (lat >= 51.4 && lat <= 55.4 && lon >= -10.6 && lon <= -5.3) {
+        map.flyTo({ center: [lon, lat], zoom: 14, essential: true });
+      } else {
+        alert("Location outside Ireland.");
+      }
+    }
+  } catch (e) { console.error("Search failed:", e); }
+});
+
+document.getElementById("searchInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") document.getElementById("searchBtn").click();
+});
+</script>
+</body>
+</html>
