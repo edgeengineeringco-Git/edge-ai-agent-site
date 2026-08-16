@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Node
+node_modules/
+web/node_modules/
+
+# Build output (tracked in app/ for deployment)
+web/dist/
+
+# Environment
+.env
+*.egg-info/
