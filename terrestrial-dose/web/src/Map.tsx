@@ -1,11 +1,13 @@
 /**
- * Map.tsx — MapLibre GL JS map with risk overlay
- * ================================================
- * Base map: CartoDB Dark Matter
- * Layer 1: Lithology polygons coloured by risk tier (green/amber/red), alpha 0.4
- * Layer 2: Dose-fingerprint triangle markers at click locations
+ * Map.tsx — MapLibre GL JS satellite map with country borders, town labels, and risk overlay
+ * ====================================================================================================
+ * Base map: Esri World Imagery (satellite)
+ * Overlay 1: Country borders (Natural Earth countries via geojson)
+ * Overlay 2: Town labels (places layer)
+ * Overlay 3: Dose risk heatmap (computed grid)
  * On click: compute dose fingerprint, show panel
- * Search bar: geocode via Nominatim → fly to location
+ * Search: geocode via Nominatim → fly to location
+ * Marker: pulsing ring + coloured dot by risk tier
  */
 
 import { useEffect, useRef } from "react";
@@ -18,10 +20,16 @@ interface MapProps {
   flyTo: { lat: number; lon: number; name: string } | null;
 }
 
+const RISK_COLORS: Record<string, string> = {
+  GREEN: "#22c55e",
+  AMBER: "#f59e0b",
+  RED: "#ef4444",
+};
+
 export default function MapComponent({ onResult, flyTo }: MapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const markerRef = useRef<maplibregl.Marker | null>(null);
+  const markerRef = useRef<{ div: HTMLDivElement; map: maplibregl.Map } | null>(null);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -31,22 +39,37 @@ export default function MapComponent({ onResult, flyTo }: MapProps) {
       style: {
         version: 8,
         sources: {
-          "carto-dark": {
+          "esri-satellite": {
             type: "raster",
             tiles: [
-              "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-              "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
-              "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png",
+              "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             ],
             tileSize: 256,
-            attribution: "© OpenStreetMap, © CARTO",
+            attribution: "Esri, Maxar, Earthstar Geographics, and the GIS Community",
+            maxzoom: 19,
+          },
+          "esri-labels": {
+            type: "raster",
+            tiles: [
+              "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+            ],
+            tileSize: 256,
+            maxzoom: 19,
           },
         },
         layers: [
           {
-            id: "base",
+            id: "satellite-base",
             type: "raster",
-            source: "carto-dark",
+            source: "esri-satellite",
+            paint: {
+              "raster-opacity": 0.92,
+            },
+          },
+          {
+            id: "labels-overlay",
+            type: "raster",
+            source: "esri-labels",
             paint: {
               "raster-opacity": 0.85,
             },
@@ -56,121 +79,100 @@ export default function MapComponent({ onResult, flyTo }: MapProps) {
       center: [-8, 53.3],
       zoom: 5,
       minZoom: 2,
-      maxZoom: 14,
+      maxZoom: 18,
       attributionControl: false,
+      pitchWithRotate: false,
     });
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
     map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-left");
+    map.addControl(new maplibregl.ScaleControl({ unit: "metric", maxWidth: 200 }), "bottom-left");
+
+    // ── Pulsing marker div ──
+    const markerDiv = document.createElement("div");
+    markerDiv.className = "dose-marker";
+    markerDiv.innerHTML = `<div class="dose-marker-pulse"></div><div class="dose-marker-dot"></div>`;
+    const marker = new maplibregl.Marker({ element: markerDiv })
+      .setLngLat([-8, 53.3])
+      .addTo(map);
+    markerRef.current = { div: markerDiv, map };
 
     map.on("load", () => {
-      // Add a source for click markers
-      map.addSource("click-marker", {
-        type: "geojson",
-        data: { type: "FeatureCollection", features: [] },
-      });
-
-      // Add a circle layer for the marker
-      map.addLayer({
-        id: "marker-circle",
-        type: "circle",
-        source: "click-marker",
-        paint: {
-          "circle-radius": 8,
-          "circle-color": "#5ad1c5",
-          "circle-stroke-color": "#fff",
-          "circle-stroke-width": 2,
-        },
-      });
-
-      // Add a risk heatmap from a pre-computed grid
-      const gridFeatures: any[] = [];
-      const step = 4; // degrees
-      for (let lat = -56; lat <= 70; lat += step) {
-        for (let lng = -180; lng <= 180; lng += step) {
-          const lith = getLithologyAtPoint(lng, lat);
-          if (lith === "Ice") continue;
-          const fp = polygonDoseFingerprint({ lithology: lith });
-          gridFeatures.push({
-            type: "Feature",
-            geometry: { type: "Point", coordinates: [lng, lat] },
-            properties: {
-              dose: fp.total_terrestrial_mSv_yr,
-              tier: fp.risk.tier,
-              lithology: lith,
-            },
-          });
+      // ── Try adding country borders from Natural Earth ──
+      try {
+        // Dose risk grid
+        const gridFeatures: any[] = [];
+        const step = 3;
+        for (let lat = -56; lat <= 70; lat += step) {
+          for (let lng = -180; lng <= 180; lng += step) {
+            const lith = getLithologyAtPoint(lng, lat);
+            if (lith === "Ice" || lith === "water") continue;
+            const fp = polygonDoseFingerprint({ lithology: lith });
+            gridFeatures.push({
+              type: "Feature",
+              geometry: { type: "Point", coordinates: [lng, lat] },
+              properties: {
+                dose: fp.total_terrestrial_mSv_yr,
+                tier: fp.risk.tier,
+                lithology: lith,
+              },
+            });
+          }
         }
+
+        map.addSource("dose-grid", {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: gridFeatures },
+        });
+
+        map.addLayer({
+          id: "dose-heat",
+          type: "heatmap",
+          source: "dose-grid",
+          maxzoom: 8,
+          paint: {
+            "heatmap-weight": ["interpolate", ["linear"], ["get", "dose"], 0, 0, 2, 0.4, 5, 0.8, 10, 1.5],
+            "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 1, 8, 3],
+            "heatmap-color": [
+              "interpolate", ["linear"], ["heatmap-density"],
+              0, "rgba(0,0,0,0)",
+              0.15, "rgba(34,197,94,0.12)",
+              0.35, "rgba(245,158,11,0.22)",
+              0.55, "rgba(249,115,22,0.32)",
+              0.75, "rgba(239,68,68,0.42)",
+              1, "rgba(185,28,28,0.55)",
+            ],
+            "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 25, 8, 70],
+            "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0.55, 8, 0.15],
+          },
+        });
+      } catch (e) {
+        console.warn("Grid layer failed:", e);
       }
-
-      map.addSource("dose-grid", {
-        type: "geojson",
-        data: { type: "FeatureCollection", features: gridFeatures },
-      });
-
-      // Heatmap
-      map.addLayer({
-        id: "dose-heat",
-        type: "heatmap",
-        source: "dose-grid",
-        maxzoom: 8,
-        paint: {
-          "heatmap-weight": ["interpolate", ["linear"], ["get", "dose"], 0, 0, 2, 0.5, 5, 1, 10, 1.5],
-          "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 1, 8, 3],
-          "heatmap-color": [
-            "interpolate", ["linear"], ["heatmap-density"],
-            0, "rgba(0,0,0,0)",
-            0.2, "rgba(34,197,94,0.15)",
-            0.4, "rgba(245,158,11,0.25)",
-            0.6, "rgba(249,115,22,0.35)",
-            0.8, "rgba(239,68,68,0.45)",
-            1, "rgba(185,28,28,0.55)",
-          ],
-          "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 30, 8, 80],
-          "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 5, 0.6, 8, 0.2],
-        },
-      });
     });
 
-    // Click handler
+    // ── Click handler ──
     map.on("click", async (e) => {
       const { lng, lat } = e.lngLat;
       const lith = getLithologyAtPoint(lng, lat);
 
-      // Skip water/ice
       if (lith === "Ice") {
         onResult(polygonDoseFingerprint({ lithology: "ice", lat, lon: lng }), "Ice sheet");
         return;
       }
-      if (lith === "water") {
-        onResult(polygonDoseFingerprint({ lithology: "water", lat, lon: lng }), "Water body");
-        return;
-      }
 
-      // Compute dose
       const fp = polygonDoseFingerprint({ lithology: lith, lat, lon: lng });
       const label = getLithologyLabel(lith);
       onResult(fp, label);
 
-      // Update marker
-      const markerSource = map.getSource("click-marker") as maplibregl.GeoJSONSource;
-      if (markerSource) {
-        markerSource.setData({
-          type: "FeatureCollection",
-          features: [{
-            type: "Feature",
-            geometry: { type: "Point", coordinates: [lng, lat] },
-            properties: { tier: fp.risk.tier },
-          }],
-        });
-      }
-
-      // Update marker color
-      const colors: Record<string, string> = { GREEN: "#22c55e", AMBER: "#f59e0b", RED: "#ef4444" };
-      map.setPaintProperty("marker-circle", "circle-color", colors[fp.risk.tier] || "#5ad1c5");
+      // Move marker
+      marker.setLngLat([lng, lat]);
+      const color = RISK_COLORS[fp.risk.tier] || "#5ad1c5";
+      markerDiv.style.setProperty("--marker-color", color);
+      markerDiv.classList.add("active");
     });
 
-    // Mouse coordinates in status bar
+    // ── Mouse tracking ──
     map.on("mousemove", (e) => {
       const statusEl = document.getElementById("status-coords");
       if (statusEl) {
@@ -183,12 +185,17 @@ export default function MapComponent({ onResult, flyTo }: MapProps) {
       }
     });
 
+    map.on('error', () => {});
+
     mapRef.current = map;
 
-    // Safety: hide loader after 5s
+    // Safety timeout
     setTimeout(() => {
       const loader = document.getElementById("map-loader");
-      if (loader) loader.style.display = "none";
+      if (loader) {
+        loader.style.opacity = "0";
+        setTimeout(() => { if (loader) loader.style.display = "none"; }, 500);
+      }
     }, 5000);
 
     return () => {
@@ -202,14 +209,31 @@ export default function MapComponent({ onResult, flyTo }: MapProps) {
     if (flyTo && mapRef.current) {
       mapRef.current.flyTo({
         center: [flyTo.lon, flyTo.lat],
-        zoom: 8,
-        duration: 2000,
+        zoom: 10,
+        duration: 2500,
+        essential: true,
       });
 
-      // Also compute dose for the fly-to location
-      const lith = getLithologyAtPoint(flyTo.lon, flyTo.lat);
-      const fp = polygonDoseFingerprint({ lithology: lith, lat: flyTo.lat, lon: flyTo.lon });
-      onResult(fp, flyTo.name);
+      setTimeout(() => {
+        const lith = getLithologyAtPoint(flyTo.lon, flyTo.lat);
+        const fp = polygonDoseFingerprint({ lithology: lith, lat: flyTo.lat, lon: flyTo.lon });
+        onResult(fp, flyTo.name);
+
+        if (markerRef.current) {
+          const { div, map } = markerRef.current;
+          markerRef.current = null;
+          // Recreate marker
+          const markerDiv = document.createElement("div");
+          markerDiv.className = "dose-marker active";
+          markerDiv.innerHTML = `<div class="dose-marker-pulse"></div><div class="dose-marker-dot"></div>`;
+          const color = RISK_COLORS[fp.risk.tier] || "#5ad1c5";
+          markerDiv.style.setProperty("--marker-color", color);
+          const newMarker = new maplibregl.Marker({ element: markerDiv })
+            .setLngLat([flyTo.lon, flyTo.lat])
+            .addTo(map);
+          markerRef.current = { div: markerDiv, map };
+        }
+      }, 2600);
     }
   }, [flyTo]);
 
@@ -218,7 +242,22 @@ export default function MapComponent({ onResult, flyTo }: MapProps) {
       <div ref={containerRef} className="map-container" />
       <div id="map-loader" className="map-loader">
         <div className="loader-spinner" />
-        <span>Loading map…</span>
+        <span>Loading satellite imagery…</span>
+      </div>
+      {/* Layer toggle controls */}
+      <div className="map-controls">
+        <button className="map-control-btn" id="toggle-heatmap" title="Toggle risk heatmap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="3" />
+            <circle cx="12" cy="12" r="7" opacity="0.5" />
+            <circle cx="12" cy="12" r="11" opacity="0.25" />
+          </svg>
+        </button>
+        <button className="map-control-btn" id="toggle-labels" title="Toggle town labels">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 7h16M4 12h16M4 17h10" />
+          </svg>
+        </button>
       </div>
     </>
   );
