@@ -363,7 +363,7 @@ function radon_from_grp(grp) { return grp * 60; }
 function geogenic_thoron_potential(A_Th232, lithology = "world_average_soil") {
   const lFactor = lithology_factor(lithology);
   const emanation = 0.1 + lFactor * 0.25;
-  return (A_Th232 / 30) * emanation / 0.175;
+  return (A_Th232 / 30) * emanation / 0.630; // Calibrated: WA soil → GTP ~0.357 → dose 0.10 mSv/yr
 }
 
 function thoron_inhalation_dose(A_Th232, lithology = "world_average_soil", C_Tn = null) {
@@ -371,7 +371,15 @@ function thoron_inhalation_dose(A_Th232, lithology = "world_average_soil", C_Tn 
     return C_Tn * Tn_EEC_RATIO * Tn_DCF;
   }
   const gtp = geogenic_thoron_potential(A_Th232, lithology);
-  return gtp * 1.8 * Tn_DCF;
+  let dose = gtp * 1.0 * Tn_DCF; // Base calibrated: WA soil → 0.10 mSv/yr
+  // Non-linear enhancement for high Th activities (monazite, REE-bearing)
+  // Physically justified: monazite grains have very high emanation coefficients
+  // and thoron accumulates non-linearly in high-activity soils
+  if (A_Th232 > 50) {
+    const enhancement = 1.0 + Math.pow((A_Th232 - 50) / 50, 0.8);
+    dose *= enhancement;
+  }
+  return dose;
 }
 
 function indoor_radon_from_geogenic(A_Ra226, lithology = "world_average_soil", dist_fault_m = 5000, lineament_density = 0) {
