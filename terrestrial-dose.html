@@ -744,6 +744,11 @@ function renderPanel(data,locName){try{
       ${provHtml}
     </div>
   `;
+  }catch(ex){
+    document.getElementById("p-results").innerHTML="<div class='card'><h3>Error</h3><p>"+(ex.message||"unknown")+"</p></div>";
+    document.getElementById("p-empty").style.display="none";
+    document.getElementById("p-results").style.display="block";
+  }
 }
 
 function drawTriangle(arms,total){
@@ -838,7 +843,6 @@ const PRESETS=[
   {n:'Helsinki, Finland',lat:60.17,lon:24.94},
 ];
 
-}catch(ex){document.getElementById("p-results").innerHTML="<div class=card><h3>Error</h3><p>"+(ex.message||"unknown")+"</p></div>";document.getElementById("p-empty").style.display="none";document.getElementById("p-results").style.display="block";}
 }
 function initSearch(){
   const input=document.getElementById('search-input');
