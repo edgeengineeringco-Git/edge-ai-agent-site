@@ -477,11 +477,11 @@ function explainWhy(data){
   let out=[];
   // Dominant source
   if(dom.n==='gamma'){
-    out.push('<b>Dominant source: external gamma ('+arms.gamma.toFixed(2)+' mSv/yr, '+pct+'% of total)</b> — driven by the natural radioactivity of the underlying '+lithLabel.toLowerCase()+'.');
+    out.push('<b>Dominant source: external gamma ('+arms.gamma.toFixed(2)+' mSv/yr, '+pct+'% of total)</b> — driven by the natural radioactivity of the underlying '+(lithLabel||'unknown').toLowerCase()+'.');
     if(acts.k>800)out.push('High K-40 activity (<b>'+acts.k.toFixed(0)+' Bq/kg</b>) indicates K-feldspar-rich mineralogy typical of felsic rocks.');
     if(acts.ra>50)out.push('Elevated Ra-226 (<b>'+acts.ra.toFixed(0)+' Bq/kg</b>) further contributes to the gamma dose field.');
   }else if(dom.n==='radon'){
-    out.push('<b>Dominant source: radon-222 inhalation ('+arms.radon.toFixed(2)+' mSv/yr, '+pct+'% of total)</b> — reflecting the '+lithLabel.toLowerCase()+' substrate with Ra-226 activity of <b>'+acts.ra.toFixed(0)+' Bq/kg</b>.');
+    out.push('<b>Dominant source: radon-222 inhalation ('+arms.radon.toFixed(2)+' mSv/yr, '+pct+'% of total)</b> — reflecting the '+(lithLabel||'unknown').toLowerCase()+' substrate with Ra-226 activity of <b>'+acts.ra.toFixed(0)+' Bq/kg</b>.');
     if(idx.iRn>100)out.push('Estimated indoor radon (<b>'+idx.iRn.toFixed(0)+' Bq/m³</b>) exceeds the WHO 100 Bq/m³ reference level — enhanced by favourable transport conditions.');
     else out.push('Indoor radon estimate (<b>'+idx.iRn.toFixed(0)+' Bq/m³</b>) remains below the WHO 100 Bq/m³ reference level.');
   }else{
@@ -727,7 +727,7 @@ function renderPanel(data,locName){
         <div class="c-t" style="color:${cCol}">${conf}% — ${cText}</div>
       </div>
       <div style="font-size:10px;color:var(--muted);margin-top:8px;padding:8px;background:var(--bg);border-radius:6px;line-height:1.5">
-        Geology: ${lithLabel}. Resolution: ${conf>=60?'Direct measurement':conf>=30?'Partial data, some measured':'GLiM ~1.5 km lithology prior, no direct measurements at this location.'}
+        Geology: ${lithLabel||'unknown'}. Resolution: ${conf>=60?'Direct measurement':conf>=30?'Partial data, some measured':'GLiM ~1.5 km lithology prior, no direct measurements at this location.'}
       </div>
     </div>
 
