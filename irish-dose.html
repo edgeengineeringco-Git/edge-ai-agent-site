@@ -10,6 +10,7 @@
 body{background:#0a0e1a;color:#e6ebf5;font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:13px;height:100vh;overflow:hidden}
 .app{display:flex;height:100vh}
 .map-pane{flex:1.5;position:relative;overflow:hidden}
+#map{position:absolute;top:0;left:0;width:100%;height:100%}
 .report-pane{flex:1;min-width:380px;background:#111726;overflow-y:auto;padding:20px;border-left:1px solid #243049}
 
 .basemap-toggle{position:absolute;top:12px;left:12px;z-index:10;display:flex;gap:4px;background:#0a0e1acc;padding:4px;border-radius:8px;border:1px solid #243049}
@@ -642,24 +643,14 @@ function initMap() {
     var y = e.originalEvent.clientY - rect.top;
     cursorTriangleEl.style.left = (x-24)+"px";
     cursorTriangleEl.style.top = (y-24)+"px";
-    if (!pinned) {
-      clearTimeout(hoverTimeout);
-      hoverTimeout = setTimeout(function(){ queryDose(e.lngLat.lat, e.lngLat.lng); }, 100);
-    }
   });
   map.on('mouseenter', function(){ cursorTriangleEl.style.opacity = '1'; });
   map.on('mouseleave', function(){ cursorTriangleEl.style.opacity = '0'; });
   map.on('click', function(e){
-    if (pinned) {
-      pinned = false;
-      document.getElementById("pinIndicator").style.display = "none";
-      document.getElementById("reportPane").classList.remove("pulse");
-    } else {
-      pinned = true;
-      document.getElementById("pinIndicator").style.display = "block";
-      document.getElementById("reportPane").classList.add("pulse");
-      queryDose(e.lngLat.lat, e.lngLat.lng);
-    }
+    pinned = true;
+    document.getElementById("pinIndicator").style.display = "block";
+    document.getElementById("reportPane").classList.add("pulse");
+    queryDose(e.lngLat.lat, e.lngLat.lng);
   });
 
   document.getElementById("searchBtn").addEventListener("click", doSearch);
