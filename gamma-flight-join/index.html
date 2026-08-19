@@ -79,8 +79,8 @@
 
         <div class="field-group">
           <label class="field-label" for="time_tolerance">Time-match tolerance (seconds)</label>
-          <input type="text" id="time_tolerance" name="time_tolerance" value="5" inputmode="decimal" />
-          <p class="helper">Max gap when matching a spectrum to the nearest flight-log fix.</p>
+          <input type="text" id="time_tolerance" name="time_tolerance" value="1" inputmode="decimal" />
+          <p class="helper">Max gap when matching a spectrum to the nearest flight-log fix. 1&nbsp;s suits typical 1–10&nbsp;Hz Airdata logs (≈1–5&nbsp;m position error); widen only for sparse logs.</p>
         </div>
 
         <details class="advanced">
@@ -131,9 +131,10 @@
   </main>
 
   <script>
-    // Endpoint: thepopebot upload server behind Traefik.
-    // Override at runtime with ?endpoint=... for staging/self-host.
-    const DEFAULT_ENDPOINT = "https://pbot.edgeengineers.net/gamma-join/upload-page";
+    // ── Serverless backend: Google Apps Script Web App (NO Docker/server) ──
+    // Deploy web/gas-backend.js as a Web App, then paste its /exec URL here.
+    // Override at runtime with ?endpoint=... for staging.
+    const DEFAULT_ENDPOINT = "PASTE_YOUR_GAS_WEB_APP_URL_HERE";
     const params = new URLSearchParams(location.search);
     const ENDPOINT = params.get("endpoint") || DEFAULT_ENDPOINT;
 
@@ -158,6 +159,16 @@
       statusEl.className = "status " + (kind || "");
     }
 
+    // Read a File as base64 (strip the data: prefix).
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -165,18 +176,45 @@
       if (!form.spectrogram.files.length) return setStatus("Please choose a spectrogram file.", "error");
       if (!form.flightlog.files.length) return setStatus("Please choose a flight-log CSV.", "error");
       if (!form.password.value) return setStatus("Access password is required.", "error");
+      if (!ENDPOINT || ENDPOINT.indexOf("PASTE_YOUR") !== -1)
+        return setStatus("Form receiver not configured. Set the Google Apps Script URL in the page source.", "error");
 
-      const fd = new FormData(form);
       submitBtn.disabled = true;
       setStatus("Uploading and starting the join… this can take a moment for large files.", "pending");
 
       try {
-        const resp = await fetch(ENDPOINT, { method: "POST", body: fd });
+        // Collect text fields.
+        const fields = {};
+        form.querySelectorAll("input:not([type=file]), select").forEach((el) => {
+          if (el.name) fields[el.name] = el.value;
+        });
+
+        // Encode both files as base64.
+        const files = [];
+        for (const input of [form.spectrogram, form.flightlog]) {
+          const f = input.files[0];
+          files.push({
+            name: input.name,
+            filename: f.name,
+            mimeType: f.type || "application/octet-stream",
+            size: f.size,
+            data: await fileToBase64(f),
+          });
+        }
+
+        const payload = { form_type: "gamma_flight_join", fields, files };
+
+        // text/plain avoids a CORS preflight against Apps Script.
+        const resp = await fetch(ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload),
+        });
         const data = await resp.json().catch(() => ({}));
-        if (resp.ok) {
+        if (data.ok) {
           setStatus(
-            (data.message || "Job received and processing started.") +
-              (data.job_id ? "  (Job ID: " + data.job_id + ")" : ""),
+            (data.message || "Job received.") +
+              (data.folderUrl ? "  Drive folder: " + data.folderUrl : ""),
             "success",
           );
           form.reset();
@@ -186,7 +224,7 @@
           setStatus("Upload rejected: " + (data.error || resp.status), "error");
         }
       } catch (err) {
-        setStatus("Network error: " + err.message + ". Check the endpoint and try again.", "error");
+        setStatus("Network error: " + err.message + ". Please check your connection and try again.", "error");
       } finally {
         submitBtn.disabled = false;
       }
