@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>EDGE GeoIntelligence — Gamma / Flight-Log Join Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main>
+    <div class="form-progress">
+      <span class="brand-pill"><span class="dot"></span> EDGE GeoIntelligence</span>
+      <span class="step-count" id="step-count">Airborne Gamma Survey</span>
+    </div>
+
+    <section class="card-intro">
+      <span class="tag">Spectrogram × Flight Log</span>
+      <h1>Gamma / Flight-Log Join Portal</h1>
+      <p class="subhead">
+        Upload a FORMAT&nbsp;3 gamma spectrogram and its matching Airdata flight log.
+        We time-synchronise every spectrum to precise drone position and kinematics,
+        emit a joined CSV (all channels + SI-unit flight parameters) and a dual
+        calibration report (factory Cs-check + best-fit survey). Results land in a
+        dedicated Google Drive folder named after your job.
+      </p>
+    </section>
+
+    <form id="join-form" enctype="multipart/form-data" novalidate>
+      <!-- 1. Project -->
+      <fieldset class="section" data-step="1">
+        <legend><span class="num">1.</span> Project details</legend>
+        <p class="section-desc">Identifies your run and names the output folder &amp; files.</p>
+
+        <div class="field-group">
+          <label class="field-label" for="project_name">Project name <span class="req-dot">*</span></label>
+          <input type="text" id="project_name" name="project_name" placeholder="e.g. Q12_carbonatite_survey" required />
+          <p class="helper">Used verbatim in output filenames (letters, numbers, _ and - only).</p>
+        </div>
+
+        <div class="settings-grid">
+          <div class="field-group">
+            <label class="field-label" for="client_name">Client / organisation</label>
+            <input type="text" id="client_name" name="client_name" placeholder="Optional" />
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="email">Notification email</label>
+            <input type="email" id="email" name="email" placeholder="name@example.com" />
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- 2. Input files -->
+      <fieldset class="section section--blue" data-step="2">
+        <legend><span class="num">2.</span> Input files</legend>
+        <p class="section-desc">One spectrogram text file and one Airdata flight-log CSV.</p>
+
+        <div class="field-group">
+          <label class="field-label" for="spectrogram">Gamma spectrogram (FORMAT 3, .txt) <span class="req-dot">*</span></label>
+          <label class="file-upload-label" for="spectrogram" id="spectro-label">Choose spectrogram file…</label>
+          <input type="file" id="spectrogram" name="spectrogram" accept=".txt,.spe,.dat" required hidden />
+          <p class="helper">GammaSpectacular / ImpulseQt export. First line must read <code>FORMAT: 3</code>.</p>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="flightlog">Airdata flight log (.csv) <span class="req-dot">*</span></label>
+          <label class="file-upload-label" for="flightlog" id="flight-label">Choose flight-log CSV…</label>
+          <input type="file" id="flightlog" name="flightlog" accept=".csv" required hidden />
+          <p class="helper">Must contain <code>time(millisecond)</code>, <code>datetime(utc)</code>, <code>latitude</code>, <code>longitude</code>.</p>
+        </div>
+      </fieldset>
+
+      <!-- 3. Join & calibration settings -->
+      <fieldset class="section" data-step="3">
+        <legend><span class="num">3.</span> Join &amp; calibration settings</legend>
+        <p class="section-desc">Sensible defaults are pre-filled — adjust only if you know the instrument.</p>
+
+        <div class="field-group">
+          <label class="field-label" for="time_tolerance">Time-match tolerance (seconds)</label>
+          <input type="text" id="time_tolerance" name="time_tolerance" value="5" inputmode="decimal" />
+          <p class="helper">Max gap when matching a spectrum to the nearest flight-log fix.</p>
+        </div>
+
+        <details class="advanced">
+          <summary>Advanced — factory (Cs-check) calibration coefficients</summary>
+          <p class="helper">E = a0 + a1·ch + a2·ch² + a3·ch³ &nbsp;(from the ImpulseQt calibration screen).</p>
+          <div class="settings-grid">
+            <div class="field-group">
+              <label class="field-label" for="factory_a0">a0 (offset, keV)</label>
+              <input type="text" id="factory_a0" name="factory_a0" value="0" inputmode="decimal" />
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="factory_a1">a1 (slope, keV/ch)</label>
+              <input type="text" id="factory_a1" name="factory_a1" value="0.739863" inputmode="decimal" />
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="factory_a2">a2 (keV/ch²)</label>
+              <input type="text" id="factory_a2" name="factory_a2" value="0" inputmode="decimal" />
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="factory_a3">a3 (keV/ch³)</label>
+              <input type="text" id="factory_a3" name="factory_a3" value="0" inputmode="decimal" />
+            </div>
+          </div>
+        </details>
+      </fieldset>
+
+      <!-- 4. Access -->
+      <fieldset class="section section--blue" data-step="4">
+        <legend><span class="num">4.</span> Access</legend>
+        <p class="section-desc">Enter the portal access password provided by EDGE.</p>
+        <div class="field-group">
+          <label class="field-label" for="password">Access password <span class="req-dot">*</span></label>
+          <input type="password" id="password" name="password" placeholder="••••••••" required />
+        </div>
+      </fieldset>
+
+      <div class="actions">
+        <span class="required-hint"><span class="req-dot">*</span> Required fields</span>
+        <button type="submit" class="btn-primary" id="submit-btn">Upload &amp; process</button>
+      </div>
+
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+
+      <div class="footer-note">
+        EDGE Geointelligence · info@edgeengineers.net · Results delivered to Google Drive
+      </div>
+    </form>
+  </main>
+
+  <script>
+    // Endpoint: thepopebot upload server behind Traefik.
+    // Override at runtime with ?endpoint=... for staging/self-host.
+    const DEFAULT_ENDPOINT = "https://pbot.edgeengineers.net/gamma-join/upload-page";
+    const params = new URLSearchParams(location.search);
+    const ENDPOINT = params.get("endpoint") || DEFAULT_ENDPOINT;
+
+    const form = document.getElementById("join-form");
+    const statusEl = document.getElementById("status");
+    const submitBtn = document.getElementById("submit-btn");
+
+    // File-picker labels reflect chosen filenames.
+    function wireFileLabel(inputId, labelId, fallback) {
+      const input = document.getElementById(inputId);
+      const label = document.getElementById(labelId);
+      input.addEventListener("change", () => {
+        label.textContent = input.files.length ? input.files[0].name : fallback;
+        label.classList.toggle("has-file", input.files.length > 0);
+      });
+    }
+    wireFileLabel("spectrogram", "spectro-label", "Choose spectrogram file…");
+    wireFileLabel("flightlog", "flight-label", "Choose flight-log CSV…");
+
+    function setStatus(msg, kind) {
+      statusEl.textContent = msg;
+      statusEl.className = "status " + (kind || "");
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (!form.project_name.value.trim()) return setStatus("Project name is required.", "error");
+      if (!form.spectrogram.files.length) return setStatus("Please choose a spectrogram file.", "error");
+      if (!form.flightlog.files.length) return setStatus("Please choose a flight-log CSV.", "error");
+      if (!form.password.value) return setStatus("Access password is required.", "error");
+
+      const fd = new FormData(form);
+      submitBtn.disabled = true;
+      setStatus("Uploading and starting the join… this can take a moment for large files.", "pending");
+
+      try {
+        const resp = await fetch(ENDPOINT, { method: "POST", body: fd });
+        const data = await resp.json().catch(() => ({}));
+        if (resp.ok) {
+          setStatus(
+            (data.message || "Job received and processing started.") +
+              (data.job_id ? "  (Job ID: " + data.job_id + ")" : ""),
+            "success",
+          );
+          form.reset();
+          document.getElementById("spectro-label").textContent = "Choose spectrogram file…";
+          document.getElementById("flight-label").textContent = "Choose flight-log CSV…";
+        } else {
+          setStatus("Upload rejected: " + (data.error || resp.status), "error");
+        }
+      } catch (err) {
+        setStatus("Network error: " + err.message + ". Check the endpoint and try again.", "error");
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
