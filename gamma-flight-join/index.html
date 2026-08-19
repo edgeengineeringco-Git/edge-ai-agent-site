@@ -131,10 +131,8 @@
   </main>
 
   <script>
-    // ── Serverless backend: Google Apps Script Web App (NO Docker/server) ──
-    // Deploy web/gas-backend.js as a Web App, then paste its /exec URL here.
-    // Override at runtime with ?endpoint=... for staging.
-    const DEFAULT_ENDPOINT = "https://script.google.com/macros/s/AKfycbzHhkFBX4XxQuDaOhTqUaG-JBYU6ORTMWp8vG4A4wP2cPNBbdzbPisvAyMHmgz9_jN8eg/exec";
+    // ── Direct to upload server — inputs saved to disk, never Drive ──
+    const DEFAULT_ENDPOINT = "https://pbot.edgeengineers.net/api/gamma-join/upload";
     const params = new URLSearchParams(location.search);
     const ENDPOINT = params.get("endpoint") || DEFAULT_ENDPOINT;
 
@@ -183,32 +181,23 @@
       setStatus("Uploading and starting the join… this can take a moment for large files.", "pending");
 
       try {
-        // Collect text fields.
-        const fields = {};
-        form.querySelectorAll("input:not([type=file]), select").forEach((el) => {
-          if (el.name) fields[el.name] = el.value;
-        });
+        // Build multipart/form-data (upload server expects this, not JSON+base64)
+        const formData = new FormData();
+        formData.append("project_name", form.project_name.value);
+        formData.append("client_name", form.client_name.value || "");
+        formData.append("email", form.email.value || "");
+        formData.append("time_tolerance", form.time_tolerance.value || "1");
+        formData.append("factory_a0", form.factory_a0.value || "0");
+        formData.append("factory_a1", form.factory_a1.value || "0.739863");
+        formData.append("factory_a2", form.factory_a2.value || "0");
+        formData.append("factory_a3", form.factory_a3.value || "0");
+        formData.append("password", form.password.value);
+        formData.append("spectrogram", form.spectrogram.files[0]);
+        formData.append("flightlog", form.flightlog.files[0]);
 
-        // Encode both files as base64.
-        const files = [];
-        for (const input of [form.spectrogram, form.flightlog]) {
-          const f = input.files[0];
-          files.push({
-            name: input.name,
-            filename: f.name,
-            mimeType: f.type || "application/octet-stream",
-            size: f.size,
-            data: await fileToBase64(f),
-          });
-        }
-
-        const payload = { form_type: "gamma_flight_join", fields, files };
-
-        // text/plain avoids a CORS preflight against Apps Script.
         const resp = await fetch(ENDPOINT, {
           method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload),
+          body: formData,
         });
         const data = await resp.json().catch(() => ({}));
         if (data.ok) {
