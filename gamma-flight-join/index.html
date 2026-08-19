@@ -134,7 +134,7 @@
     // ── Serverless backend: Google Apps Script Web App (NO Docker/server) ──
     // Deploy web/gas-backend.js as a Web App, then paste its /exec URL here.
     // Override at runtime with ?endpoint=... for staging.
-    const DEFAULT_ENDPOINT = "https://script.google.com/macros/s/AKfycbzHhkFBX4XxQuDaOhTqUaG-JBYU6ORTMWp8vG4A4wP2cPNBbdzbPisvAyMHmgz9_jN8eg/exec";
+    const DEFAULT_ENDPOINT = "https://script.google.com/macros/s/AKfycbzHMGsNH5SCXLhA6VrByK9vykDG7ezNfVVO9YqJTkEWKy4JArFtEuBc2BGAHVtDZxNwrg/exec";
     const params = new URLSearchParams(location.search);
     const ENDPOINT = params.get("endpoint") || DEFAULT_ENDPOINT;
 
