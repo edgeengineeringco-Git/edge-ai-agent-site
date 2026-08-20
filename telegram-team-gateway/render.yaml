@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: edge-team-telegram-gateway
+    runtime: docker
+    dockerfilePath: ./telegram-team-gateway/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: TEAM_TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: PORT
+        value: "8090"
