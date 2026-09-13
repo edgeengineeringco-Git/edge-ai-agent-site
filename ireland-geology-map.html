@@ -36,6 +36,18 @@
     #panel td.k { font-weight: 600; white-space: nowrap; padding-right: 8px; color: #333; }
     .hint { color: #777; font-style: italic; }
     .err { color: #b00; }
+    .sw { display: inline-block; width: 12px; height: 12px; border: 1px solid #555; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+
+    #legend {
+      position: absolute; top: 10px; right: 10px; z-index: 1000;
+      background: rgba(255,255,255,0.95); padding: 10px 12px; border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25); font-size: 12px; max-height: 70%; overflow: auto;
+      display: none; max-width: 230px;
+    }
+    #legend b { font-size: 13px; display: block; margin-bottom: 4px; }
+    .lg-row { display: flex; align-items: center; gap: 7px; margin-top: 5px; }
+    .lg-sw { width: 14px; height: 14px; border: 1px solid #555; border-radius: 3px; flex: 0 0 auto; }
+
     #loader {
       position: absolute; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center;
       background: #0d1117; color: #c9d1d9; font-size: 15px; text-align: center; padding: 20px;
@@ -65,6 +77,8 @@
     <div id="status">Loading geology data…</div>
   </div>
 
+  <div id="legend"></div>
+
   <div id="panel">
     <h2>📍 Details</h2>
     <p class="hint">Click a point on the map to inspect coordinates and bedrock geology.</p>
@@ -90,6 +104,60 @@
     const IRELAND_CENTER = [53.4, -8.0];
     const IRELAND_ZOOM = 7;
     const IRELAND_BOUNDS = [[51.4, -11.0], [55.6, -5.3]];
+
+    // =====================================================================
+    // GEOLOGICAL COLOR SCHEME
+    // GSI 100K unit names are lithology-based (not age-based), so we classify
+    // each unit by rock type / age from its name + description, then colour it
+    // with a standard geological palette. Irish limestones are Carboniferous.
+    // =====================================================================
+    const GEO_CLASSES = [
+      { key: "quaternary", label: "Quaternary / Drift",      color: "#f3e8a0" },
+      { key: "carboniferous", label: "Carboniferous (limestone)", color: "#aebcc9" },
+      { key: "devonian",    label: "Devonian",               color: "#c2a878" },
+      { key: "silurian",    label: "Silurian",               color: "#9ccfe0" },
+      { key: "ordovician",  label: "Ordovician",             color: "#76c4a8" },
+      { key: "cambrian",    label: "Cambrian",               color: "#b6e0a0" },
+      { key: "cretaceous",  label: "Cretaceous",             color: "#9ac464" },
+      { key: "triassic",    label: "Triassic / Permian",     color: "#a78cf0" },
+      { key: "metamorphic", label: "Metamorphic",            color: "#d98cb3" },
+      { key: "intrusive",   label: "Igneous — Intrusive",    color: "#e8954a" },
+      { key: "volcanic",    label: "Igneous — Volcanic",     color: "#cf4520" },
+      { key: "sedimentary", label: "Sedimentary (clastic, undivided)", color: "#e3d6a0" },
+      { key: "other",       label: "Other / undivided",      color: "#cdbf9e" },
+    ];
+    const GEO_COLOR = Object.fromEntries(GEO_CLASSES.map((c) => [c.key, c.color]));
+    const EARTH_TONES = ["#cdbf9e","#c9b48f","#b9a07c","#a8b0a0","#bcc6b0","#c8b89c","#bfae8e","#cad2c0","#c2b9a0","#b0a890","#c6b8a0","#b8c0a8"];
+
+    function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
+
+    function classify(p) {
+      const t = ((p.UNIT_NAME || "") + " " + (p.DESCRIPT || "") + " " + (p.STRATCODE || "")).toLowerCase();
+      if (/quaternary|glacial|drift|till|esker|alluv|peat|bog|holocene|pleistocene/.test(t)) return "quaternary";
+      if (/cretaceous/.test(t)) return "cretaceous";
+      if (/carboniferous|visean|tournaisian|namurian|westphalian|dinantian|waulsortian|lower limestone|calp/.test(t)) return "carboniferous";
+      if (/devonian|old red sandstone|\bors\b/.test(t)) return "devonian";
+      if (/silurian/.test(t)) return "silurian";
+      if (/ordovician|arenig|llanvirn|caradoc|ashgill|tremadoc/.test(t)) return "ordovician";
+      if (/cambrian/.test(t)) return "cambrian";
+      if (/triassic|permian|permo|mercia|sherwood|keuper|bunter/.test(t)) return "triassic";
+      if (/basalt|andesite|rhyolite|trachyte|dacite|ignimbrite|volcan|tuff|agglomerate|lava|extrusive|pyroclastic|hawaiite/.test(t)) return "volcanic";
+      if (/granite|granodiorite|adamellite|syenite|diorite|tonalite|tonalitic|aplite|pegmatite|microgranite|porphyry|felsite|quartz[\s-]?porphyry|granitic/.test(t)) return "intrusive";
+      if (/schist|gneiss|migmatite|amphibolite|marble|quartzite|metadolerite|metabasite|metagabbro|slate|phyllite|psammite|pelite|paragneiss|metasediment|metamorphic|dalradian|moine|slishwood|kinrovar|ox mountains|annagh|inishkea|rhinns/.test(t)) return "metamorphic";
+      if (/limestone|dolomite|oolite|oolitic|micrite|chert|calcareous/.test(t)) return "carboniferous"; // Irish limestones are Carboniferous
+      if (/sandstone|shale|mudstone|conglomerate|grit|flagstone|siltstone|clay|arenite|greywacke|graywacke/.test(t)) return "sedimentary";
+      return "other";
+    }
+    function classColor(p) {
+      const k = classify(p);
+      if (k !== "other") return GEO_COLOR[k] || "#cdbf9e";
+      return EARTH_TONES[hashStr(p.STRATCODE || p.UNIT_NAME || "") % EARTH_TONES.length];
+    }
+    function classLabel(p) {
+      const k = classify(p);
+      if (k === "other") return "Other / undivided";
+      return (GEO_CLASSES.find((c) => c.key === k) || {}).label || k;
+    }
 
     // =====================================================================
     // MAP
@@ -128,10 +196,25 @@
       }
       geologyFeatures = fc.features || [];
       geologyLayer = L.geoJSON(fc, {
-        style: () => ({ color: "#3358ff", weight: 0.5, fillColor: "#4f7bff", fillOpacity: 0.4 }),
+        style: (feature) => ({
+          color: "#3a3a3a", weight: 0.5, opacity: 0.6,
+          fillColor: classColor(feature.properties),
+          fillOpacity: 0.6,
+        }),
       });
       toggle.disabled = false;
       statusEl.textContent = `Geology loaded (${geologyFeatures.length} units). Toggle on, then click a point.`;
+
+      // Build legend from classes actually present in the data
+      const present = new Set(geologyFeatures.map((f) => classify(f.properties)));
+      const legend = document.getElementById("legend");
+      legend.innerHTML =
+        "<b>Geology (rock type)</b>" +
+        GEO_CLASSES.filter((c) => present.has(c.key))
+          .map((c) => `<div class="lg-row"><span class="lg-sw" style="background:${c.color}"></span>${esc(c.label)}</div>`)
+          .join("");
+      legend.style.display = "block";
+
       loader.style.display = "none";
     }
 
@@ -191,6 +274,8 @@
         panel.innerHTML = head + `<p class="hint">No bedrock geology polygon at this point (possibly offshore or outside the dataset).</p>`;
         return;
       }
+      const cls = classColor(found);
+      const clsRow = `<tr><td class="k">Geology</td><td><span class="sw" style="background:${cls}"></span>${esc(classLabel(found))}</td></tr>`;
       const rows = [
         ["Unit Name", found.UNIT_NAME],
         ["Description", found.DESCRIPT],
@@ -201,7 +286,7 @@
         .filter(([, v]) => v !== null && v !== undefined && v !== "")
         .map(([k, v]) => `<tr><td class="k">${esc(k)}</td><td>${esc(v)}</td></tr>`)
         .join("");
-      panel.innerHTML = head + `<table>${rows}</table>`;
+      panel.innerHTML = head + clsRow + `<table>${rows}</table>`;
     }
     function esc(s) {
       return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
