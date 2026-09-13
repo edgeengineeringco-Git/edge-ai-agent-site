@@ -8,42 +8,55 @@
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
   />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
     html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
     #map { position: absolute; inset: 0; }
 
-    .panelbox {
-      position: absolute; z-index: 1000;
-      background: rgba(255,255,255,0.96); padding: 10px 12px; border-radius: 8px;
+    #topbar {
+      position: absolute; top: 10px; left: 10px; z-index: 1000;
+      background: rgba(255,255,255,0.95); padding: 10px 12px; border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.25); max-width: 330px;
     }
-    #topbar { top: 10px; left: 10px; }
     #topbar h1 { font-size: 15px; margin: 0 0 8px; }
     #topbar label { font-size: 13px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
     #status { font-size: 12px; color: #555; margin-top: 6px; }
 
-    #panel { bottom: 10px; left: 10px; width: 320px; max-height: 55%; overflow: auto; font-size: 13px; line-height: 1.45; }
+    #panel {
+      position: absolute; bottom: 10px; left: 10px; z-index: 1000;
+      background: rgba(255,255,255,0.97); padding: 12px 14px; border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25); width: 320px; max-height: 55%; overflow: auto;
+      font-size: 13px; line-height: 1.45;
+    }
     #panel h2 { font-size: 14px; margin: 0 0 8px; }
     #panel table { width: 100%; border-collapse: collapse; }
     #panel td { padding: 2px 4px; vertical-align: top; }
     #panel td.k { font-weight: 600; white-space: nowrap; padding-right: 8px; color: #333; }
     .hint { color: #777; font-style: italic; }
-    .src { font-size: 11px; color: #888; margin-top: 8px; }
+    .err { color: #b00; }
+    #loader {
+      position: absolute; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center;
+      background: #0d1117; color: #c9d1d9; font-size: 15px; text-align: center; padding: 20px;
+    }
+    .bar { width: 240px; height: 6px; background: #30363d; border-radius: 4px; margin-top: 12px; overflow: hidden; }
+    .bar > div { height: 100%; width: 40%; background: #2f81f7; animation: slide 1.1s infinite; }
+    @keyframes slide { 0% { margin-left: -40%; } 100% { margin-left: 100%; } }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
-  <div id="topbar" class="panelbox">
+  <div id="loader">
+    <div>
+      <div style="font-size:38px">🛰️</div>
+      <div>Loading 100K bedrock geology…</div>
+      <div class="bar"><div></div></div>
+    </div>
+  </div>
+
+  <div id="topbar">
     <h1>🛰️ Ireland — Satellite + 100K Geology</h1>
     <label>
       <input type="checkbox" id="toggleGeology" disabled />
@@ -52,33 +65,31 @@
     <div id="status">Loading geology data…</div>
   </div>
 
-  <div id="panel" class="panelbox">
+  <div id="panel">
     <h2>📍 Details</h2>
     <p class="hint">Click a point on the map to inspect coordinates and bedrock geology.</p>
-    <div class="src">Basemap: Esri World Imagery. Geology: GSI Bedrock Geology 1:100,000 (CC-BY 4.0), reprojected to WGS84.</div>
   </div>
 
   <script>
     // =====================================================================
-    // CONFIG
+    // CONFIG  — geology data is hosted in THIS repo (same origin on GitHub
+    // Pages / raw), so there are NO CORS issues. A raw-URL fallback is used
+    // in case the page is opened from a different context.
     // =====================================================================
-    // GSI Bedrock Geology 1:100,000, reprojected to WGS84, simplified.
-    // Hosted in this repo (same origin) so there are NO CORS issues.
-    // Try the repo-relative path first, then the canonical raw GitHub URL
-    // so the page works whether served by Pages or opened via raw.
     const GEOLOGY_URLS = [
       "./data/geology-100k.geojson",
-      "https://raw.githubusercontent.com/edgeengineeringco-Git/edge-ai-agent-site/main/data/geology-100k.geojson",
+      "https://raw.githubusercontent.com/edgeengineeringco-Git/edge-ai-agent-site/main/data/geology-100k.geojson"
     ];
 
     const SATELLITE_URL =
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
     const SATELLITE_ATTR =
       "Imagery &copy; Esri, Maxar, Earthstar Geographics, and the GIS User Community";
+    const GEOLOGY_ATTR = "Bedrock Geology &copy; GSI (CC-BY-4.0)";
 
     const IRELAND_CENTER = [53.4, -8.0];
     const IRELAND_ZOOM = 7;
-    const IRELAND_BOUNDS = [[51.3, -11.2], [55.7, -5.2]];
+    const IRELAND_BOUNDS = [[51.4, -11.0], [55.6, -5.3]];
 
     // =====================================================================
     // MAP
@@ -90,25 +101,15 @@
       maxBoundsViscosity: 0.7,
       preferCanvas: true,
     });
-
     L.tileLayer(SATELLITE_URL, { maxZoom: 18, attribution: SATELLITE_ATTR }).addTo(map);
 
     const panel = document.getElementById("panel");
     const statusEl = document.getElementById("status");
     const toggle = document.getElementById("toggleGeology");
+    const loader = document.getElementById("loader");
 
-    // =====================================================================
-    // LOAD GEOLOGY (try each URL until one works)
-    // =====================================================================
     let geologyLayer = null;
     let geologyFeatures = [];
-
-    function unitColor(props) {
-      const s = props.STRATCODE || props.NEWCODE || props.UNIT_NAME || "";
-      let h = 0;
-      for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360;
-      return `hsl(${h}, 58%, 55%)`;
-    }
 
     async function loadGeology() {
       let fc = null, lastErr = null;
@@ -118,25 +119,20 @@
           if (!res.ok) throw new Error("HTTP " + res.status);
           fc = await res.json();
           break;
-        } catch (err) {
-          lastErr = err;
-        }
+        } catch (e) { lastErr = e; }
       }
       if (!fc) {
-        statusEl.textContent = "Failed to load geology data: " + (lastErr ? lastErr.message : "unknown");
+        loader.innerHTML = '<div class="err">Could not load geology data.<br>' + esc(lastErr ? lastErr.message : "unknown error") + "</div>";
+        statusEl.textContent = "Failed to load geology data.";
         return;
       }
-
       geologyFeatures = fc.features || [];
       geologyLayer = L.geoJSON(fc, {
-        style: (f) => {
-          const c = unitColor(f.properties || {});
-          return { color: c, weight: 0.5, fillColor: c, fillOpacity: 0.45 };
-        },
+        style: () => ({ color: "#3358ff", weight: 0.5, fillColor: "#4f7bff", fillOpacity: 0.4 }),
       });
-
       toggle.disabled = false;
       statusEl.textContent = `Geology loaded (${geologyFeatures.length} units). Toggle on, then click a point.`;
+      loader.style.display = "none";
     }
 
     toggle.addEventListener("change", () => {
@@ -154,8 +150,7 @@
     // CLICK → point-in-polygon lookup (client-side, no network)
     // =====================================================================
     map.on("click", (e) => {
-      const lat = e.latlng.lat;
-      const lon = e.latlng.lng;
+      const lat = e.latlng.lat, lon = e.latlng.lng;
       const found = findGeology(lat, lon);
       renderDetails(lat, lon, found);
     });
@@ -165,21 +160,15 @@
       for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
         const xi = ring[i][0], yi = ring[i][1];
         const xj = ring[j][0], yj = ring[j][1];
-        const intersect =
-          (yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
-        if (intersect) inside = !inside;
+        if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
       }
       return inside;
     }
-
     function pointInPolygon(poly, x, y) {
       if (!pointInRing(poly[0], x, y)) return false;
-      for (let h = 1; h < poly.length; h++) {
-        if (pointInRing(poly[h], x, y)) return false; // inside a hole
-      }
+      for (let h = 1; h < poly.length; h++) if (pointInRing(poly[h], x, y)) return false;
       return true;
     }
-
     function findGeology(lat, lon) {
       if (!geologyFeatures.length) return { error: "Geology data not loaded yet." };
       for (const f of geologyFeatures) {
@@ -187,31 +176,21 @@
         if (g.type === "Polygon") {
           if (pointInPolygon(g.coordinates, lon, lat)) return f.properties;
         } else if (g.type === "MultiPolygon") {
-          for (const poly of g.coordinates) {
-            if (pointInPolygon(poly, lon, lat)) return f.properties;
-          }
+          for (const poly of g.coordinates) if (pointInPolygon(poly, lon, lat)) return f.properties;
         }
       }
       return null;
     }
-
     function renderDetails(lat, lon, found) {
       const head =
-        `<h2>📍 Details</h2>` +
-        `<table>` +
+        `<h2>📍 Details</h2><table>` +
         `<tr><td class="k">Latitude</td><td>${lat.toFixed(5)}</td></tr>` +
-        `<tr><td class="k">Longitude</td><td>${lon.toFixed(5)}</td></tr>` +
-        `</table>`;
-
-      if (found && found.error) {
-        panel.innerHTML = head + `<p class="hint">${esc(found.error)}</p>`;
-        return;
-      }
+        `<tr><td class="k">Longitude</td><td>${lon.toFixed(5)}</td></tr></table>`;
+      if (found && found.error) { panel.innerHTML = head + `<p class="err">${esc(found.error)}</p>`; return; }
       if (!found) {
-        panel.innerHTML = head + `<p class="hint">No bedrock geology polygon at this point (offshore or outside the dataset).</p>`;
+        panel.innerHTML = head + `<p class="hint">No bedrock geology polygon at this point (possibly offshore or outside the dataset).</p>`;
         return;
       }
-
       const rows = [
         ["Unit Name", found.UNIT_NAME],
         ["Description", found.DESCRIPT],
@@ -222,14 +201,10 @@
         .filter(([, v]) => v !== null && v !== undefined && v !== "")
         .map(([k, v]) => `<tr><td class="k">${esc(k)}</td><td>${esc(v)}</td></tr>`)
         .join("");
-
       panel.innerHTML = head + `<table>${rows}</table>`;
     }
-
     function esc(s) {
-      return String(s).replace(/[&<>"]/g, (c) =>
-        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])
-      );
+      return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
     }
 
     loadGeology();
