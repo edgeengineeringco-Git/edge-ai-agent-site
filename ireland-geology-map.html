@@ -265,7 +265,7 @@
     // RADIOMETRIC LAYERS (airborne γ — GSI/GSNI Tellus, 50 m, ITM)
     // 4 sub-layers: total γ dose rate, eU, eTh, K. Hosted same-origin.
     // =====================================================================
-    const RADIO_BBOX = [[51.4074, -10.4022], [55.3615, -5.3740]];   // WGS84 [SW, NE] — exact GXF extent
+    const RADIO_BBOX = [[51.40150649724565, -10.402227235057088], [55.36150649724565, -5.362227235057088]];   // WGS84 [SW, NE] — exact sampled pixel-center extent
     const RADIO = [
       { id: "rDose", url: "./data/radiometrics/radio_dose.png", name: "Total γ dose rate" },
       { id: "rU",    url: "./data/radiometrics/radio_eU.png",   name: "Equivalent Uranium (ppm)" },
@@ -310,7 +310,11 @@
       try {
         const m = await fetch("./data/radiometrics/meta.json").then((r) => r.json());
         const b = await fetch("./data/radiometrics/values.bin").then((r) => r.arrayBuffer());
-        RAD_META = m; RAD_VALS = new Float32Array(b); RAD_LEN = m.size[0] * m.size[1];
+        RAD_META = m;
+        const [bLAT0, bLON0, bLAT1, bLON1] = m.bbox, [bOW, bOH] = m.size, bRES = m.res;
+        const bb = [[bLAT1 - bOH * bRES, bLON0], [bLAT1, bLON0 + bOW * bRES]];
+        for (const id in radioLayers) radioLayers[id].setBounds(bb);
+        RAD_VALS = new Float32Array(b); RAD_LEN = m.size[0] * m.size[1];
       } catch (e) { console.warn("radiometric values load failed", e); }
     }
     const tip = document.getElementById("radioTip");
