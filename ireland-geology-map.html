@@ -106,7 +106,7 @@
         <label><input type="checkbox" class="rsub" id="rU" /> Equivalent Uranium — eU (ppm)</label>
         <label><input type="checkbox" class="rsub" id="rTh" /> Equivalent Thorium — eTh (ppm)</label>
         <label><input type="checkbox" class="rsub" id="rK" /> Potassium — K (%)</label>
-        <div class="hint" style="margin-top:3px">Hotter colour = higher value. Move the mouse over Ireland to read K / eU / eTh / dose at any point.</div>
+        <div class="hint" style="margin-top:3px">Each layer uses its own colour ramp (K = green, eU = blue, eTh = purple, dose = green→red; brighter = higher). Click anywhere in Ireland for a full radiometric report.</div>
       </div>
     </div>
   </div>
@@ -278,14 +278,18 @@
       { id: "rDose", band: 3, name: "Total γ dose rate",         unit: "nGy/h" },
     ];
 
-    // Viridis-style 5-stop colour ramp used to colour each raster overlay.
-    const RAMP = [
-      [49, 54, 149], [69, 117, 180], [171, 221, 164], [253, 174, 97], [215, 48, 39],
-    ];
-    function ramp(t) {
+    // Per-sub-layer colour ramps (low → high). K = green, eU = blue,
+    // eTh = purple, dose = green → red. Each is a 5-stop gradient.
+    const RAMPS = {
+      rK:    [[237,248,233],[186,228,179],[116,196,118],[35,139,69],[0,68,27]],   // Greens
+      rU:    [[222,235,247],[158,202,225],[95,158,209],[43,110,178],[8,48,107]],   // Blues
+      rTh:   [[239,237,245],[189,201,225],[135,146,201],[84,62,160],[63,0,125]],   // Purples
+      rDose: [[26,150,65],[102,189,99],[217,213,109],[244,142,56],[197,22,22]],    // Green → Red
+    };
+    function ramp(stops, t) {
       if (t < 0) t = 0; else if (t > 1) t = 1;
-      const x = t * (RAMP.length - 1), i = Math.floor(x), f = x - i;
-      const a = RAMP[i], b = RAMP[Math.min(i + 1, RAMP.length - 1)];
+      const x = t * (stops.length - 1), i = Math.floor(x), f = x - i;
+      const a = stops[i], b = stops[Math.min(i + 1, stops.length - 1)];
       return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
     }
 
@@ -330,7 +334,7 @@
         for (let i = 0; i < RAD_NL; i++) {
           const v = RAD_VALS[base + i], o = i * 4;
           if (!isFinite(v)) { img.data[o + 3] = 0; continue; }
-          const [rr, gg, bb2] = ramp((v - p1) / span);
+          const [rr, gg, bb2] = ramp(RAMPS[r.id], (v - p1) / span);
           img.data[o] = rr; img.data[o + 1] = gg; img.data[o + 2] = bb2; img.data[o + 3] = 170;
         }
         ctx.putImageData(img, 0, 0);
@@ -415,22 +419,32 @@
         showRadioReadout();
         return;
       }
+      const thU = (isFinite(s.eTh) && isFinite(s.eU) && s.eU > 0) ? s.eTh / s.eU : NaN;
+      const thUtxt = isFinite(thU) ? thU.toFixed(2) : "—";
       radioReadout.innerHTML =
-        '<div class="rr-title">📡 Radiometrics @ ' + lat.toFixed(4) + ", " + lon.toFixed(4) + "</div>" +
+        '<div class="rr-title">📡 Radiometric Report @ ' + lat.toFixed(4) + ", " + lon.toFixed(4) + "</div>" +
         '<div class="rr-grid">' +
           '<div class="rr-cell"><span class="rr-l">K</span><span class="rr-v">' + fmt(s.K, "%") + "</span></div>" +
           '<div class="rr-cell"><span class="rr-l">eU</span><span class="rr-v">' + fmt(s.eU, "ppm") + "</span></div>" +
           '<div class="rr-cell"><span class="rr-l">eTh</span><span class="rr-v">' + fmt(s.eTh, "ppm") + "</span></div>" +
           '<div class="rr-cell"><span class="rr-l">Dose</span><span class="rr-v">' + fmt(s.dose, "nGy/h") + "</span></div>" +
-        "</div>";
+        "</div>" +
+        '<div class="rr-hint">Th/U ratio: ' + thUtxt + " &nbsp;·&nbsp; higher = more thorium-rich / weathered</div>";
       showRadioReadout();
     }
 
     map.on("click", (e) => {
       const lat = e.latlng.lat, lon = e.latlng.lng;
-      const found = findGeology(lat, lon);
-      renderDetails(lat, lon, found);
-      updateRadioReadout(lat, lon);
+      // The radiometric report is independent of the geology lookup, so show
+      // it FIRST and never let a geology error suppress it.
+      try { updateRadioReadout(lat, lon); } catch (err) { console.warn("radio readout failed", err); }
+      try {
+        const found = findGeology(lat, lon);
+        renderDetails(lat, lon, found);
+      } catch (err) {
+        panel.innerHTML = '<h2>📍 Details</h2><p class="err">Geology lookup error: ' +
+          esc(String((err && err.message) || err)) + '</p>';
+      }
     });
 
     loadRadioData();
