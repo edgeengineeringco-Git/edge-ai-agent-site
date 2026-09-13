@@ -55,6 +55,11 @@
     .bar { width: 240px; height: 6px; background: #30363d; border-radius: 4px; margin-top: 12px; overflow: hidden; }
     .bar > div { height: 100%; width: 40%; background: #2f81f7; animation: slide 1.1s infinite; }
     @keyframes slide { 0% { margin-left: -40%; } 100% { margin-left: 100%; } }
+    #radioTip {
+      position: fixed; display: none; pointer-events: none; z-index: 1400;
+      background: rgba(20,20,20,0.88); color: #fff; padding: 7px 10px; border-radius: 7px;
+      font-size: 12px; line-height: 1.5; white-space: nowrap; box-shadow: 0 3px 10px rgba(0,0,0,.45);
+    }
   </style>
 </head>
 <body>
@@ -87,7 +92,7 @@
         <label><input type="checkbox" class="rsub" id="rU" /> Equivalent Uranium — eU (ppm)</label>
         <label><input type="checkbox" class="rsub" id="rTh" /> Equivalent Thorium — eTh (ppm)</label>
         <label><input type="checkbox" class="rsub" id="rK" /> Potassium — K (%)</label>
-        <div class="hint" style="margin-top:3px">Hotter colour = higher value. Toggle sub-layers to compare.</div>
+        <div class="hint" style="margin-top:3px">Hotter colour = higher value. Move the mouse over Ireland to read K / eU / eTh / dose at any point.</div>
       </div>
     </div>
   </div>
@@ -248,7 +253,7 @@
     // RADIOMETRIC LAYERS (airborne γ — GSI/GSNI Tellus, 50 m, ITM)
     // 4 sub-layers: total γ dose rate, eU, eTh, K. Hosted same-origin.
     // =====================================================================
-    const RADIO_BBOX = [[51.3, -11.2], [55.8, -5.1]];   // WGS84 [SW, NE]
+    const RADIO_BBOX = [[51.4074, -10.4022], [55.3615, -5.3740]];   // WGS84 [SW, NE] — exact GXF extent
     const RADIO = [
       { id: "rDose", url: "./data/radiometrics/radio_dose.png", name: "Total γ dose rate" },
       { id: "rU",    url: "./data/radiometrics/radio_eU.png",   name: "Equivalent Uranium (ppm)" },
@@ -286,6 +291,35 @@
     RADIO.forEach((r) => {
       document.getElementById(r.id).addEventListener("change", syncRadio);
     });
+
+    // ---- Hover tooltip: read raw K / eU / eTh / dose at the cursor ----
+    let RAD_META = null, RAD_VALS = null, RAD_LEN = 0;
+    async function loadRadioData() {
+      try {
+        const m = await fetch("./data/radiometrics/meta.json").then((r) => r.json());
+        const b = await fetch("./data/radiometrics/values.bin").then((r) => r.arrayBuffer());
+        RAD_META = m; RAD_VALS = new Float32Array(b); RAD_LEN = m.size[0] * m.size[1];
+      } catch (e) { console.warn("radiometric values load failed", e); }
+    }
+    const tip = document.getElementById("radioTip");
+    function fmt(v, u) { return (isFinite(v) ? v.toFixed(v < 10 ? 3 : 1) : "—") + " " + u; }
+    map.on("mousemove", (e) => {
+      if (!toggleRadio.checked || !RAD_VALS) { tip.style.display = "none"; return; }
+      const [LAT0, LON0, LAT1, LON1] = RAD_META.bbox, [OW, OH] = RAD_META.size, RES = RAD_META.res;
+      const occ = Math.floor((e.latlng.lng - LON0) / RES), orc = Math.floor((LAT1 - e.latlng.lat) / RES);
+      if (occ < 0 || occ >= OW || orc < 0 || orc >= OH) { tip.style.display = "none"; return; }
+      const ci = orc * OW + occ;
+      const k = RAD_VALS[ci], u = RAD_VALS[RAD_LEN + ci], th = RAD_VALS[2 * RAD_LEN + ci], d = RAD_VALS[3 * RAD_LEN + ci];
+      if (!(isFinite(k) || isFinite(u) || isFinite(th) || isFinite(d))) { tip.style.display = "none"; return; }
+      tip.innerHTML = "<b>📡 Radiometrics</b><br>" +
+        "K: " + fmt(k, "%") + "<br>eU: " + fmt(u, "ppm") + "<br>eTh: " + fmt(th, "ppm") + "<br>Dose: " + fmt(d, "nGy/h");
+      tip.style.display = "block";
+      const ev = e.originalEvent;
+      tip.style.left = (ev.clientX + 14) + "px";
+      tip.style.top = (ev.clientY + 14) + "px";
+    });
+    map.on("mouseout", () => { tip.style.display = "none"; });
+    loadRadioData();
 
     // =====================================================================
     // CLICK → point-in-polygon lookup (client-side, no network)
@@ -352,5 +386,6 @@
 
     loadGeology();
   </script>
+  <div id="radioTip"></div>
 </body>
 </html>
