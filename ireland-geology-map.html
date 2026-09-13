@@ -356,7 +356,7 @@
       const fmt = (v, u) => isFinite(v) ? v.toFixed(v < 10 ? 3 : 1) + " " + u : "—";
       radioReadout.innerHTML =
         '<div class="rr-title">📡 Radiometrics @ ' + lat.toFixed(4) + ", " + lon.toFixed(4) + "</div>" +
-        '<div class="rr-grid">" +
+        '<div class="rr-grid">' +
           '<div class="rr-cell"><span class="rr-l">K</span><span class="rr-v">' + fmt(k, "%") + "</span></div>" +
           '<div class="rr-cell"><span class="rr-l">eU</span><span class="rr-v">' + fmt(u, "ppm") + "</span></div>" +
           '<div class="rr-cell"><span class="rr-l">eTh</span><span class="rr-v">' + fmt(th, "ppm") + "</span></div>" +
