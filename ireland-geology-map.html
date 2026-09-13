@@ -75,6 +75,21 @@
       Show 100K Bedrock Geology
     </label>
     <div id="status">Loading geology data…</div>
+
+    <div id="radioSec">
+      <h1 style="font-size:14px;margin:10px 0 4px">📡 Radiometrics (airborne γ)</h1>
+      <label>
+        <input type="checkbox" id="toggleRadio" />
+        Show radiometric layers
+      </label>
+      <div id="radioSub" style="margin-left:14px;display:none">
+        <label><input type="checkbox" class="rsub" id="rDose" checked /> Total γ dose rate (nGy/h)</label>
+        <label><input type="checkbox" class="rsub" id="rU" /> Equivalent Uranium — eU (ppm)</label>
+        <label><input type="checkbox" class="rsub" id="rTh" /> Equivalent Thorium — eTh (ppm)</label>
+        <label><input type="checkbox" class="rsub" id="rK" /> Potassium — K (%)</label>
+        <div class="hint" style="margin-top:3px">Hotter colour = higher value. Toggle sub-layers to compare.</div>
+      </div>
+    </div>
   </div>
 
   <div id="legend"></div>
@@ -227,6 +242,49 @@
         map.removeLayer(geologyLayer);
         statusEl.textContent = "100K geology OFF.";
       }
+    });
+
+    // =====================================================================
+    // RADIOMETRIC LAYERS (airborne γ — GSI/GSNI Tellus, 50 m, ITM)
+    // 4 sub-layers: total γ dose rate, eU, eTh, K. Hosted same-origin.
+    // =====================================================================
+    const RADIO_BBOX = [[51.3, -11.2], [55.8, -5.1]];   // WGS84 [SW, NE]
+    const RADIO = [
+      { id: "rDose", url: "./data/radiometrics/radio_dose.png", name: "Total γ dose rate" },
+      { id: "rU",    url: "./data/radiometrics/radio_eU.png",   name: "Equivalent Uranium (ppm)" },
+      { id: "rTh",   url: "./data/radiometrics/radio_eTh.png",  name: "Equivalent Thorium (ppm)" },
+      { id: "rK",    url: "./data/radiometrics/radio_K.png",    name: "Potassium K (%)" },
+    ];
+    const radioLayers = {};
+    RADIO.forEach((r) => {
+      radioLayers[r.id] = L.imageOverlay(r.url, RADIO_BBOX, {
+        opacity: 0.62,
+        attribution: "Airborne γ — GSI/GSNI Tellus (CC-BY-4.0)",
+      });
+    });
+    const toggleRadio = document.getElementById("toggleRadio");
+    const radioSub = document.getElementById("radioSub");
+    function syncRadio() {
+      if (!toggleRadio.checked) return;
+      RADIO.forEach((r) => {
+        const on = document.getElementById(r.id).checked;
+        if (on) radioLayers[r.id].addTo(map);
+        else map.removeLayer(radioLayers[r.id]);
+      });
+    }
+    toggleRadio.addEventListener("change", () => {
+      if (toggleRadio.checked) {
+        radioSub.style.display = "block";
+        syncRadio();
+        statusEl.textContent = "Radiometrics ON — toggle sub-layers below.";
+      } else {
+        RADIO.forEach((r) => map.removeLayer(radioLayers[r.id]));
+        radioSub.style.display = "none";
+        statusEl.textContent = "Radiometrics OFF.";
+      }
+    });
+    RADIO.forEach((r) => {
+      document.getElementById(r.id).addEventListener("change", syncRadio);
     });
 
     // =====================================================================
