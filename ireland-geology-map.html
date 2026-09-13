@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ireland — Satellite &amp; 100K Bedrock Geology</title>
+  <title>Edge's Geo-Éire Agent — Ireland Satellite, Geology &amp; Radiometrics</title>
 
   <link
     rel="stylesheet"
@@ -40,10 +40,8 @@
     .geo-val { font-weight: 600; color: #111; }
 
     #radioReadout {
-      position: absolute; left: 10px; width: 320px; z-index: 1001;
-      background: rgba(255,255,255,0.98); border: 1px solid #d0d7de; border-radius: 8px;
-      padding: 9px 11px; box-shadow: 0 2px 10px rgba(0,0,0,0.28); display: none;
-      color: #222; font-size: 13px; line-height: 1.4;
+      background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 8px;
+      padding: 9px 11px; margin-bottom: 12px; color: #222; font-size: 13px; line-height: 1.4;
     }
     #radioReadout .rr-title { font-size: 10.5px; color: #57606a; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
     #radioReadout .rr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
@@ -88,7 +86,7 @@
   </div>
 
   <div id="topbar">
-    <h1>🛰️ Ireland — Satellite + 100K Geology</h1>
+    <h1>🛰️ Edge's Geo-Éire Agent</h1>
     <label>
       <input type="checkbox" id="toggleGeology" disabled />
       Show 100K Bedrock Geology
@@ -338,40 +336,34 @@
     // =====================================================================
     // CLICK → point-in-polygon lookup (client-side, no network)
     // =====================================================================
-    // Radiometric readout box (sits above the geology detail panel)
+    // Radiometric readout: a distinct card pinned to the top of the detail panel on click
     const radioReadout = document.getElementById("radioReadout");
-    function positionReadout() {
-      if (radioReadout.style.display !== "block") return;
-      const ph = panel.offsetHeight;
-      radioReadout.style.left = "10px";
-      radioReadout.style.bottom = (10 + ph + 8) + "px";
-    }
     function updateRadioReadout(lat, lon) {
-      radioReadout.style.display = "block";
-      if (!RAD_VALS) {
+      if (!RAD_VALS || !RAD_META) {
         radioReadout.innerHTML = '<div class="rr-title">📡 Radiometrics @ click</div><div class="rr-hint">Data loading…</div>';
-        positionReadout(); return;
+        panel.insertBefore(radioReadout, panel.firstChild);
+        return;
       }
       const [LAT0, LON0, LAT1, LON1] = RAD_META.bbox, [OW, OH] = RAD_META.size, RES = RAD_META.res;
       const occ = Math.floor((lon - LON0) / RES), orc = Math.floor((LAT1 - lat) / RES);
       if (occ < 0 || occ >= OW || orc < 0 || orc >= OH) {
         radioReadout.innerHTML = '<div class="rr-title">📡 Radiometrics @ click</div><div class="rr-hint">Outside survey area</div>';
-        positionReadout(); return;
+        panel.insertBefore(radioReadout, panel.firstChild);
+        return;
       }
       const ci = orc * OW + occ;
       const k = RAD_VALS[ci], u = RAD_VALS[RAD_LEN + ci], th = RAD_VALS[2 * RAD_LEN + ci], d = RAD_VALS[3 * RAD_LEN + ci];
       const fmt = (v, u) => isFinite(v) ? v.toFixed(v < 10 ? 3 : 1) + " " + u : "—";
       radioReadout.innerHTML =
         '<div class="rr-title">📡 Radiometrics @ ' + lat.toFixed(4) + ", " + lon.toFixed(4) + "</div>" +
-        '<div class="rr-grid">' +
+        '<div class="rr-grid">" +
           '<div class="rr-cell"><span class="rr-l">K</span><span class="rr-v">' + fmt(k, "%") + "</span></div>" +
           '<div class="rr-cell"><span class="rr-l">eU</span><span class="rr-v">' + fmt(u, "ppm") + "</span></div>" +
           '<div class="rr-cell"><span class="rr-l">eTh</span><span class="rr-v">' + fmt(th, "ppm") + "</span></div>" +
           '<div class="rr-cell"><span class="rr-l">Dose</span><span class="rr-v">' + fmt(d, "nGy/h") + "</span></div>" +
         "</div>";
-      positionReadout();
+      panel.insertBefore(radioReadout, panel.firstChild);
     }
-    window.addEventListener("resize", positionReadout);
 
     map.on("click", (e) => {
       const lat = e.latlng.lat, lon = e.latlng.lng;
