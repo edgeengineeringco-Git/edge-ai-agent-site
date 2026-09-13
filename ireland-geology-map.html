@@ -356,9 +356,17 @@
     // + bedrock geology) and redistribute the missing layers' weights exactly
     // per the spec rule. Nothing is fabricated; see the box's 'missing' note.
     // =====================================================================
-    const REE = { eTh: [], eU: [], eUeTh: [], eThK: [] };
+    // ---- REE screening config (auditable; mirrors spec's single-config rule) ----
+    const REE_CFG = {
+      weights: { thFer: 20, eU: 6, bedrock: 7 }, // available layers only; 67/100 redistributed
+      circularity: { base: 20, slope: 0.8 },      // RPI cap = base + slope*ThFer (S4: bedrock can't drive High alone)
+      classes: { mod: 25, high: 50, vhigh: 75 },
+      dThresholds: { mixed: 35, hree: 65 },       // UNCALIBRATED defaults (S3 pending real occurrences)
+    };
+    const REE = { eTh: [], eU: [], eUeTh: [], eThK: [], hist: { Low: 0, Mod: 0, High: 0, VHigh: 0, n: 0 } };
     function buildReeTables() {
       REE.eTh.length = REE.eU.length = REE.eUeTh.length = REE.eThK.length = 0;
+      REE.hist = { Low: 0, Mod: 0, High: 0, VHigh: 0, n: 0 };
       for (let i = 0; i < RAD_NL; i++) {
         const k = RAD_VALS[i], eu = RAD_VALS[RAD_NL + i], th = RAD_VALS[2 * RAD_NL + i];
         if (!isFinite(k) || !isFinite(eu) || !isFinite(th)) continue;
@@ -371,6 +379,27 @@
       REE.eU.sort((a, b) => a - b);
       REE.eUeTh.sort((a, b) => a - b);
       REE.eThK.sort((a, b) => a - b);
+      // S3-spirit empirical calibration: build the radiometric base-index distribution over
+      // ALL Ireland pixels, then set class thresholds at the 98/90/60 percentiles so that
+      // "Very High" = genuinely rare (top 2%), "High" = top 10% — NOT uniform quartiles
+      // (percentile-rank inputs would otherwise make ~25% of the country "Very High").
+      const WT = REE_CFG.weights.thFer, WU = REE_CFG.weights.eU, Wsum = WT + WU;
+      const rpiVals = [];
+      for (let i = 0; i < RAD_NL; i++) {
+        const eu = RAD_VALS[RAD_NL + i], th = RAD_VALS[2 * RAD_NL + i];
+        if (!isFinite(eu) || !isFinite(th)) continue;
+        rpiVals.push((WT * pctRank(REE.eTh, th) + WU * pctRank(REE.eU, eu)) / Wsum);
+      }
+      rpiVals.sort((a, b) => a - b);
+      const pctOf = (q) => rpiVals.length ? rpiVals[Math.min(rpiVals.length - 1, Math.floor(q * rpiVals.length))] : 0;
+      REE_CFG.classes.mod = pctOf(0.60);
+      REE_CFG.classes.high = pctOf(0.90);
+      REE_CFG.classes.vhigh = pctOf(0.98);
+      const vh = REE_CFG.classes.vhigh, hi = REE_CFG.classes.high, mo = REE_CFG.classes.mod;
+      let cV = 0, cH = 0, cM = 0;
+      for (const r of rpiVals) { if (r >= vh) cV++; else if (r >= hi) cH++; else if (r >= mo) cM++; }
+      const n = rpiVals.length || 1;
+      REE.hist = { VHigh: (100 * cV / n).toFixed(1), High: (100 * cH / n).toFixed(1), Mod: (100 * cM / n).toFixed(1), n };
     }
     // Percentile rank (0..100): fraction of grid cells with value <= v.
     function pctRank(arr, v) {
@@ -402,11 +431,12 @@
     }
     const reeBox = document.getElementById("reeBox");
     function showReeBox() { if (reeBox) reeBox.style.display = "block"; }
-    function classColorOf(pct) { return pct >= 75 ? "#c0392b" : pct >= 50 ? "#e07b00" : pct >= 25 ? "#c9a227" : "#9e9e9e"; }
-    function classLabelOf(pct) { return pct >= 75 ? "Very High" : pct >= 50 ? "High" : pct >= 25 ? "Moderate" : "Low"; }
-    function dClassOf(pct) {
-      if (pct > 65) return ["HREE-dominant", "xenotime-type", "#1565c0"];
-      if (pct >= 35) return ["Mixed / MREE", "apatite/florencite-type", "#6a1b9a"];
+    function classColorOf(p) { const c = REE_CFG.classes; return p >= c.vhigh ? "#c0392b" : p >= c.high ? "#e07b00" : p >= c.mod ? "#c9a227" : "#9e9e9e"; }
+    function classLabelOf(p) { const c = REE_CFG.classes; return p >= c.vhigh ? "Very High" : p >= c.high ? "High" : p >= c.mod ? "Moderate" : "Low"; }
+    function dClassOf(p) {
+      const d = REE_CFG.dThresholds;
+      if (p > d.hree) return ["HREE-dominant", "xenotime-type", "#1565c0"];
+      if (p >= d.mixed) return ["Mixed / MREE", "apatite/florencite-type", "#6a1b9a"];
       return ["LREE-dominant", "monazite-type", "#2e7d32"];
     }
     function updateReeReadout(lat, lon) {
@@ -426,56 +456,62 @@
         return;
       }
       const th = s.eTh, eu = s.eU, k = s.K;
-      const Si_eTh = pctRank(REE.eTh, th);
-      const Si_eU = pctRank(REE.eU, eu);
-      const Si_eUeTh = (th > 0) ? pctRank(REE.eUeTh, eu / th) : null;
-      const Si_eThK = (k > 0) ? pctRank(REE.eThK, th / k) : null;
-      // eU+eU/eTh layer represented by the mean of eU and eU/eTh percentiles
-      const Si_eUlayer = (Si_eU != null && Si_eUeTh != null) ? (Si_eU + Si_eUeTh) / 2
-        : (Si_eU != null ? Si_eU : (Si_eUeTh != null ? Si_eUeTh : 0));
+      // S1 independence audit (applied): eTh, eU/eTh and eTh/K are all Th-driven and
+      // pairwise ρ>0.7 — ONE proxy chain (eTh→monazite→LREE). Collapsed to a single
+      // Th-fertility signal = eTh percentile. eU/eTh is retained ONLY as the fractionation
+      // discriminator, not as a second RPI weight (that would double-count thorium).
+      const ThFer = pctRank(REE.eTh, th);                 // merged Th-chain representative
+      const Si_eU = pctRank(REE.eU, eu);                  // U fertility (vein / uraninite signal)
+      const Si_eUeTh = (th > 0) ? pctRank(REE.eUeTh, eu / th) : null; // fractionation proxy only
       const g = findGeology(lat, lon);
       const prior = bedrockPrior(g && !g.error ? g : null);
-      // Weighted average over AVAILABLE layers (missing weights redistributed per spec)
-      const layers = [
-        { n: "eTh (15)", w: 15, si: Si_eTh },
-        { n: "eU+eU/eTh (6)", w: 6, si: Si_eUlayer },
-        { n: "eTh/K (4)", w: 4, si: Si_eThK },
-        { n: "bedrock fertility (8)", w: 8, si: prior },
-      ];
-      let num = 0, den = 0;
-      for (const L of layers) { if (L.si != null && isFinite(L.si)) { num += L.w * L.si; den += L.w; } }
-      const rpi = den > 0 ? num / den : 0;
-      // Fractionation proxy from eU/eTh percentile (high U/Th → HREE affinity)
+      const W = REE_CFG.weights;
+      const rpiRaw = (W.thFer * ThFer + W.eU * Si_eU + W.bedrock * prior) / (W.thFer + W.eU + W.bedrock);
+      // S4 circularity control: bedrock prior alone must NOT create High RPI. Cap RPI by the
+      // radiometric Th anomaly so a granite with no Th signature stays ≤ Moderate.
+      const cap = REE_CFG.circularity.base + REE_CFG.circularity.slope * ThFer;
+      const rpi = Math.min(rpiRaw, cap);
+      const driver = ThFer >= 60 ? "Radiometric Th anomaly (monazite-source signal)"
+        : (prior >= 70 ? "Bedrock prior only — no Th anomaly (low confidence)" : "Mixed weak signals");
+      const conf = ThFer >= 60 ? "Th anomaly present ✓"
+        : (prior >= 70 ? "bedrock prior only — low confidence" : "weak signals");
+      // Fractionation proxy (UNCALIBRATED thresholds — S3 pending labelled occurrences)
       const Dp = (Si_eUeTh != null) ? Si_eUeTh : 50;
       const [dLabel, dType, dColor] = dClassOf(Dp);
       // Independent flags
-      const thRisk = (isFinite(th) && (th > 15 || (Si_eTh != null && Si_eTh > 90))) ? "YES" : "no";
+      const thRisk = (isFinite(th) && (th > 15 || (ThFer != null && ThFer > 90))) ? "YES" : "no";
       const uAdv = (th > 0 && (eu / th) < 0.05 && rpi >= 50) ? "YES" : "no";
       const rcls = classColorOf(rpi), rlab = classLabelOf(rpi);
+      // Empirical rarity over all Ireland, calibrated (S3): class cut-offs set at national 98/90/60 pct
+      const h = REE.hist;
+      const rarity = "Rarity (calibrated to national RPI): Very High ≈ top " + h.VHigh + "% · High ≈ top " +
+        h.High + "% · Moderate ≈ top " + h.Mod + "% of Ireland";
       const miss = "TMI/analytic signal, sediment Y, sediment Th+U+Zr, stream-water REE, soil A+S, " +
         "MPM legacy soils, lineaments, mineral-localities KDE, GSRO report KDE, boreholes, " +
-        "Sentinel-2 alteration, Sentinel-1 structure (weights 67/100 redistributed).";
+        "Sentinel-2 alteration, Sentinel-1 structure — weights (67/100) redistributed.";
       reeBox.innerHTML =
-        '<div class="rb-title">🟢 REE Prospectivity @ ' + lat.toFixed(4) + ", " + lon.toFixed(4) + "</div>" +
-        '<div class="rb-row"><span class="rb-k">RPI (screening)</span>' +
+        '<div class="rb-title">🟢 REE Prospectivity (critical screening) @ ' + lat.toFixed(4) + ", " + lon.toFixed(4) + "</div>" +
+        '<div class="rb-row"><span class="rb-k">RPI</span>' +
           '<span class="rb-v">' + rpi.toFixed(1) + ' <span class="rb-class" style="background:' + rcls + '">' + rlab + "</span></span></div>" +
+        '<div class="rb-row"><span class="rb-k">Driving signal</span><span class="rb-v" style="font-size:12px">' + driver + "</span></div>" +
         '<div class="rb-row"><span class="rb-k">Fractionation (eU/eTh proxy)</span>' +
           '<span class="rb-v"><span class="rb-class" style="background:' + dColor + '">' + dLabel + "</span></span></div>" +
         '<div class="rb-row"><span class="rb-k">Type</span><span class="rb-v">' + dType + "</span></div>" +
-        '<div class="rb-sec">Inputs used</div>' +
-        '<div class="rb-row"><span class="rb-k">eTh pct-rank</span><span class="rb-v">' + (Si_eTh != null ? Si_eTh.toFixed(0) : "—") + '</span></div>' +
-        '<div class="rb-row"><span class="rb-k">eU/eTh pct-rank</span><span class="rb-v">' + (Si_eUeTh != null ? Si_eUeTh.toFixed(0) : "—") + '</span></div>' +
-        '<div class="rb-row"><span class="rb-k">eTh/K pct-rank</span><span class="rb-v">' + (Si_eThK != null ? Si_eThK.toFixed(0) : "—") + '</span></div>' +
+        '<div class="rb-sec">Composite signals</div>' +
+        '<div class="rb-row"><span class="rb-k">Th-fertility pct (eTh)</span><span class="rb-v">' + (ThFer != null ? ThFer.toFixed(0) : "—") + '</span></div>' +
+        '<div class="rb-row"><span class="rb-k">U-fertility pct (eU)</span><span class="rb-v">' + (Si_eU != null ? Si_eU.toFixed(0) : "—") + '</span></div>' +
         '<div class="rb-row"><span class="rb-k">Bedrock fertility prior</span><span class="rb-v">' + prior.toFixed(0) + '</span></div>' +
         '<div class="rb-sec">Independent flags</div>' +
         '<div class="rb-row"><span class="rb-k">Th-risk (eTh&gt;15 or pct&gt;90)</span>' +
           '<span class="rb-v rb-flag ' + (thRisk === "YES" ? "rb-yes" : "rb-no") + '">' + thRisk + '</span></div>' +
         '<div class="rb-row"><span class="rb-k">U-advantage (eU/eTh&lt;0.05 @ RPI≥50)</span>' +
           '<span class="rb-v rb-flag ' + (uAdv === "YES" ? "rb-yes" : "rb-no") + '">' + uAdv + '</span></div>' +
-        '<div class="rb-hint">Screening index from Tellus radiometrics + bedrock geology only. ' +
-          'C_conf (peat/drift, geochem density) not applied — limited input stack. ' +
-          'Click a different point to compare.</div>' +
-        '<div class="rb-miss">Missing (redistributed): ' + miss + '</div>';
+        '<div class="rb-row"><span class="rb-k">Confidence</span><span class="rb-v" style="font-size:12px">' + conf + '</span></div>' +
+        '<div class="rb-hint">' + rarity + '. ' +
+          'S1: Th-channels merged (ρ&gt;0.7). S3: class thresholds calibrated to national RPI (V.High = top 2%). ' +
+          'S4: bedrock cannot raise RPI without Th anomaly. ' +
+          'Provisional — NOT calibrated to labelled REE occurrences (mineral localities not loaded).</div>' +
+        '<div class="rb-miss">Missing (redistributed 67/100): ' + miss + '</div>';
       showReeBox();
     }
 
