@@ -33,10 +33,24 @@
     #panel h2 { font-size: 14px; margin: 0 0 8px; }
     #panel table { width: 100%; border-collapse: collapse; }
     #panel td { padding: 2px 4px; vertical-align: top; }
-    #panel td.k { font-weight: 600; white-space: nowrap; padding-right: 8px; color: #333; }
+    #panel td.k { font-weight: 600; white-space: nowrap; padding-right: 12px; color: #333; }
     .hint { color: #777; font-style: italic; }
     .err { color: #b00; }
-    .sw { display: inline-block; width: 12px; height: 12px; border: 1px solid #555; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+    .sw { display: inline-block; width: 12px; height: 12px; border: 1px solid #555; border-radius: 2px; vertical-align: middle; margin-right: 8px; }
+    .geo-val { font-weight: 600; color: #111; }
+
+    #radioReadout {
+      position: absolute; left: 10px; width: 320px; z-index: 1001;
+      background: rgba(255,255,255,0.98); border: 1px solid #d0d7de; border-radius: 8px;
+      padding: 9px 11px; box-shadow: 0 2px 10px rgba(0,0,0,0.28); display: none;
+      color: #222; font-size: 13px; line-height: 1.4;
+    }
+    #radioReadout .rr-title { font-size: 10.5px; color: #57606a; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+    #radioReadout .rr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
+    #radioReadout .rr-cell { display: flex; justify-content: space-between; }
+    #radioReadout .rr-l { color: #57606a; }
+    #radioReadout .rr-v { font-weight: 700; color: #111; }
+    #radioReadout .rr-hint { font-size: 12px; color: #57606a; }
 
     #legend {
       position: absolute; top: 10px; right: 10px; z-index: 1000;
@@ -324,10 +338,46 @@
     // =====================================================================
     // CLICK → point-in-polygon lookup (client-side, no network)
     // =====================================================================
+    // Radiometric readout box (sits above the geology detail panel)
+    const radioReadout = document.getElementById("radioReadout");
+    function positionReadout() {
+      if (radioReadout.style.display !== "block") return;
+      const ph = panel.offsetHeight;
+      radioReadout.style.left = "10px";
+      radioReadout.style.bottom = (10 + ph + 8) + "px";
+    }
+    function updateRadioReadout(lat, lon) {
+      radioReadout.style.display = "block";
+      if (!RAD_VALS) {
+        radioReadout.innerHTML = '<div class="rr-title">📡 Radiometrics @ click</div><div class="rr-hint">Data loading…</div>';
+        positionReadout(); return;
+      }
+      const [LAT0, LON0, LAT1, LON1] = RAD_META.bbox, [OW, OH] = RAD_META.size, RES = RAD_META.res;
+      const occ = Math.floor((lon - LON0) / RES), orc = Math.floor((LAT1 - lat) / RES);
+      if (occ < 0 || occ >= OW || orc < 0 || orc >= OH) {
+        radioReadout.innerHTML = '<div class="rr-title">📡 Radiometrics @ click</div><div class="rr-hint">Outside survey area</div>';
+        positionReadout(); return;
+      }
+      const ci = orc * OW + occ;
+      const k = RAD_VALS[ci], u = RAD_VALS[RAD_LEN + ci], th = RAD_VALS[2 * RAD_LEN + ci], d = RAD_VALS[3 * RAD_LEN + ci];
+      const fmt = (v, u) => isFinite(v) ? v.toFixed(v < 10 ? 3 : 1) + " " + u : "—";
+      radioReadout.innerHTML =
+        '<div class="rr-title">📡 Radiometrics @ ' + lat.toFixed(4) + ", " + lon.toFixed(4) + "</div>" +
+        '<div class="rr-grid">' +
+          '<div class="rr-cell"><span class="rr-l">K</span><span class="rr-v">' + fmt(k, "%") + "</span></div>" +
+          '<div class="rr-cell"><span class="rr-l">eU</span><span class="rr-v">' + fmt(u, "ppm") + "</span></div>" +
+          '<div class="rr-cell"><span class="rr-l">eTh</span><span class="rr-v">' + fmt(th, "ppm") + "</span></div>" +
+          '<div class="rr-cell"><span class="rr-l">Dose</span><span class="rr-v">' + fmt(d, "nGy/h") + "</span></div>" +
+        "</div>";
+      positionReadout();
+    }
+    window.addEventListener("resize", positionReadout);
+
     map.on("click", (e) => {
       const lat = e.latlng.lat, lon = e.latlng.lng;
       const found = findGeology(lat, lon);
       renderDetails(lat, lon, found);
+      updateRadioReadout(lat, lon);
     });
 
     function pointInRing(ring, x, y) {
@@ -367,7 +417,7 @@
         return;
       }
       const cls = classColor(found);
-      const clsRow = `<tr><td class="k">Geology</td><td><span class="sw" style="background:${cls}"></span>${esc(classLabel(found))}</td></tr>`;
+      const clsRow = `<tr><td class="k">Geology</td><td><span class="sw" style="background:${cls}"></span><span class="geo-val">${esc(classLabel(found))}</span></td></tr>`;
       const rows = [
         ["Unit Name", found.UNIT_NAME],
         ["Description", found.DESCRIPT],
@@ -387,5 +437,6 @@
     loadGeology();
   </script>
   <div id="radioTip"></div>
+  <div id="radioReadout"></div>
 </body>
 </html>
