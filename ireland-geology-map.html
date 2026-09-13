@@ -25,9 +25,9 @@
     #status { font-size: 12px; color: #555; margin-top: 6px; }
 
     #panel {
-      position: absolute; bottom: 10px; left: 10px; z-index: 1000;
+      box-sizing: border-box;
       background: rgba(255,255,255,0.97); padding: 12px 14px; border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.25); width: 320px; max-height: 55%; overflow: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25); width: 320px; max-height: 50vh; overflow: auto;
       font-size: 13px; line-height: 1.45;
     }
     #panel h2 { font-size: 14px; margin: 0 0 8px; }
@@ -39,8 +39,12 @@
     .sw { display: inline-block; width: 12px; height: 12px; border: 1px solid #555; border-radius: 2px; vertical-align: middle; margin-right: 8px; }
     .geo-val { font-weight: 600; color: #111; }
 
+    #detailStack {
+      position: fixed; left: 10px; bottom: 10px; z-index: 1600;
+      display: flex; flex-direction: column; gap: 10px; max-width: 340px;
+    }
     #radioReadout {
-      position: fixed; left: 10px; bottom: 10px; z-index: 1600; min-width: 250px;
+      width: 320px; box-sizing: border-box;
       background: #f6f8fa; border: 2px solid #1769aa; border-radius: 8px;
       padding: 9px 11px; color: #222; font-size: 13px; line-height: 1.4;
       box-shadow: 0 3px 14px rgba(0,0,0,.38); display: none;
@@ -113,13 +117,15 @@
 
   <div id="legend"></div>
 
-  <div id="panel">
-    <h2>📍 Details</h2>
-    <p class="hint">Click a point on the map to inspect coordinates and bedrock geology.</p>
+  <div id="detailStack">
+    <div id="radioReadout"></div>
+    <div id="panel">
+      <h2>📍 Details</h2>
+      <p class="hint">Click a point on the map to inspect coordinates and bedrock geology.</p>
+    </div>
   </div>
 
   <div id="radioTip"></div>
-  <div id="radioReadout"></div>
 
   <script>
     // =====================================================================
@@ -405,10 +411,7 @@
     const radioReadout = document.getElementById("radioReadout");
     function showRadioReadout() {
       if (!radioReadout) return;
-      radioReadout.style.display = "block";
-      const panelEl = document.getElementById("panel");
-      const h = (panelEl ? panelEl.offsetHeight : 0) || 0;
-      radioReadout.style.bottom = (10 + h + 12) + "px"; // sit just above the geo panel
+      radioReadout.style.display = "block"; // sits directly above #panel inside #detailStack
     }
     function updateRadioReadout(lat, lon) {
       if (!radioReadout) return;
@@ -435,7 +438,7 @@
           '<div class="rr-cell"><span class="rr-l">eTh</span><span class="rr-v">' + fmt(s.eTh, "ppm") + "</span></div>" +
           '<div class="rr-cell"><span class="rr-l">Dose</span><span class="rr-v">' + fmt(s.dose, "nGy/h") + "</span></div>" +
         "</div>" +
-        '<div class="rr-hint">Th/U ratio: ' + thUtxt + " &nbsp;·&nbsp; higher = more thorium-rich / weathered</div>";
+        '<div class="rr-hint">Th/U ratio: ' + thUtxt + "</div>";
       showRadioReadout();
     }
 
