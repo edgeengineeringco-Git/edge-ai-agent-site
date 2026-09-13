@@ -118,6 +118,9 @@
     <p class="hint">Click a point on the map to inspect coordinates and bedrock geology.</p>
   </div>
 
+  <div id="radioTip"></div>
+  <div id="radioReadout"></div>
+
   <script>
     // =====================================================================
     // CONFIG  — geology data is hosted in THIS repo (same origin on GitHub
@@ -384,6 +387,7 @@
     const tip = document.getElementById("radioTip");
     const fmtTip = (v, u) => (isFinite(v) ? v.toFixed(v < 10 ? 3 : 1) : "—") + " " + u;
     map.on("mousemove", (e) => {
+      if (!tip) return;
       if (!toggleRadio.checked || !RAD_VALS) { tip.style.display = "none"; return; }
       const s = radioSample(e.latlng.lat, e.latlng.lng);
       if (!radioValid(s)) { tip.style.display = "none"; return; }
@@ -400,12 +404,14 @@
     // ---- Click readout: a card pinned ABOVE the geology panel ----
     const radioReadout = document.getElementById("radioReadout");
     function showRadioReadout() {
+      if (!radioReadout) return;
       radioReadout.style.display = "block";
       const panelEl = document.getElementById("panel");
       const h = (panelEl ? panelEl.offsetHeight : 0) || 0;
       radioReadout.style.bottom = (10 + h + 12) + "px"; // sit just above the geo panel
     }
     function updateRadioReadout(lat, lon) {
+      if (!radioReadout) return;
       if (!RAD_VALS || !RAD_META) {
         radioReadout.innerHTML = '<div class="rr-title">📡 Radiometrics</div><div class="rr-hint">Data loading…</div>';
         showRadioReadout();
@@ -505,7 +511,5 @@
 
     loadGeology();
   </script>
-  <div id="radioTip"></div>
-  <div id="radioReadout"></div>
 </body>
 </html>
