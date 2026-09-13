@@ -78,6 +78,24 @@
       background: rgba(20,20,20,0.88); color: #fff; padding: 7px 10px; border-radius: 7px;
       font-size: 12px; line-height: 1.5; white-space: nowrap; box-shadow: 0 3px 10px rgba(0,0,0,.45);
     }
+    #reeBox {
+      position: fixed; right: 10px; bottom: 10px; z-index: 1600;
+      width: 330px; box-sizing: border-box; max-height: 82vh; overflow: auto;
+      background: #fffaf0; border: 2px solid #b8860b; border-radius: 8px;
+      padding: 9px 11px; color: #2a2a2a; font-size: 13px; line-height: 1.4;
+      box-shadow: 0 3px 14px rgba(0,0,0,.38); display: none;
+    }
+    #reeBox .rb-title { font-weight: 700; margin-bottom: 5px; }
+    #reeBox .rb-row { display: flex; justify-content: space-between; gap: 8px; margin: 1px 0; }
+    #reeBox .rb-k { color: #555; }
+    #reeBox .rb-v { font-weight: 600; }
+    #reeBox .rb-class { font-weight: 700; padding: 1px 7px; border-radius: 4px; color: #fff; }
+    #reeBox .rb-sec { margin-top: 6px; font-weight: 700; font-size: 12px; color: #7a5c00; }
+    #reeBox .rb-hint { margin-top: 7px; font-size: 11.5px; color: #666; border-top: 1px dashed #ccc; padding-top: 5px; }
+    #reeBox .rb-miss { margin-top: 4px; font-size: 11px; color: #8a6d3b; }
+    #reeBox .rb-flag { font-weight: 700; }
+    #reeBox .rb-yes { color: #b00; }
+    #reeBox .rb-no { color: #2a7d2a; }
   </style>
 </head>
 <body>
@@ -126,6 +144,7 @@
   </div>
 
   <div id="radioTip"></div>
+  <div id="reeBox"></div>
 
   <script>
     // =====================================================================
@@ -329,6 +348,137 @@
     }
     function radioValid(s) { return !!s && [s.K, s.eU, s.eTh, s.dose].some(isFinite); }
 
+    // =====================================================================
+    // REE PROSPECTIVITY (screening index from VIEWER-available layers only)
+    // Full national model per spec needs Tellus sediment/soil geochemistry,
+    // MPM legacy soils, Sentinel-1/2, lineaments, locality/GSRO KDEs — none of
+    // those are in this viewer. We use the layers we HAVE (Tellus radiometrics
+    // + bedrock geology) and redistribute the missing layers' weights exactly
+    // per the spec rule. Nothing is fabricated; see the box's 'missing' note.
+    // =====================================================================
+    const REE = { eTh: [], eU: [], eUeTh: [], eThK: [] };
+    function buildReeTables() {
+      REE.eTh.length = REE.eU.length = REE.eUeTh.length = REE.eThK.length = 0;
+      for (let i = 0; i < RAD_NL; i++) {
+        const k = RAD_VALS[i], eu = RAD_VALS[RAD_NL + i], th = RAD_VALS[2 * RAD_NL + i];
+        if (!isFinite(k) || !isFinite(eu) || !isFinite(th)) continue;
+        REE.eTh.push(th);
+        REE.eU.push(eu);
+        if (th > 0) REE.eUeTh.push(eu / th);
+        if (k > 0) REE.eThK.push(th / k);
+      }
+      REE.eTh.sort((a, b) => a - b);
+      REE.eU.sort((a, b) => a - b);
+      REE.eUeTh.sort((a, b) => a - b);
+      REE.eThK.sort((a, b) => a - b);
+    }
+    // Percentile rank (0..100): fraction of grid cells with value <= v.
+    function pctRank(arr, v) {
+      if (!arr.length || !isFinite(v)) return null;
+      let lo = 0, hi = arr.length;
+      while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m] <= v) lo = m + 1; else hi = m; }
+      return (lo / arr.length) * 100;
+    }
+    // Bedrock fertility prior (0..100) per spec mapping, keyed off unit text.
+    function bedrockPrior(p) {
+      if (!p) return 25;
+      const t = ((p.UNIT_NAME || "") + " " + (p.DESCRIPT || "") + " " + (p.STRATCODE || "")).toLowerCase();
+      if (/pegmatite|leucogranit|leucogranite/.test(t)) return 90;
+      if (/ba.?sr|ba-sr|high ba|ba-rich/.test(t)) return 75;
+      if (/alkaline|alkali|syenite|nepheline|carbonatite|ijolite/.test(t)) return 70;
+      if (/granite|granodiorite|adamellite|tonalite|aplite|microgranite|granitic|rapakivi/.test(t)) return 50;
+      if (/greywacke|graywacke|psammite|sandstone|arkose|grit/.test(t)) return 30;
+      if (/limestone|dolomite|oolite|micrite|calp|carbonate|shale|mudstone|chert/.test(t)) return 10;
+      if (/quaternary|drift|peat|till|esker|alluv|glacial|holocene/.test(t)) return 5;
+      // class-based fallback
+      const c = (typeof classify === "function") ? classify(p) : "other";
+      if (c === "intrusive") return 50;
+      if (c === "volcanic") return 40;
+      if (c === "metamorphic") return 35;
+      if (c === "sedimentary") return 30;
+      if (c === "carboniferous" || c === "cretaceous") return 10;
+      if (c === "quaternary") return 5;
+      return 20;
+    }
+    const reeBox = document.getElementById("reeBox");
+    function showReeBox() { if (reeBox) reeBox.style.display = "block"; }
+    function classColorOf(pct) { return pct >= 75 ? "#c0392b" : pct >= 50 ? "#e07b00" : pct >= 25 ? "#c9a227" : "#9e9e9e"; }
+    function classLabelOf(pct) { return pct >= 75 ? "Very High" : pct >= 50 ? "High" : pct >= 25 ? "Moderate" : "Low"; }
+    function dClassOf(pct) {
+      if (pct > 65) return ["HREE-dominant", "xenotime-type", "#1565c0"];
+      if (pct >= 35) return ["Mixed / MREE", "apatite/florencite-type", "#6a1b9a"];
+      return ["LREE-dominant", "monazite-type", "#2e7d32"];
+    }
+    function updateReeReadout(lat, lon) {
+      if (!reeBox) return;
+      if (!RAD_VALS || !RAD_META || !REE.eTh.length) {
+        reeBox.innerHTML = '<div class="rb-title">🟢 REE Prospectivity (screening)</div>' +
+          '<div class="rb-hint">Building percentile tables…</div>';
+        showReeBox();
+        return;
+      }
+      const s = radioSample(lat, lon);
+      const fmt = (v, u) => (isFinite(v) ? v.toFixed(v < 10 ? 3 : 1) + " " + u : "—");
+      if (!radioValid(s)) {
+        reeBox.innerHTML = '<div class="rb-title">🟢 REE Prospectivity (screening)</div>' +
+          '<div class="rb-hint">Outside radiometric survey area / no data at this point.</div>';
+        showReeBox();
+        return;
+      }
+      const th = s.eTh, eu = s.eU, k = s.K;
+      const Si_eTh = pctRank(REE.eTh, th);
+      const Si_eU = pctRank(REE.eU, eu);
+      const Si_eUeTh = (th > 0) ? pctRank(REE.eUeTh, eu / th) : null;
+      const Si_eThK = (k > 0) ? pctRank(REE.eThK, th / k) : null;
+      // eU+eU/eTh layer represented by the mean of eU and eU/eTh percentiles
+      const Si_eUlayer = (Si_eU != null && Si_eUeTh != null) ? (Si_eU + Si_eUeTh) / 2
+        : (Si_eU != null ? Si_eU : (Si_eUeTh != null ? Si_eUeTh : 0));
+      const g = findGeology(lat, lon);
+      const prior = bedrockPrior(g && !g.error ? g : null);
+      // Weighted average over AVAILABLE layers (missing weights redistributed per spec)
+      const layers = [
+        { n: "eTh (15)", w: 15, si: Si_eTh },
+        { n: "eU+eU/eTh (6)", w: 6, si: Si_eUlayer },
+        { n: "eTh/K (4)", w: 4, si: Si_eThK },
+        { n: "bedrock fertility (8)", w: 8, si: prior },
+      ];
+      let num = 0, den = 0;
+      for (const L of layers) { if (L.si != null && isFinite(L.si)) { num += L.w * L.si; den += L.w; } }
+      const rpi = den > 0 ? num / den : 0;
+      // Fractionation proxy from eU/eTh percentile (high U/Th → HREE affinity)
+      const Dp = (Si_eUeTh != null) ? Si_eUeTh : 50;
+      const [dLabel, dType, dColor] = dClassOf(Dp);
+      // Independent flags
+      const thRisk = (isFinite(th) && (th > 15 || (Si_eTh != null && Si_eTh > 90))) ? "YES" : "no";
+      const uAdv = (th > 0 && (eu / th) < 0.05 && rpi >= 50) ? "YES" : "no";
+      const rcls = classColorOf(rpi), rlab = classLabelOf(rpi);
+      const miss = "TMI/analytic signal, sediment Y, sediment Th+U+Zr, stream-water REE, soil A+S, " +
+        "MPM legacy soils, lineaments, mineral-localities KDE, GSRO report KDE, boreholes, " +
+        "Sentinel-2 alteration, Sentinel-1 structure (weights 67/100 redistributed).";
+      reeBox.innerHTML =
+        '<div class="rb-title">🟢 REE Prospectivity @ ' + lat.toFixed(4) + ", " + lon.toFixed(4) + "</div>" +
+        '<div class="rb-row"><span class="rb-k">RPI (screening)</span>' +
+          '<span class="rb-v">' + rpi.toFixed(1) + ' <span class="rb-class" style="background:' + rcls + '">' + rlab + "</span></span></div>" +
+        '<div class="rb-row"><span class="rb-k">Fractionation (eU/eTh proxy)</span>' +
+          '<span class="rb-v"><span class="rb-class" style="background:' + dColor + '">' + dLabel + "</span></span></div>" +
+        '<div class="rb-row"><span class="rb-k">Type</span><span class="rb-v">' + dType + "</span></div>" +
+        '<div class="rb-sec">Inputs used</div>' +
+        '<div class="rb-row"><span class="rb-k">eTh pct-rank</span><span class="rb-v">' + (Si_eTh != null ? Si_eTh.toFixed(0) : "—") + '</span></div>' +
+        '<div class="rb-row"><span class="rb-k">eU/eTh pct-rank</span><span class="rb-v">' + (Si_eUeTh != null ? Si_eUeTh.toFixed(0) : "—") + '</span></div>' +
+        '<div class="rb-row"><span class="rb-k">eTh/K pct-rank</span><span class="rb-v">' + (Si_eThK != null ? Si_eThK.toFixed(0) : "—") + '</span></div>' +
+        '<div class="rb-row"><span class="rb-k">Bedrock fertility prior</span><span class="rb-v">' + prior.toFixed(0) + '</span></div>' +
+        '<div class="rb-sec">Independent flags</div>' +
+        '<div class="rb-row"><span class="rb-k">Th-risk (eTh&gt;15 or pct&gt;90)</span>' +
+          '<span class="rb-v rb-flag ' + (thRisk === "YES" ? "rb-yes" : "rb-no") + '">' + thRisk + '</span></div>' +
+        '<div class="rb-row"><span class="rb-k">U-advantage (eU/eTh&lt;0.05 @ RPI≥50)</span>' +
+          '<span class="rb-v rb-flag ' + (uAdv === "YES" ? "rb-yes" : "rb-no") + '">' + uAdv + '</span></div>' +
+        '<div class="rb-hint">Screening index from Tellus radiometrics + bedrock geology only. ' +
+          'C_conf (peat/drift, geochem density) not applied — limited input stack. ' +
+          'Click a different point to compare.</div>' +
+        '<div class="rb-miss">Missing (redistributed): ' + miss + '</div>';
+      showReeBox();
+    }
+
     async function buildRadioLayers() {
       const [OW, OH] = RAD_META.size;
       const bb = radioBounds();
@@ -359,6 +509,7 @@
         const buf = await fetch("./data/radiometrics/values.bin").then((r) => r.arrayBuffer());
         RAD_NL = RAD_META.size[0] * RAD_META.size[1];
         RAD_VALS = new Float32Array(buf);
+        buildReeTables();
         await buildRadioLayers();
         if (toggleRadio.checked) syncRadio();
       } catch (e) { console.warn("radiometric values load failed", e); }
@@ -447,6 +598,7 @@
       // The radiometric report is independent of the geology lookup, so show
       // it FIRST and never let a geology error suppress it.
       try { updateRadioReadout(lat, lon); } catch (err) { console.warn("radio readout failed", err); }
+      try { updateReeReadout(lat, lon); } catch (err) { console.warn("ree readout failed", err); }
       try {
         const found = findGeology(lat, lon);
         renderDetails(lat, lon, found);
