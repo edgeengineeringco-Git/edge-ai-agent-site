@@ -40,7 +40,7 @@
     .geo-val { font-weight: 600; color: #111; }
 
     #radioReadout {
-      position: fixed; left: 360px; bottom: 10px; z-index: 1600; min-width: 250px;
+      position: fixed; left: 10px; bottom: 10px; z-index: 1600; min-width: 250px;
       background: #f6f8fa; border: 2px solid #1769aa; border-radius: 8px;
       padding: 9px 11px; color: #222; font-size: 13px; line-height: 1.4;
       box-shadow: 0 3px 14px rgba(0,0,0,.38); display: none;
@@ -264,31 +264,101 @@
     });
 
     // =====================================================================
-    // RADIOMETRIC LAYERS (airborne γ — GSI/GSNI Tellus, 50 m, ITM)
-    // 4 sub-layers: total γ dose rate, eU, eTh, K. Hosted same-origin.
     // =====================================================================
-    const RADIO_BBOX = [[51.40150649724565, -10.402227235057088], [55.36150649724565, -5.362227235057088]];   // WGS84 [SW, NE] — exact sampled pixel-center extent
+    // RADIOMETRIC LAYERS (airborne γ — GSI/GSNI Tellus, 50 m)
+    // Rendered as client-side raster overlays built directly from values.bin,
+    // georeferenced from meta.json. Display AND click-sampling share the SAME
+    // grid + transform, so the value shown always matches what is under the
+    // cursor and the raster lines up with the satellite basemap.
+    // =====================================================================
     const RADIO = [
-      { id: "rDose", url: "./data/radiometrics/radio_dose.png", name: "Total γ dose rate" },
-      { id: "rU",    url: "./data/radiometrics/radio_eU.png",   name: "Equivalent Uranium (ppm)" },
-      { id: "rTh",   url: "./data/radiometrics/radio_eTh.png",  name: "Equivalent Thorium (ppm)" },
-      { id: "rK",    url: "./data/radiometrics/radio_K.png",    name: "Potassium K (%)" },
+      { id: "rK",    band: 0, name: "Potassium K (%)",            unit: "%" },
+      { id: "rU",    band: 1, name: "Equivalent Uranium (ppm)",  unit: "ppm" },
+      { id: "rTh",   band: 2, name: "Equivalent Thorium (ppm)",  unit: "ppm" },
+      { id: "rDose", band: 3, name: "Total γ dose rate",         unit: "nGy/h" },
     ];
+
+    // Viridis-style 5-stop colour ramp used to colour each raster overlay.
+    const RAMP = [
+      [49, 54, 149], [69, 117, 180], [171, 221, 164], [253, 174, 97], [215, 48, 39],
+    ];
+    function ramp(t) {
+      if (t < 0) t = 0; else if (t > 1) t = 1;
+      const x = t * (RAMP.length - 1), i = Math.floor(x), f = x - i;
+      const a = RAMP[i], b = RAMP[Math.min(i + 1, RAMP.length - 1)];
+      return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
+    }
+
+    let RAD_META = null, RAD_VALS = null, RAD_NL = 0;
     const radioLayers = {};
-    RADIO.forEach((r) => {
-      radioLayers[r.id] = L.imageOverlay(r.url, RADIO_BBOX, {
-        opacity: 0.62,
-        attribution: "Airborne γ — GSI/GSNI Tellus (CC-BY-4.0)",
-      });
-    });
+
+    // Exact data extent from meta.json (NOT size*res, which drifts ~1 px at edges).
+    function radioBounds() {
+      const [lat0, lon0, lat1, lon1] = RAD_META.bbox;
+      return [[lat0, lon0], [lat1, lon1]];
+    }
+    // Sample the 4 band values at a lon/lat. Returns null outside the grid;
+    // individual bands may be NaN (no-data / offshore).
+    function radioSample(lat, lon) {
+      const [lat0, lon0, lat1, lon1] = RAD_META.bbox;
+      const [OW, OH] = RAD_META.size;
+      const dLon = (lon1 - lon0) / OW, dLat = (lat1 - lat0) / OH;
+      const col = Math.floor((lon - lon0) / dLon);
+      const row = Math.floor((lat1 - lat) / dLat);
+      if (col < 0 || col >= OW || row < 0 || row >= OH) return null;
+      const ci = row * OW + col;
+      return {
+        K:    RAD_VALS[ci],
+        eU:   RAD_VALS[RAD_NL + ci],
+        eTh:  RAD_VALS[2 * RAD_NL + ci],
+        dose: RAD_VALS[3 * RAD_NL + ci],
+      };
+    }
+    function radioValid(s) { return !!s && [s.K, s.eU, s.eTh, s.dose].some(isFinite); }
+
+    async function buildRadioLayers() {
+      const [OW, OH] = RAD_META.size;
+      const bb = radioBounds();
+      for (const r of RADIO) {
+        const band = RAD_META.bands[r.band];
+        const p1 = band.p1, span = (band.p99 - p1) || 1;
+        const canvas = document.createElement("canvas");
+        canvas.width = OW; canvas.height = OH;
+        const ctx = canvas.getContext("2d");
+        const img = ctx.createImageData(OW, OH);
+        const base = r.band * RAD_NL;
+        for (let i = 0; i < RAD_NL; i++) {
+          const v = RAD_VALS[base + i], o = i * 4;
+          if (!isFinite(v)) { img.data[o + 3] = 0; continue; }
+          const [rr, gg, bb2] = ramp((v - p1) / span);
+          img.data[o] = rr; img.data[o + 1] = gg; img.data[o + 2] = bb2; img.data[o + 3] = 170;
+        }
+        ctx.putImageData(img, 0, 0);
+        radioLayers[r.id] = L.imageOverlay(canvas.toDataURL(), bb, {
+          attribution: "Airborne γ — GSI/GSNI Tellus (CC-BY-4.0)",
+        });
+      }
+    }
+
+    async function loadRadioData() {
+      try {
+        RAD_META = await fetch("./data/radiometrics/meta.json").then((r) => r.json());
+        const buf = await fetch("./data/radiometrics/values.bin").then((r) => r.arrayBuffer());
+        RAD_NL = RAD_META.size[0] * RAD_META.size[1];
+        RAD_VALS = new Float32Array(buf);
+        await buildRadioLayers();
+        if (toggleRadio.checked) syncRadio();
+      } catch (e) { console.warn("radiometric values load failed", e); }
+    }
+
     const toggleRadio = document.getElementById("toggleRadio");
     const radioSub = document.getElementById("radioSub");
     function syncRadio() {
       if (!toggleRadio.checked) return;
       RADIO.forEach((r) => {
-        const on = document.getElementById(r.id).checked;
+        const on = document.getElementById(r.id).checked && radioLayers[r.id];
         if (on) radioLayers[r.id].addTo(map);
-        else map.removeLayer(radioLayers[r.id]);
+        else if (radioLayers[r.id]) map.removeLayer(radioLayers[r.id]);
       });
     }
     toggleRadio.addEventListener("change", () => {
@@ -297,7 +367,7 @@
         syncRadio();
         statusEl.textContent = "Radiometrics ON — toggle sub-layers below.";
       } else {
-        RADIO.forEach((r) => map.removeLayer(radioLayers[r.id]));
+        RADIO.forEach((r) => radioLayers[r.id] && map.removeLayer(radioLayers[r.id]));
         radioSub.style.display = "none";
         statusEl.textContent = "Radiometrics OFF.";
       }
@@ -306,69 +376,54 @@
       document.getElementById(r.id).addEventListener("change", syncRadio);
     });
 
-    // ---- Hover tooltip: read raw K / eU / eTh / dose at the cursor ----
-    let RAD_META = null, RAD_VALS = null, RAD_LEN = 0;
-    async function loadRadioData() {
-      try {
-        const m = await fetch("./data/radiometrics/meta.json").then((r) => r.json());
-        const b = await fetch("./data/radiometrics/values.bin").then((r) => r.arrayBuffer());
-        RAD_META = m;
-        const [bLAT0, bLON0, bLAT1, bLON1] = m.bbox, [bOW, bOH] = m.size, bRES = m.res;
-        const bb = [[bLAT1 - bOH * bRES, bLON0], [bLAT1, bLON0 + bOW * bRES]];
-        for (const id in radioLayers) radioLayers[id].setBounds(bb);
-        RAD_VALS = new Float32Array(b); RAD_LEN = m.size[0] * m.size[1];
-      } catch (e) { console.warn("radiometric values load failed", e); }
-    }
+    // ---- Hover tooltip: read K / eU / eTh / dose at the cursor ----
     const tip = document.getElementById("radioTip");
-    function fmt(v, u) { return (isFinite(v) ? v.toFixed(v < 10 ? 3 : 1) : "—") + " " + u; }
+    const fmtTip = (v, u) => (isFinite(v) ? v.toFixed(v < 10 ? 3 : 1) : "—") + " " + u;
     map.on("mousemove", (e) => {
       if (!toggleRadio.checked || !RAD_VALS) { tip.style.display = "none"; return; }
-      const [LAT0, LON0, LAT1, LON1] = RAD_META.bbox, [OW, OH] = RAD_META.size, RES = RAD_META.res;
-      const occ = Math.floor((e.latlng.lng - LON0) / RES), orc = Math.floor((LAT1 - e.latlng.lat) / RES);
-      if (occ < 0 || occ >= OW || orc < 0 || orc >= OH) { tip.style.display = "none"; return; }
-      const ci = orc * OW + occ;
-      const k = RAD_VALS[ci], u = RAD_VALS[RAD_LEN + ci], th = RAD_VALS[2 * RAD_LEN + ci], d = RAD_VALS[3 * RAD_LEN + ci];
-      if (!(isFinite(k) || isFinite(u) || isFinite(th) || isFinite(d))) { tip.style.display = "none"; return; }
+      const s = radioSample(e.latlng.lat, e.latlng.lng);
+      if (!radioValid(s)) { tip.style.display = "none"; return; }
       tip.innerHTML = "<b>📡 Radiometrics</b><br>" +
-        "K: " + fmt(k, "%") + "<br>eU: " + fmt(u, "ppm") + "<br>eTh: " + fmt(th, "ppm") + "<br>Dose: " + fmt(d, "nGy/h");
+        "K: " + fmtTip(s.K, "%") + "<br>eU: " + fmtTip(s.eU, "ppm") +
+        "<br>eTh: " + fmtTip(s.eTh, "ppm") + "<br>Dose: " + fmtTip(s.dose, "nGy/h");
       tip.style.display = "block";
       const ev = e.originalEvent;
       tip.style.left = (ev.clientX + 14) + "px";
       tip.style.top = (ev.clientY + 14) + "px";
     });
     map.on("mouseout", () => { tip.style.display = "none"; });
-    loadRadioData();
 
-    // =====================================================================
-    // CLICK → point-in-polygon lookup (client-side, no network)
-    // =====================================================================
-    // Radiometric readout: a distinct card pinned to the top of the detail panel on click
+    // ---- Click readout: a card pinned ABOVE the geology panel ----
     const radioReadout = document.getElementById("radioReadout");
+    function showRadioReadout() {
+      radioReadout.style.display = "block";
+      const panelEl = document.getElementById("panel");
+      const h = (panelEl ? panelEl.offsetHeight : 0) || 0;
+      radioReadout.style.bottom = (10 + h + 12) + "px"; // sit just above the geo panel
+    }
     function updateRadioReadout(lat, lon) {
       if (!RAD_VALS || !RAD_META) {
-        radioReadout.innerHTML = '<div class="rr-title">📡 Radiometrics @ click</div><div class="rr-hint">Data loading…</div>';
-        radioReadout.style.display = "block";
+        radioReadout.innerHTML = '<div class="rr-title">📡 Radiometrics</div><div class="rr-hint">Data loading…</div>';
+        showRadioReadout();
         return;
       }
-      const [LAT0, LON0, LAT1, LON1] = RAD_META.bbox, [OW, OH] = RAD_META.size, RES = RAD_META.res;
-      const occ = Math.floor((lon - LON0) / RES), orc = Math.floor((LAT1 - lat) / RES);
-      if (occ < 0 || occ >= OW || orc < 0 || orc >= OH) {
-        radioReadout.innerHTML = '<div class="rr-title">📡 Radiometrics @ click</div><div class="rr-hint">Outside survey area</div>';
-        radioReadout.style.display = "block";
+      const s = radioSample(lat, lon);
+      const fmt = (v, u) => (isFinite(v) ? v.toFixed(v < 10 ? 3 : 1) + " " + u : "—");
+      if (!radioValid(s)) {
+        radioReadout.innerHTML = '<div class="rr-title">📡 Radiometrics @ ' +
+          lat.toFixed(4) + ", " + lon.toFixed(4) + '</div><div class="rr-hint">Outside survey area / no data</div>';
+        showRadioReadout();
         return;
       }
-      const ci = orc * OW + occ;
-      const k = RAD_VALS[ci], u = RAD_VALS[RAD_LEN + ci], th = RAD_VALS[2 * RAD_LEN + ci], d = RAD_VALS[3 * RAD_LEN + ci];
-      const fmt = (v, u) => isFinite(v) ? v.toFixed(v < 10 ? 3 : 1) + " " + u : "—";
       radioReadout.innerHTML =
         '<div class="rr-title">📡 Radiometrics @ ' + lat.toFixed(4) + ", " + lon.toFixed(4) + "</div>" +
         '<div class="rr-grid">' +
-          '<div class="rr-cell"><span class="rr-l">K</span><span class="rr-v">' + fmt(k, "%") + "</span></div>" +
-          '<div class="rr-cell"><span class="rr-l">eU</span><span class="rr-v">' + fmt(u, "ppm") + "</span></div>" +
-          '<div class="rr-cell"><span class="rr-l">eTh</span><span class="rr-v">' + fmt(th, "ppm") + "</span></div>" +
-          '<div class="rr-cell"><span class="rr-l">Dose</span><span class="rr-v">' + fmt(d, "nGy/h") + "</span></div>" +
+          '<div class="rr-cell"><span class="rr-l">K</span><span class="rr-v">' + fmt(s.K, "%") + "</span></div>" +
+          '<div class="rr-cell"><span class="rr-l">eU</span><span class="rr-v">' + fmt(s.eU, "ppm") + "</span></div>" +
+          '<div class="rr-cell"><span class="rr-l">eTh</span><span class="rr-v">' + fmt(s.eTh, "ppm") + "</span></div>" +
+          '<div class="rr-cell"><span class="rr-l">Dose</span><span class="rr-v">' + fmt(s.dose, "nGy/h") + "</span></div>" +
         "</div>";
-      radioReadout.style.display = "block";
+      showRadioReadout();
     }
 
     map.on("click", (e) => {
@@ -377,6 +432,8 @@
       renderDetails(lat, lon, found);
       updateRadioReadout(lat, lon);
     });
+
+    loadRadioData();
 
     function pointInRing(ring, x, y) {
       let inside = false;
