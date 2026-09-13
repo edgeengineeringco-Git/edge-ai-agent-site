@@ -3,9 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ireland — Satellite &amp; 100K Geology Map</title>
+  <title>Ireland — Satellite &amp; 100K Bedrock Geology</title>
 
-  <!-- Leaflet (no API key required) -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -34,15 +33,13 @@
     #panel {
       position: absolute; bottom: 10px; left: 10px; z-index: 1000;
       background: rgba(255,255,255,0.97); padding: 12px 14px; border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.25); width: 320px; max-height: 50%; overflow: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25); width: 320px; max-height: 55%; overflow: auto;
       font-size: 13px; line-height: 1.45;
     }
     #panel h2 { font-size: 14px; margin: 0 0 8px; }
     #panel table { width: 100%; border-collapse: collapse; }
     #panel td { padding: 2px 4px; vertical-align: top; }
-    #panel td.k { font-weight: 600; white-space: nowrap; padding-right: 8px; }
-    #panel .raw { margin-top: 8px; font-family: monospace; font-size: 11px;
-      background: #f4f4f4; padding: 6px; border-radius: 4px; white-space: pre-wrap; word-break: break-word; }
+    #panel td.k { font-weight: 600; white-space: nowrap; padding-right: 8px; color: #333; }
     .hint { color: #777; font-style: italic; }
   </style>
 </head>
@@ -52,175 +49,171 @@
   <div id="topbar">
     <h1>🛰️ Ireland — Satellite + 100K Geology</h1>
     <label>
-      <input type="checkbox" id="toggleGeology" />
+      <input type="checkbox" id="toggleGeology" disabled />
       Show 100K Bedrock Geology
     </label>
-    <div id="status">Click anywhere on the map for details.</div>
+    <div id="status">Loading geology data…</div>
   </div>
 
   <div id="panel">
     <h2>📍 Details</h2>
-    <p class="hint">Click a point on the map to inspect coordinates and geology.</p>
+    <p class="hint">Click a point on the map to inspect coordinates and bedrock geology.</p>
   </div>
 
   <script>
     // =====================================================================
-    // CONFIG — adjust if your geology service uses different endpoints
+    // CONFIG
     // =====================================================================
-    // GSI (Geological Survey Ireland) public WMS — Bedrock Geology 1:100,000
-    const GSI_WMS_URL      = "https://map.geology.ie/gsi/wms";
-    // Try one of these if the overlay is blank:
-    //   "GSI:100k_bedrock"  (default)  | "100k_bedrock" | "GSI:500k_bedrock"
-    const GSI_GEOLOGY_LAYER = "GSI:100k_bedrock";
+    // GSI Bedrock Geology 1:100,000, reprojected to WGS84, simplified.
+    // Hosted in this repo (same origin) so there are NO CORS issues.
+    const GEOLOGY_GEOJSON_URL = "./data/geology-100k.geojson";
 
     // Esri World Imagery — free satellite basemap (no key needed)
     const SATELLITE_URL =
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
     const SATELLITE_ATTR =
       "Imagery &copy; Esri, Maxar, Earthstar Geographics, and the GIS User Community";
+    const GEOLOGY_ATTR = "Bedrock Geology &copy; GSI (CC-BY-4.0)";
 
-    // Centre on Ireland
     const IRELAND_CENTER = [53.4, -8.0];
-    const IRELAND_ZOOM   = 7;
-    // Rough bounding box of the island (used to keep the user in range)
+    const IRELAND_ZOOM = 7;
     const IRELAND_BOUNDS = [[51.4, -11.0], [55.6, -5.3]];
 
     // =====================================================================
-    // MAP SETUP
+    // MAP
     // =====================================================================
     const map = L.map("map", {
       center: IRELAND_CENTER,
       zoom: IRELAND_ZOOM,
       maxBounds: IRELAND_BOUNDS,
       maxBoundsViscosity: 0.7,
+      preferCanvas: true, // faster rendering of dense polygons
     });
 
-    const satellite = L.tileLayer(SATELLITE_URL, {
-      maxZoom: 18,
-      attribution: SATELLITE_ATTR,
-    }).addTo(map);
+    L.tileLayer(SATELLITE_URL, { maxZoom: 18, attribution: SATELLITE_ATTR }).addTo(map);
 
-    // Geology WMS overlay (added/removed by the checkbox)
-    const geology = L.tileLayer.wms(GSI_WMS_URL, {
-      layers: GSI_GEOLOGY_LAYER,
-      format: "image/png",
-      transparent: true,
-      attribution: "Bedrock Geology &copy; GSI (CC-BY-4.0)",
-      opacity: 0.75,
-    });
+    const panel = document.getElementById("panel");
+    const statusEl = document.getElementById("status");
+    const toggle = document.getElementById("toggleGeology");
 
-    document.getElementById("toggleGeology").addEventListener("change", (e) => {
-      if (e.target.checked) {
-        geology.addTo(map);
-        setStatus("100K geology layer ON. Click a point for details.");
+    // =====================================================================
+    // LOAD GEOLOGY (once)
+    // =====================================================================
+    let geologyLayer = null;
+    let geologyFeatures = [];
+
+    async function loadGeology() {
+      try {
+        const res = await fetch(GEOLOGY_GEOJSON_URL);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const fc = await res.json();
+        geologyFeatures = fc.features || [];
+
+        geologyLayer = L.geoJSON(fc, {
+          style: () => ({
+            color: "#3358ff",
+            weight: 0.6,
+            fillColor: "#4f7bff",
+            fillOpacity: 0.4,
+          }),
+          onEachFeature: (feature, layer) => {},
+        });
+
+        toggle.disabled = false;
+        statusEl.textContent = `Geology loaded (${geologyFeatures.length} units). Toggle on, then click a point.`;
+      } catch (err) {
+        statusEl.textContent = "Failed to load geology data: " + err.message;
+      }
+    }
+
+    toggle.addEventListener("change", () => {
+      if (!geologyLayer) return;
+      if (toggle.checked) {
+        geologyLayer.addTo(map);
+        statusEl.textContent = "100K geology ON. Click a point for details.";
       } else {
-        map.removeLayer(geology);
-        setStatus("100K geology layer OFF.");
+        map.removeLayer(geologyLayer);
+        statusEl.textContent = "100K geology OFF.";
       }
     });
 
-    function setStatus(msg) {
-      document.getElementById("status").textContent = msg;
+    // =====================================================================
+    // CLICK → point-in-polygon lookup (client-side, no network)
+    // =====================================================================
+    map.on("click", (e) => {
+      const lat = e.latlng.lat;
+      const lon = e.latlng.lng;
+      const found = findGeology(lat, lon);
+      renderDetails(lat, lon, found);
+    });
+
+    function pointInRing(ring, x, y) {
+      // ray casting; ring is array of [lon, lat]
+      let inside = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const xi = ring[i][0], yi = ring[i][1];
+        const xj = ring[j][0], yj = ring[j][1];
+        const intersect =
+          (yi > y) !== (yj > y) &&
+          x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+        if (intersect) inside = !inside;
+      }
+      return inside;
     }
 
-    // =====================================================================
-    // CLICK → DETAILS
-    // =====================================================================
-    const panel = document.getElementById("panel");
+    function pointInPolygon(poly, x, y) {
+      // poly: array of rings [outer, hole, ...]
+      if (!pointInRing(poly[0], x, y)) return false;
+      for (let h = 1; h < poly.length; h++) {
+        if (pointInRing(poly[h], x, y)) return false; // inside a hole
+      }
+      return true;
+    }
 
-    map.on("click", async (e) => {
-      const lat = e.latlng.lat.toFixed(5);
-      const lon = e.latlng.lng.toFixed(5);
-      setStatus(`Querying geology at ${lat}, ${lon} …`);
-      panel.innerHTML =
+    function findGeology(lat, lon) {
+      if (!geologyFeatures.length) return { error: "Geology data not loaded yet." };
+      for (const f of geologyFeatures) {
+        const g = f.geometry;
+        if (g.type === "Polygon") {
+          if (pointInPolygon(g.coordinates, lon, lat)) return f.properties;
+        } else if (g.type === "MultiPolygon") {
+          for (const poly of g.coordinates) {
+            if (pointInPolygon(poly, lon, lat)) return f.properties;
+          }
+        }
+      }
+      return null; // nothing found at this point
+    }
+
+    function renderDetails(lat, lon, found) {
+      const head =
         `<h2>📍 Details</h2>` +
         `<table>` +
-        `<tr><td class="k">Latitude</td><td>${lat}</td></tr>` +
-        `<tr><td class="k">Longitude</td><td>${lon}</td></tr>` +
-        `<tr><td class="k">Geology</td><td class="hint">loading…</td></tr>` +
+        `<tr><td class="k">Latitude</td><td>${lat.toFixed(5)}</td></tr>` +
+        `<tr><td class="k">Longitude</td><td>${lon.toFixed(5)}</td></tr>` +
         `</table>`;
 
-      const geo = await queryGeology(e);
-      renderGeology(lat, lon, geo);
-    });
-
-    async function queryGeology(e) {
-      // WMS 1.1.1 GetFeatureInfo with SRS=EPSG:4326
-      const b = map.getBounds();
-      const size = map.getSize();
-      const bbox = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()].join(",");
-      const params = new URLSearchParams({
-        SERVICE: "WMS",
-        VERSION: "1.1.1",
-        REQUEST: "GetFeatureInfo",
-        LAYERS: GSI_GEOLOGY_LAYER,
-        QUERY_LAYERS: GSI_GEOLOGY_LAYER,
-        SRS: "EPSG:4326",
-        BBOX: bbox,
-        WIDTH: size.x,
-        HEIGHT: size.y,
-        X: Math.round(e.containerPoint.x),
-        Y: Math.round(e.containerPoint.y),
-        INFO_FORMAT: "application/json",
-      });
-      const target = `${GSI_WMS_URL}?${params.toString()}`;
-
-      // GSI's WMS does NOT send CORS headers, so a direct browser fetch is
-      // blocked. Try direct first, then fall back to public CORS proxies.
-      const sources = [
-        target,
-        "https://api.allorigins.win/raw?url=" + encodeURIComponent(target),
-        "https://corsproxy.io/?url=" + encodeURIComponent(target),
-      ];
-
-      for (const url of sources) {
-        try {
-          const res = await fetch(url);
-          if (!res.ok) continue;
-          const text = await res.text();
-          let data;
-          try { data = JSON.parse(text); }
-          catch { return { raw: text.slice(0, 500) }; }
-          const parsed = parseGeoJSON(data);
-          if (parsed.error) continue; // proxy returned an error page
-          return parsed;
-        } catch { /* try next source */ }
+      if (found && found.error) {
+        panel.innerHTML = head + `<p class="hint">${esc(found.error)}</p>`;
+        return;
       }
-      return { error: "Could not reach geology service (network/CORS)." };
-    }
+      if (!found) {
+        panel.innerHTML = head + `<p class="hint">No bedrock geology polygon at this point (possibly offshore or outside the dataset).</p>`;
+        return;
+      }
 
-    function parseGeoJSON(data) {
-      const feats = data && data.features ? data.features : [];
-      if (!feats.length) return { none: true };
-      // Collect all attribute key/values from the first feature
-      const props = feats[0].properties || {};
-      const rows = Object.entries(props)
-        .filter(([k, v]) => v !== null && v !== "")
+      const rows = [
+        ["Unit Name", found.UNIT_NAME],
+        ["Description", found.DESCRIPT],
+        ["Stratigraphic Code", found.STRATCODE],
+        ["New Code", found.NEWCODE],
+        ["Label", found.LABEL],
+      ]
+        .filter(([, v]) => v !== null && v !== undefined && v !== "")
         .map(([k, v]) => `<tr><td class="k">${esc(k)}</td><td>${esc(v)}</td></tr>`)
         .join("");
-      return { html: rows };
-    }
 
-    function renderGeology(lat, lon, geo) {
-      let geoCell;
-      if (geo.error) geoCell = `<span class="hint">${esc(geo.error)}</span>`;
-      else if (geo.none) geoCell = `<span class="hint">No geology polygon at this point.</span>`;
-      else if (geo.raw) geoCell = `<span class="hint">Returned raw text — see below.</span>`;
-      else if (geo.html) geoCell = `see table below`;
-      else geoCell = `<span class="hint">No data.</span>`;
-
-      let out =
-        `<h2>📍 Details</h2>` +
-        `<table>` +
-        `<tr><td class="k">Latitude</td><td>${lat}</td></tr>` +
-        `<tr><td class="k">Longitude</td><td>${lon}</td></tr>` +
-        `<tr><td class="k">Geology</td><td>${geoCell}</td></tr>` +
-        `</table>`;
-
-      if (geo.html) out += `<table>${geo.html}</table>`;
-      if (geo.raw) out += `<div class="raw">${esc(geo.raw)}</div>`;
-
-      panel.innerHTML = out;
+      panel.innerHTML = head + `<table>${rows}</table>`;
     }
 
     function esc(s) {
@@ -228,6 +221,8 @@
         ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])
       );
     }
+
+    loadGeology();
   </script>
 </body>
 </html>
