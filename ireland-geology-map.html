@@ -163,25 +163,30 @@
         Y: Math.round(e.containerPoint.y),
         INFO_FORMAT: "application/json",
       });
+      const target = `${GSI_WMS_URL}?${params.toString()}`;
 
-      const url = `${GSI_WMS_URL}?${params.toString()}`;
-      try {
-        const res = await fetch(url);
-        if (!res.ok) return { error: `WMS responded ${res.status}` };
-        const data = await res.json();
-        return parseGeoJSON(data);
-      } catch (err) {
-        // Fall back to plain text if JSON unsupported
+      // GSI's WMS does NOT send CORS headers, so a direct browser fetch is
+      // blocked. Try direct first, then fall back to public CORS proxies.
+      const sources = [
+        target,
+        "https://api.allorigins.win/raw?url=" + encodeURIComponent(target),
+        "https://corsproxy.io/?url=" + encodeURIComponent(target),
+      ];
+
+      for (const url of sources) {
         try {
-          const res2 = await fetch(
-            url.replace("INFO_FORMAT=application/json", "INFO_FORMAT=text/plain")
-          );
-          const txt = await res2.text();
-          return { raw: txt.slice(0, 400) };
-        } catch {
-          return { error: "Could not reach geology service (network/CORS)." };
-        }
+          const res = await fetch(url);
+          if (!res.ok) continue;
+          const text = await res.text();
+          let data;
+          try { data = JSON.parse(text); }
+          catch { return { raw: text.slice(0, 500) }; }
+          const parsed = parseGeoJSON(data);
+          if (parsed.error) continue; // proxy returned an error page
+          return parsed;
+        } catch { /* try next source */ }
       }
+      return { error: "Could not reach geology service (network/CORS)." };
     }
 
     function parseGeoJSON(data) {
