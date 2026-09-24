@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Comber AOI WebGIS - 2002 vs 2008 Earth Observation</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root{--bg:#0f1419;--card:#1a2230;--ink:#e6edf3;--mut:#9fb0c0;--acc:#4ea1ff;--warn:#ffb454}
+*{box-sizing:border-box} body{margin:0;font:15px/1.55 system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{padding:18px;background:linear-gradient(135deg,#16202e,#0f1419);border-bottom:1px solid #243}
+h1{margin:0 0 4px;font-size:20px} .sub{color:var(--mut);font-size:13px}
+.banner{background:#3a2a12;color:#ffd9a0;border:1px solid #6b4a18;padding:9px 13px;border-radius:8px;margin:12px;font-size:12.5px}
+#map{height:72vh;width:100%;background:#000}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px 60px}
+section{margin:24px 0} h2{font-size:17px;border-left:3px solid var(--acc);padding-left:9px}
+.kv{display:grid;grid-template-columns:170px 1fr;gap:6px 12px;font-size:14px} .kv b{color:var(--acc)}
+.note{font-size:12px;color:var(--mut)} ul{font-size:13.5px} li{margin:4px 0}
+a{color:var(--acc)} .legend{font-size:12px;color:var(--mut);padding:6px 10px}
+.leaflet-control-layers{background:#1a2230;color:var(--ink)} .leaflet-control-layers a{color:var(--ink)}
+</style></head>
+<body>
+<header><h1>Comber AOI WebGIS &mdash; 2002&nbsp;vs&nbsp;2008 Earth Observation</h1>
+<div class="sub">Newtownards Road, Comber, Co. Down, BT23 5ZP &middot; Strangford Lough &middot; what3words ///magnetic.deeply.orbited</div></header>
+<div class="banner"><b>NOT an investigation conclusion.</b> This is a geospatial data viewer. Imagery is satellite-resolution (Landsat 30 m / MODIS 250 m); a 1&ndash;2 m buried object is sub-pixel and <b>cannot be located</b> here. The change layers are quantitative pixel computations, not visual interpretation (the agent could not view the images). <b>No determination about burial, concealment, or intent is made.</b> Drum-scale (~0.25&ndash;1 m) evidence requires commercial air photos (see Limitations).</div>
+<div id="map"></div>
+<div class="legend">Toggle years / layers top-right. Base = Esri World Imagery. Orange dot = site point; circle = ~250 m buffer; red squares = top 2002&rarr;2008 change blocks. Imagery overlays are georeferenced to their true bounds.</div>
+<div class="wrap">
+<section><h2>1 &middot; The Area</h2>
+<div class="kv">
+<div><b>what3words</b></div><div>///magnetic.deeply.orbited</div>
+<div><b>WGS84</b></div><div>54.544375&deg; N, &minus;5.729841&deg; E</div>
+<div><b>Irish Grid (approx)*</b></div><div>J 47000 74333 (E 347000, N 374333)</div>
+<div><b>~250 m buffer</b></div><div>lat 54.542125&rarr;54.546625 &middot; lon &minus;5.733741&rarr;&minus;5.725941</div>
+</div>
+<p class="note">* Irish Grid via WGS84&rarr;TM75 Helmert + OSNI TM; relative geometry validated, absolute value approximate. Exact AOI polygon not digitised (no reference photo supplied).</p></section>
+<section><h2>2 &middot; What you are looking at</h2>
+<p class="note">Every image is the genuine retrieved data (Planetary Computer STAC / NASA GIBS), georeferenced and overlaid on its true geographic bounds. The 2002, 2005 and 2008 Landsat crops are pixel-co-registered (identical bounding box), so toggling between them is a like-for-like comparison. The red squares mark the 16&times;16 px blocks with the largest <i>local</i> luminance change 2002&rarr;2008 (see table). They cluster along the north-west shoreline / estuary margin &mdash; consistent with tidal / vegetation change, <b>not</b> a discrete object.</p></section>
+<section><h2>3 &middot; Top 2002&rarr;2008 change blocks (computed)</h2>
+<table><thead><tr><th>Lat</th><th>Lon</th><th>ING E</th><th>ING N</th><th>change idx</th></tr></thead><tbody id="hotbody"></tbody></table>
+<p class="note">Coordinates are block centres (~250 m at 30 m GSD). Coarse land-cover / shoreline change hotspots for human review &mdash; not a location.</p></section>
+<section><h2>4 &middot; Limitations</h2>
+<ul>
+<li><b>Resolution.</b> Landsat 30 m / MODIS 250 m cannot resolve a drum. Change layers show large-area change only.</li>
+<li><b>Drum-scale = commercial.</b> Only ~0.25&ndash;1 m 2002&ndash;2008 coverage is order-only air photography: OSNI / Land &amp; Property Services (start here), Bluesky, Getmapping, NCAP. Not freely downloadable.</li>
+<li><b>No visual verification.</b> Change layers are computed from decoded pixels; confirm visually with a human.</li>
+<li><b>No determination.</b> Nothing here infers burial, concealment, or intent.</li>
+</ul></section>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+var map=L.map('map',{center:[54.544,-5.730],zoom:14});
+var esri=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Esri'});
+var osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'OSM'});
+esri.addTo(map);
+var lnd={b:{bounds:[[54.538,-5.742],[54.550,-5.718]]}};
+function ov(url,bounds,op){return L.imageOverlay(url,bounds,{opacity:op,interactive:false});}
+var o2002=ov('assets/landsat_2002-10-18_comber_AOIcrop.png',lnd.b.bounds,0.85);
+var o2005=ov('assets/landsat_2005-11-19_comber_AOIcrop.png',lnd.b.bounds,0.85);
+var o2008=ov('assets/landsat_2008-09-01_comber_AOIcrop.png',lnd.b.bounds,0.85);
+var odiff=ov('assets/diff_2002_2008.png',lnd.b.bounds,0.9);
+var m2002=ov('assets/MODIS_Comber_2002-06-15.png',[[54.52,-5.77],[54.57,-5.69]],0.8);
+var m2008=ov('assets/MODIS_Comber_2008-06-15.png',[[54.52,-5.77],[54.57,-5.69]],0.8);
+o2002.addTo(map);o2008.addTo(map);
+var site=L.circleMarker([54.544375,-5.729841],{radius:7,color:'#ffb454',fillColor:'#ffb454',fillOpacity:1,weight:2}).bindPopup('Site point<br>///magnetic.deeply.orbited<br>54.544375, -5.729841');
+var buf=L.circle([54.544375,-5.729841],{radius:250,color:'#ffb454',weight:1,fill:false}).bindPopup('~250 m buffer');
+site.addTo(map);buf.addTo(map);
+var hot=[[54.547182, -5.71908, 347781, 374819, 116.5], [54.547182, -5.720583, 347684, 374808, 113.9], [54.547182, -5.719832, 347733, 374813, 110.7], [54.547182, -5.721335, 347635, 374803, 105.7], [54.546806, -5.719832, 347734, 374772, 101.8], [54.547182, -5.722086, 347586, 374797, 98.6], [54.546806, -5.71908, 347783, 374777, 96.4], [54.546806, -5.720583, 347685, 374766, 95.9]];
+var hlayer=L.layerGroup();
+hot.forEach(function(h){L.marker([h[0],h[1]],{icon:L.divIcon({className:'',html:'<div style="width:14px;height:14px;background:#ff4d4d;border:1px solid #fff;opacity:.8"></div>',iconSize:[14,14]}})).bindPopup('Lat '+h[0]+'<br>Lon '+h[1]+'<br>ING E '+h[2]+' N '+h[3]+'<br>change idx '+h[4]).addTo(hlayer);
+  var tb=document.getElementById('hotbody');var tr=document.createElement('tr');tr.innerHTML='<td>'+h[0]+'</td><td>'+h[1]+'</td><td>'+h[2]+'</td><td>'+h[3]+'</td><td>'+h[4]+'</td>';tb.appendChild(tr);
+});
+hlayer.addTo(map);
+L.control.layers({'Esri World Imagery':esri,'OpenStreetMap':osm},{'Landsat 2002':o2002,'Landsat 2005':o2005,'Landsat 2008':o2008,'Change 2002-2008':odiff,'MODIS 2002':m2002,'MODIS 2008':m2008,'Change hotspots':hlayer},{collapsed:false}).addTo(map);
+map.fitBounds(lnd.b.bounds);
+</script>
+</body></html>
